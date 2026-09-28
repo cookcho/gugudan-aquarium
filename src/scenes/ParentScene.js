@@ -173,6 +173,7 @@ export class ParentScene {
           <textarea id="transfer-code" rows="3" placeholder="여기에 옮기기 코드를 붙여 넣으세요" spellcheck="false"></textarea>
           <div class="row-left"><button class="dash-close" data-a="import">📥 붙여 넣은 코드로 가져오기</button></div>
         </section>
+        <p class="dash-credit">made by DooJo</p>
       </div>`;
 
     this.el.onclick = async (e) => {

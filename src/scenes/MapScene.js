@@ -133,7 +133,7 @@ export class MapScene {
     this.bar = topbar(app, { back: 'home', backLabel: '← 어항' });
     this.el = h(`
       <div class="scene map">
-        <div class="map-sea">${mapSVG(this.selected)}</div>
+        <div class="map-sea">${mapSVG(this.selected)}<span class="made-by">made by DooJo</span></div>
         <aside class="map-panel"></aside>
       </div>`);
     this.el.prepend(this.bar.el);
