@@ -2,6 +2,7 @@
 
 /* ---------- 기본 토큰: --u 하나로 모든 크기를 맞춰요 (1180×820 가로에서 약 11.8px) ---------- */
 :root {
+  color-scheme: only light; /* 휴대폰 다크 모드의 자동 색 바꾸기를 막아요 */
   --u: min(1vw, 1.55vh);
   --stand-h: calc(var(--u) * 10.5 + env(safe-area-inset-bottom, 0px));
   --sea-top: #8EDCEB;
@@ -30,6 +31,8 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; overflow: hidden; background: var(--sea-deep); }
+/* 모바일 브라우저가 글자 크기를 멋대로 키우지 않게 */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { font-family: var(--kid); color: var(--ink); user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 button { font-family: inherit; color: inherit; }
 [hidden] { display: none !important; }
