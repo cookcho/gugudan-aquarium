@@ -46,6 +46,28 @@ def clear_background(im):
     return im
 
 
+def defringe(im, passes=3):
+    """배경과 맞닿은 테두리의 밝은 회색·흰색 점(배경이 번진 자국)을 지워요. 진한 외곽선은 그대로 둬요."""
+    w, h = im.size
+    for _ in range(passes):
+        px = im.load()
+        edge = []
+        for y in range(h):
+            for x in range(w):
+                r, g, b, a = px[x, y]
+                if a == 0 or min(r, g, b) < 150 or max(r, g, b) - min(r, g, b) > 40:
+                    continue
+                for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1), (x - 1, y - 1), (x + 1, y + 1), (x - 1, y + 1), (x + 1, y - 1)):
+                    if 0 <= nx < w and 0 <= ny < h and px[nx, ny][3] == 0:
+                        edge.append((x, y))
+                        break
+        if not edge:
+            break
+        for x, y in edge:
+            px[x, y] = (255, 255, 255, 0)
+    return im
+
+
 def remove_specks(im, min_ratio=0.002):
     """배경을 지우고 남은 자잘한 부스러기(본 그림과 떨어진 작은 점)를 지워요."""
     w, h = im.size
@@ -86,7 +108,7 @@ for png in sorted(GAME_DIR.glob('*.png')):
     before = png.stat().st_size
     notes = []
     if opaque:
-        im = remove_specks(clear_background(im))
+        im = remove_specks(defringe(clear_background(im)))
         notes.append('배경 지움')
     if max(im.size) > SIZE:
         im = im.resize((SIZE, SIZE), Image.LANCZOS)
