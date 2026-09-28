@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap');
+@import url('./jua.css');
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
 
 /* ---------- 기본 토큰: --u 하나로 모든 크기를 맞춰요 (1180×820 가로에서 약 11.8px) ---------- */
 :root {
