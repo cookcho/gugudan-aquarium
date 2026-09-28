@@ -91,6 +91,7 @@ export class HomeScene {
           </div>
           <button class="btn btn-coral btn-big" data-act="go">🗺️ 모험 떠나기</button>
           <div class="dock-side end">
+            <button class="btn btn-foam" data-act="bubble">🫧 비눗방울</button>
             <button class="btn btn-foam" data-act="feed">${createFoodCanSVG(Math.round(this.u * 3))} 밥주기 <span class="feed-n">${store.data.food}</span></button>
             <button class="btn btn-foam" data-act="clean">🧽 청소 <small>⭐${CLEAN_COST}</small></button>
           </div>
@@ -246,6 +247,7 @@ export class HomeScene {
       return;
     }
     if (this.feeding) this.toggleFeed();
+    if (this.blowing) this.toggleBubbles();
     const r = Math.round(this.u * 2.6);
     const el = h(`<div class="ball" style="width:${r * 2}px;height:${r * 2}px"></div>`);
     this.tank.appendChild(el);
@@ -297,6 +299,76 @@ export class HomeScene {
       if (b.idle > 40) return this.toggleBall(); // 40초 동안 안 놀면 치워요
     }
     b.el.style.transform = `translate(${b.x - b.r}px, ${b.y - b.r}px) rotate(${b.x * 2}deg)`;
+  }
+
+  // ---- 비눗방울 놀이: 어항을 누르면 비눗방울이 나오고, 친구들이 쫓아가서 톡 터뜨려요 ----
+  toggleBubbles() {
+    this.blowing = !this.blowing;
+    this.el.querySelector('[data-act="bubble"]').classList.toggle('active', this.blowing);
+    if (!this.blowing) return;
+    if (this.feeding) this.toggleFeed();
+    if (this.ball) this.toggleBall();
+    this.bubbleIdle = 0;
+    this.say('어항을 톡톡 누르면 비눗방울이 나와요! 친구들이 터뜨려요 🫧');
+  }
+
+  blowBubbles(x, y) {
+    this.playBubbles ??= [];
+    this.bubbleIdle = 0;
+    sound.playPop();
+    for (let i = 0; i < 3 && this.playBubbles.length < 24; i++) {
+      const r = Math.round(this.u * (1.2 + Math.random() * 1.4));
+      const el = h(`<div class="play-bubble" style="width:${r * 2}px;height:${r * 2}px"></div>`);
+      const b = { el, r, x: x + (Math.random() - 0.5) * r * 3, y: y + (Math.random() - 0.5) * r * 2, rise: 0.5 + Math.random() * 0.6, t: Math.random() * 6 };
+      el.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        this.popBubble(b);
+      });
+      this.tank.appendChild(el);
+      this.playBubbles.push(b);
+    }
+  }
+
+  stepBubbles(dt, W) {
+    if (!this.playBubbles?.length) {
+      if (this.blowing && (this.bubbleIdle += dt) > 40) this.toggleBubbles(); // 40초 동안 안 놀면 끝나요
+      return;
+    }
+    for (const b of this.playBubbles) {
+      b.t += dt;
+      b.y -= b.rise;
+      b.x = Math.max(b.r, Math.min(W - b.r, b.x + Math.sin(b.t * 2) * 0.4));
+      if (b.y < -b.r * 2) this.popBubble(b, true);
+      else b.el.style.transform = `translate(${b.x - b.r}px, ${b.y - b.r}px)`;
+    }
+  }
+
+  nearestBubble(cx, cy) {
+    let best = null;
+    let bestD = 520;
+    for (const b of this.playBubbles || []) {
+      const d = Math.hypot(b.x - cx, b.y - cy);
+      if (d < bestD) { best = b; bestD = d; }
+    }
+    return best;
+  }
+
+  fishPopsBubble(f, b) {
+    const cx = f.x + f.size / 2;
+    const cy = f.y + f.size / 2;
+    if (Math.hypot(b.x - cx, b.y - cy) > f.size * 0.42 + b.r) return;
+    f.sw.squash = 0.8;
+    this.popBubble(b);
+    this.giveLove(f.dan, 1, 'play', f);
+  }
+
+  // quiet: 물 위로 올라가서 저절로 사라질 때
+  popBubble(b, quiet = false) {
+    this.playBubbles = this.playBubbles.filter((x) => x !== b);
+    b.el.remove();
+    if (quiet) return;
+    sound.playPop();
+    floatUp(this.tank, b.x, b.y, '✨');
   }
 
   // 친구가 공에 닿으면 코로 톡 튕겨요
@@ -739,6 +811,7 @@ export class HomeScene {
       if (act === 'feed') this.toggleFeed();
       if (act === 'clean') this.startCleaning();
       if (act === 'ball') this.toggleBall();
+      if (act === 'bubble') this.toggleBubbles();
       if (act === 'requests') openRequests(() => {
         this.updateRequestPill();
         this.say(careMessage() || this.guideLine());
@@ -759,8 +832,9 @@ export class HomeScene {
     window.addEventListener('pointerup', this.endWipe);
 
     this.el.addEventListener('pointerdown', (e) => {
-      if (this.feeding || this.decorating || this.cleaning || e.target.closest('button, .topbar, .stand, .fish, .fish-info, .guide, .ball, .guest')) return;
+      if (this.feeding || this.decorating || this.cleaning || e.target.closest('button, .topbar, .stand, .fish, .fish-info, .guide, .ball, .guest, .play-bubble')) return;
       const r = this.tank.getBoundingClientRect();
+      if (this.blowing) return this.blowBubbles(e.clientX - r.left, e.clientY - r.top);
       this.attention = { x: e.clientX - r.left, y: e.clientY - r.top, until: performance.now() + 2500 };
       const ripple = h(`<div class="ripple" style="left:${this.attention.x}px;top:${this.attention.y}px"></div>`);
       this.tank.appendChild(ripple);
@@ -792,6 +866,7 @@ export class HomeScene {
   }
 
   toggleFeed() {
+    if (!this.feeding && this.blowing) this.toggleBubbles();
     this.feeding = !this.feeding;
     const b = this.el.querySelector('[data-act="feed"]');
     b.classList.toggle('active', this.feeding);
@@ -818,6 +893,7 @@ export class HomeScene {
     }
     if (this.attention && now > this.attention.until) this.attention = null;
     this.stepBall(dt, W, H);
+    this.stepBubbles(dt, W);
 
     const swimmers = this.fishes.filter((f) => f.sw);
     if (!this.decorPts || now - this.decorAt > 2000) {
@@ -845,9 +921,10 @@ export class HomeScene {
       // 먹이가 없으면 공을 쫓아가요 (배고프거나 아프면 안 놀아요)
       const toy = !food && this.ball && !this.ball.held && !f.hungry && !f.sick && Math.hypot(this.ball.x - cx, this.ball.y - cy) < 520
         ? { x: this.ball.x, y: this.ball.y } : null;
+      const bubble = !food && !toy && !f.hungry && !f.sick ? this.nearestBubble(cx, cy) : null;
       const near = this.attention && Math.hypot(this.attention.x - cx, this.attention.y - cy) < 380;
       const events = f.sw.update({
-        W, H, dt, food: food || toy,
+        W, H, dt, food: food || toy || bubble,
         attention: near && !f.sick ? this.attention : null,
         friends: swimmers.filter((o) => o !== f && !o.sick).map((o) => o.sw),
         decors,
@@ -872,6 +949,7 @@ export class HomeScene {
         if (Math.random() < 0.3) setTimeout(() => this.dropPoop(f), 8000 + Math.random() * 8000);
       }
       if (toy) this.bumpBall(f, f.x + f.size / 2, f.y + f.size / 2);
+      if (bubble) this.fishPopsBubble(f, bubble);
       for (const ev of events) this.effect(ev, f);
 
       f.el.style.transform = f.sw.transform();
