@@ -323,7 +323,7 @@ button.pill { cursor: pointer; }
 .big-q { font-size: calc(var(--u) * 8); color: #fff; line-height: 1.1; text-shadow: 0 calc(var(--u) * 0.5) 0 rgba(0, 0, 0, .18); white-space: nowrap; }
 .big-q em { font-style: normal; color: var(--star); display: inline-block; }
 .big-q em.pop { animation: popIn .35s ease-out; }
-.feedback { min-height: calc(var(--u) * 3.4); font-size: calc(var(--u) * 2.5); color: #fff; }
+.feedback { display: grid; place-items: center; min-height: calc(var(--u) * 3.4); font-size: calc(var(--u) * 2.5); color: #fff; }
 .feedback.good { color: var(--star); }
 .feedback.soft { color: #FFE2D6; }
 .hint-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--u) * 0.7); max-width: calc(var(--u) * 64); animation: popIn .3s; }
@@ -346,7 +346,7 @@ button.pill { cursor: pointer; }
 /* 노래 듣기 */
 .song .stage-center { top: calc(var(--u) * 10); }
 .singer.sing .char-svg { animation: sing .4s ease-in-out infinite alternate; }
-.reading { font-size: calc(var(--u) * 3); color: var(--star); min-height: calc(var(--u) * 4); }
+.reading { display: grid; place-items: center; font-size: calc(var(--u) * 3); color: var(--star); min-height: calc(var(--u) * 4); }
 .song-actions { display: flex; gap: calc(var(--u) * 3); align-items: center; margin-top: calc(var(--u) * 1); min-height: calc(var(--u) * 13); }
 .reps { display: flex; gap: calc(var(--u) * 1); }
 .reps i { width: calc(var(--u) * 2.2); height: calc(var(--u) * 2.2); border-radius: 50%; background: rgba(255, 255, 255, .35); border: 2px solid rgba(255, 255, 255, .7); }
@@ -615,7 +615,7 @@ button.pill { cursor: pointer; }
 .riddle-hint { font-size: calc(var(--u) * 2.2); color: var(--sea); background: #E8F7FF; border-radius: 999px; padding: calc(var(--u) * 0.3) calc(var(--u) * 1.6); }
 .riddle-choices { display: grid; grid-template-columns: repeat(4, auto); gap: calc(var(--u) * 1.4); margin-top: calc(var(--u) * 0.6); }
 .riddle-choices .answer { width: calc(var(--u) * 13); height: calc(var(--u) * 10); font-size: calc(var(--u) * 4.2); }
-.riddle-result { min-height: calc(var(--u) * 3); font-size: calc(var(--u) * 2.2); color: var(--sea); }
+.riddle-result { display: grid; place-items: center; min-height: calc(var(--u) * 3); font-size: calc(var(--u) * 2.2); color: var(--sea); }
 .dex-sub { font-size: calc(var(--u) * 2.6); font-weight: 400; color: var(--sea); margin-top: calc(var(--u) * 2.4); }
 .dex-sub small { font-size: .75em; color: var(--muted); }
 .guest-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--u) * 17), 1fr)); gap: calc(var(--u) * 1.2); }
