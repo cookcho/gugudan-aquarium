@@ -44,11 +44,11 @@ export const SHOP_ITEMS = [
   { type: 'crystal', cat: 'special', name: '반짝 수정', cost: 50, size: 9, need: 3, draw: more.createCrystalSVG },
 
   // 물속에 떠 있는 장식 (float: 어항에서 둥실둥실 흔들려요)
-  { type: 'jellyTrio', cat: 'float', float: true, name: '꼬마 해파리 삼형제', cost: 15, size: 12, draw: floating.createJellyTrioSVG },
-  { type: 'diverBlue', cat: 'float', float: true, name: '꼬마 잠수부 (파랑)', cost: 20, size: 15, draw: floating.createDiverBlueSVG },
-  { type: 'diverPink', cat: 'float', float: true, name: '꼬마 잠수부 (분홍)', cost: 20, size: 15, draw: floating.createDiverPinkSVG },
-  { type: 'submarine', cat: 'float', float: true, name: '노란 잠수함', cost: 35, size: 14, need: 1, draw: floating.createSubmarineSVG },
-  { type: 'robot', cat: 'float', float: true, name: '탐사 로봇', cost: 40, size: 12, need: 2, draw: floating.createRobotSVG }
+  { type: 'jellyTrio', cat: 'float', float: true, name: '꼬마 해파리 삼형제', cost: 15, size: 9.6, draw: floating.createJellyTrioSVG },
+  { type: 'diverBlue', cat: 'float', float: true, name: '꼬마 잠수부 (파랑)', cost: 20, size: 12, draw: floating.createDiverBlueSVG },
+  { type: 'diverPink', cat: 'float', float: true, name: '꼬마 잠수부 (분홍)', cost: 20, size: 12, draw: floating.createDiverPinkSVG },
+  { type: 'submarine', cat: 'float', float: true, name: '노란 잠수함', cost: 35, size: 11.2, need: 1, draw: floating.createSubmarineSVG },
+  { type: 'robot', cat: 'float', float: true, name: '탐사 로봇', cost: 40, size: 9.6, need: 2, draw: floating.createRobotSVG }
 ];
 
 export const THEMES = [
