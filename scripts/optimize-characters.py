@@ -46,6 +46,36 @@ def clear_background(im):
     return im
 
 
+def remove_specks(im, min_ratio=0.002):
+    """배경을 지우고 남은 자잘한 부스러기(본 그림과 떨어진 작은 점)를 지워요."""
+    w, h = im.size
+    alpha = im.getchannel('A').load()
+    px = im.load()
+    seen = bytearray(w * h)
+    min_size = int(w * h * min_ratio)
+    for sy in range(h):
+        for sx in range(w):
+            i = sy * w + sx
+            if seen[i] or alpha[sx, sy] == 0:
+                continue
+            group = []
+            queue = deque([(sx, sy)])
+            seen[i] = 1
+            while queue:
+                x, y = queue.popleft()
+                group.append((x, y))
+                for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+                    if 0 <= nx < w and 0 <= ny < h:
+                        j = ny * w + nx
+                        if not seen[j] and alpha[nx, ny] > 0:
+                            seen[j] = 1
+                            queue.append((nx, ny))
+            if len(group) < min_size:
+                for x, y in group:
+                    px[x, y] = (255, 255, 255, 0)
+    return im
+
+
 SOURCE_DIR.mkdir(parents=True, exist_ok=True)
 for png in sorted(GAME_DIR.glob('*.png')):
     im = Image.open(png).convert('RGBA')
@@ -56,7 +86,7 @@ for png in sorted(GAME_DIR.glob('*.png')):
     before = png.stat().st_size
     notes = []
     if opaque:
-        im = clear_background(im)
+        im = remove_specks(clear_background(im))
         notes.append('배경 지움')
     if max(im.size) > SIZE:
         im = im.resize((SIZE, SIZE), Image.LANCZOS)
