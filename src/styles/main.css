@@ -707,7 +707,7 @@ button.pill { cursor: pointer; }
 .tip-bubble { cursor: pointer; }
 .tip-badge { position: absolute; top: calc(var(--u) * -0.6); right: calc(var(--u) * -0.4); width: calc(var(--u) * 2.4); height: calc(var(--u) * 2.4); display: grid; place-items: center; border-radius: 50%; background: var(--coral, #FF7A59); color: #fff; font-size: calc(var(--u) * 1.6); border: 2px solid #fff; animation: badgePulse 1.4s ease-in-out infinite; }
 /* 지도: 뽀글이는 위쪽 버튼 줄(별 옆)에 있고, 말풍선은 지도 위쪽 빈 곳으로 나와요 */
-.map-guide { position: relative; left: auto; bottom: auto; align-items: center; }
+.map-guide { position: relative; left: auto; bottom: auto; align-items: center; margin-left: calc(var(--u) * 1.4); transform: translateY(calc(var(--u) * 1.4)); }
 .map-guide .tip-art svg { width: calc(var(--u) * 6); height: calc(var(--u) * 6); }
 .map-guide .tip-bubble { position: absolute; left: calc(100% + var(--u) * 0.6); top: 50%; transform: translateY(-50%); width: max(calc(var(--u) * 30), calc(64vw - var(--u) * 34)); max-width: none; font-size: calc(var(--u) * 1.8); padding: calc(var(--u) * 0.7) calc(var(--u) * 1.2); border-bottom-left-radius: calc(var(--u) * 1.6); border-top-left-radius: calc(var(--u) * 0.3); }
 .map-guide .tip-bubble.pop { animation: fadeIn .25s ease-out; }

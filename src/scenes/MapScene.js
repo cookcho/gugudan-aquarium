@@ -6,7 +6,7 @@ import { CHARACTERS, DAN_ORDER, STAGES, stageName } from '../data/characters.js'
 import { charSVG } from '../graphics/characters.js';
 import { guideBubble, takeTip } from './tips.js';
 import { callKid } from '../data/care.js';
-import { ISLAND_PROPS, UNDERWATER, SHARK, FISH_SCHOOL, CLOUD, GULLS, DOLPHIN, LITTLE_FISH } from '../graphics/mapArt.js';
+import { ISLAND_PROPS, underwater, SHARK, FISH_SCHOOL, CLOUD, GULLS, DOLPHIN, LITTLE_FISH } from '../graphics/mapArt.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 function svgEl(markup) {
@@ -15,10 +15,22 @@ function svgEl(markup) {
   return box.firstElementChild;
 }
 
-// 해도 좌표 (viewBox 760×800). DAN_ORDER 순서로 아래에서 위로 굽이굽이.
-const W = 760;
+// 해도 좌표 (기본 viewBox 760×800). DAN_ORDER 순서로 아래에서 위로 굽이굽이.
+const BASE_W = 760;
 const H = 800;
-const SPOTS = [[130, 690], [370, 660], [620, 690], [615, 455], [375, 425], [135, 440], [215, 195], [520, 170]];
+const BASE_SPOTS = [[130, 690], [370, 660], [620, 690], [615, 455], [375, 425], [135, 440], [215, 195], [520, 170]];
+let W = BASE_W;
+let SPOTS = BASE_SPOTS;
+
+// 가로가 넓은 화면에서는 해도를 옆으로 넓혀서 섬을 고르게 펼쳐요 (최대 1.6배)
+function fitWidth(u) {
+  const seaW = innerWidth - Math.max(u * 40, innerWidth * 0.36);
+  const seaH = innerHeight - u * 10.8;
+  const k = seaW > 0 && seaH > 0 ? Math.max(1, Math.min(1.6, (seaW / seaH) * (H / BASE_W))) : 1;
+  W = Math.round(BASE_W * k);
+  SPOTS = BASE_SPOTS.map(([x, y]) => [Math.round(x * k), y]);
+  return k;
+}
 
 function modesFor(p) {
   return [
@@ -102,7 +114,7 @@ function mapSVG(selected) {
       <rect x="-400" y="-400" width="${W + 800}" height="${H + 800}" fill="url(#seaGrad)"/>
       <rect class="wave-layer" x="-400" y="-400" width="${W + 800}" height="${H + 800}" fill="url(#waves)"/>
       <rect class="wave-layer2" x="-400" y="-360" width="${W + 800}" height="${H + 800}" fill="url(#waves)" opacity=".6"/>
-      ${UNDERWATER}
+      ${underwater(W / BASE_W)}
       <g class="critters-under"></g>
       ${route}
       ${DAN_ORDER.map((d, i) => islandSVG(d, i, d === selected)).join('')}
@@ -127,6 +139,7 @@ export class MapScene {
     this.u = unit();
     this.selected = dan && store.isUnlocked(dan) ? dan : DAN_ORDER.find((d) => store.isUnlocked(d) && store.data.progress[d] < 2) || 2;
     this.bar = topbar(app, { back: 'home', backLabel: '← 어항' });
+    this.k = fitWidth(this.u);
     this.el = h(`
       <div class="scene map">
         <div class="map-sea">${mapSVG(this.selected)}<span class="made-by">made by DooJo</span></div>
@@ -179,7 +192,7 @@ export class MapScene {
     this.sharks = [
       { cx: 400, amp: 300, base: 565, speed: 0.22, phase: 0 },
       { cx: 420, amp: 250, base: 312, speed: 0.18, phase: 2 }
-    ].map((sh) => {
+    ].map((sh) => ({ ...sh, cx: sh.cx * this.k, amp: sh.amp * this.k })).map((sh) => {
       const el = svgEl(`<g class="shark" role="button" aria-label="상어">${SHARK}</g>`);
       under.appendChild(el);
       return { ...sh, el, jumping: 0 };
@@ -187,7 +200,7 @@ export class MapScene {
     this.schools = [
       { cx: 708, cy: 300, rx: 22, ry: 110, speed: 0.35, phase: 0 },
       { cx: 380, cy: 772, rx: 300, ry: 6, speed: 0.12, phase: 1 }
-    ].map((sc) => {
+    ].map((sc) => ({ ...sc, cx: sc.cx * this.k, rx: sc.rx * this.k })).map((sc) => {
       const el = svgEl(`<g>${FISH_SCHOOL}</g>`);
       under.appendChild(el);
       return { ...sc, el };
@@ -331,7 +344,7 @@ export class MapScene {
     if (this.dolphinWait <= 0) {
       this.dolphinWait = 6 + Math.random() * 6;
       const lanes = [565, 312, 772];
-      this.leap(DOLPHIN, 120 + Math.random() * 520, lanes[Math.floor(Math.random() * lanes.length)], 90, 60, 1.4);
+      this.leap(DOLPHIN, (120 + Math.random() * 520) * this.k, lanes[Math.floor(Math.random() * lanes.length)], 90, 60, 1.4);
     }
   }
 

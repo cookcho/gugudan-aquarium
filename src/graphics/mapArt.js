@@ -54,18 +54,19 @@ export const ISLAND_PROPS = {
 };
 
 // 물속 풍경 (깊은 곳, 산호초, 바위 그림자) — 섬보다 아래에 깔려요
-export const UNDERWATER = `
-  <g opacity=".1" fill="#07415F">
+// k: 해도를 옆으로 넓힌 배율. 위치만 옮기고 모양은 그대로 둬요
+export const underwater = (k = 1) => `
+  <g opacity=".1" fill="#07415F" transform="scale(${k} 1)">
     <ellipse cx="500" cy="560" rx="120" ry="40"/><ellipse cx="250" cy="310" rx="140" ry="45"/><ellipse cx="700" cy="300" rx="80" ry="120"/>
   </g>
   <g opacity=".35">
-    <path d="M250 560 q10 -24 20 0 q10 -18 18 0 q8 -14 16 0" fill="#FF8FB1"/>
-    <path d="M470 300 q8 -22 16 0 q8 -16 16 0" fill="#C9A4F0"/>
-    <path d="M690 590 q6 -26 12 0 M700 590 q6 -20 12 0" stroke="#2E9E5B" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <ellipse cx="60" cy="560" rx="22" ry="10" fill="#6E7D86"/><ellipse cx="80" cy="566" rx="12" ry="6" fill="#8C9BA5"/>
+    <path transform="translate(${250 * (k - 1)} 0)" d="M250 560 q10 -24 20 0 q10 -18 18 0 q8 -14 16 0" fill="#FF8FB1"/>
+    <path transform="translate(${470 * (k - 1)} 0)" d="M470 300 q8 -22 16 0 q8 -16 16 0" fill="#C9A4F0"/>
+    <path transform="translate(${690 * (k - 1)} 0)" d="M690 590 q6 -26 12 0 M700 590 q6 -20 12 0" stroke="#2E9E5B" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <ellipse cx="${60 * k}" cy="560" rx="22" ry="10" fill="#6E7D86"/><ellipse cx="${60 * k + 20}" cy="566" rx="12" ry="6" fill="#8C9BA5"/>
   </g>
   <g class="glints">
-    ${[[300, 250], [560, 330], [80, 330], [700, 520], [460, 760], [250, 520], [620, 260], [40, 760]].map(([x, y], i) =>
+    ${[[300, 250], [560, 330], [80, 330], [700, 520], [460, 760], [250, 520], [620, 260], [40, 760]].map(([bx, y], i) => [bx * k, y, i]).map(([x, y, i]) =>
       `<path d="M${x} ${y - 6} Q${x} ${y} ${x + 6} ${y} Q${x} ${y} ${x} ${y + 6} Q${x} ${y} ${x - 6} ${y} Q${x} ${y} ${x} ${y - 6}Z" fill="#fff" class="twinkle" style="animation-delay:-${(i * 0.4).toFixed(1)}s"/>`).join('')}
   </g>`;
 
