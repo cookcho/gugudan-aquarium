@@ -1,6 +1,6 @@
 // 홈 = 내 어항. 키운 친구들이 헤엄치고, 뽀글이가 오늘 할 일을 하나 추천해요.
 import { store } from '../core/store.js';
-import { h, topbar, toast, floatUp, unit } from '../core/ui.js';
+import { h, topbar, toast, floatUp, unit, timeOfDay } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
 import { CHARACTERS, DAN_ORDER } from '../data/characters.js';
 import { charSVG, guideSVG } from '../graphics/characters.js';
@@ -63,7 +63,7 @@ export class HomeScene {
     store.rollGift();
     this.bar = topbar(app, { parent: true });
     this.el = h(`
-      <div class="scene home theme-${store.data.theme}">
+      <div class="scene home theme-${store.data.theme} time-${timeOfDay()}">
         <div class="aquarium">
           <div class="rays"></div>
           <div class="bubbles"></div>
@@ -72,6 +72,8 @@ export class HomeScene {
           <div class="poop-layer"></div>
           <div class="gift-layer"></div>
           <div class="murk"></div>
+          <div class="sky-tint"></div>
+          <div class="glow-dots">${Array.from({ length: 14 }, () => `<i style="left:${Math.random() * 96}%;top:${10 + Math.random() * 70}%;animation-delay:${-Math.random() * 3}s"></i>`).join('')}</div>
           <div class="algae"></div>
           <div class="tank"></div>
           <div class="food-layer"></div>
@@ -135,6 +137,7 @@ export class HomeScene {
       store.careTick();
       this.renderPoops();
       this.refreshStatus();
+      this.el.className = this.el.className.replace(/time-\w+/, `time-${timeOfDay()}`);
     }, 30000);
   }
 
@@ -371,7 +374,13 @@ export class HomeScene {
   // 뽀글이의 오늘 추천. 이름이 있으면 반쯤은 "선우야, ..." 하고 불러요
   guideLine() {
     const k = callKid(store.data.kidName);
+    if (timeOfDay() === 'night' && Math.random() < 0.5) return `${k ? `${k}, ` : ''}밤이 됐어! 친구들이 코 자려고 해 🌙`;
     return k && Math.random() < 0.5 ? `${k}, ${this.rec.text}` : this.rec.text;
+  }
+
+  // 밤 배경을 골랐거나 실제로 밤이면 친구들이 자주 졸아요
+  isNight() {
+    return store.data.theme === 'night' || timeOfDay() === 'night';
   }
 
   say(text) {
@@ -842,7 +851,7 @@ export class HomeScene {
         attention: near && !f.sick ? this.attention : null,
         friends: swimmers.filter((o) => o !== f && !o.sick).map((o) => o.sw),
         decors,
-        night: store.data.theme === 'night',
+        night: this.isNight(),
         hungry: f.hungry,
         sick: f.sick
       });

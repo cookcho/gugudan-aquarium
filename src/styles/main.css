@@ -146,6 +146,14 @@ button.pill { cursor: pointer; }
 .poop-layer { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
 .poop { position: absolute; margin-left: calc(var(--u) * -1.6); }
 .poop.falling { animation: poopFall 1.6s ease-in forwards; }
+/* 낮과 밤: 실제 시각에 따라 저녁엔 노을빛, 밤엔 어둡고 반짝이는 플랑크톤 */
+.sky-tint { position: absolute; inset: 0; pointer-events: none; z-index: 8; opacity: 0; transition: opacity 3s; }
+.time-evening .sky-tint { opacity: 1; background: linear-gradient(180deg, rgba(255, 150, 90, .32) 0%, rgba(200, 90, 140, .16) 55%, rgba(80, 40, 120, .2) 100%); }
+.time-night .sky-tint { opacity: 1; background: linear-gradient(180deg, rgba(12, 24, 70, .5) 0%, rgba(6, 12, 40, .58) 100%); }
+.glow-dots { position: absolute; inset: 0; pointer-events: none; z-index: 9; display: none; }
+.time-night .glow-dots { display: block; }
+.glow-dots i { position: absolute; width: calc(var(--u) * 0.6); height: calc(var(--u) * 0.6); border-radius: 50%; background: #BFF6FF; box-shadow: 0 0 calc(var(--u) * 1) #7FE8FF; animation: twinkle 2.6s ease-in-out infinite alternate; }
+.time-night .decor[data-type="jellyLamp"] svg, .time-night .decor[data-type="lighthouse"] svg, .time-night .decor[data-type="crystal"] svg { filter: drop-shadow(0 0 calc(var(--u) * 1.2) #FFE08A); }
 .murk { position: absolute; inset: 0; background: #6B7A3A; mix-blend-mode: multiply; opacity: 0; pointer-events: none; transition: opacity .6s; z-index: 7; }
 .cleaning { cursor: grab; }
 .cleaning .poop-layer { z-index: 26; }

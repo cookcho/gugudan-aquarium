@@ -2,7 +2,7 @@
 // 누르면 인사하고, 하루 한 번 구구단 수수께끼를 내요.
 import confetti from 'canvas-confetti';
 import { store } from '../core/store.js';
-import { h, floatUp } from '../core/ui.js';
+import { h, floatUp, timeOfDay } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
 import { Swimmer } from '../core/swim.js';
 import { mixChoices } from '../core/quiz.js';
@@ -35,7 +35,7 @@ export class GuestManager {
   // 좋아하는 장식이 많을수록, 밤바다에서는 초롱이가 더 잘 와요
   candidates() {
     const placed = store.data.decorations.filter((d) => d.placed).map((d) => d.type);
-    const night = store.data.theme === 'night';
+    const night = store.data.theme === 'night' || timeOfDay() === 'night';
     return GUESTS
       .map((g) => ({ g, w: placed.filter((t) => g.likes.includes(t)).length * (g.night && night ? 3 : 1) }))
       .filter((c) => c.w > 0);
