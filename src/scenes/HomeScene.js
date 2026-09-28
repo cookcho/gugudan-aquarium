@@ -390,11 +390,20 @@ export class HomeScene {
     const layer = this.el.querySelector('.decor-layer');
     layer.innerHTML = '';
     for (const d of store.data.decorations.filter((it) => it.placed)) {
-      const item = h(`<div class="decor${isFloating(d.type) ? ' floating' : ''}" data-type="${d.type}" style="left:${d.x}%;bottom:${Math.max(MIN_B, d.b)}%">${decorSVG(d.type, this.u)}</div>`);
+      const item = h(`<div class="decor${isFloating(d.type) ? ' floating' : ''}" data-type="${d.type}" style="left:${d.x}%;bottom:${Math.max(MIN_B, d.b)}%">${decorSVG(d.type, this.u)}<button class="decor-back" type="button" aria-label="보관함에 넣기">↩</button></div>`);
       item.addEventListener('pointerdown', (e) => {
-        if (!this.decorating) return;
+        if (!this.decorating || e.button !== 0) return;
         e.stopPropagation();
+        if (e.target.closest('.decor-back')) return;
         this.drag(e, item, d.id);
+      });
+      // 꾸미기 중에 ↩ 를 누르면 보관함으로 돌아가요
+      item.querySelector('.decor-back').addEventListener('click', (e) => {
+        e.stopPropagation();
+        store.storeDecoration(d.id);
+        sound.playPop();
+        this.renderDecor();
+        this.renderTray();
       });
       layer.appendChild(item);
     }
@@ -409,6 +418,7 @@ export class HomeScene {
     box.querySelectorAll('.tray-item').forEach((el) => {
       el.addEventListener('pointerdown', (e) => {
         e.stopPropagation();
+        if (e.button !== 0) return;
         const d = store.data.decorations.find((it) => it.id === el.dataset.id);
         const ghost = h(`<div class="decor dragging" style="left:-999px">${decorSVG(d.type, this.u)}</div>`);
         this.el.querySelector('.decor-layer').appendChild(ghost);
@@ -480,7 +490,7 @@ export class HomeScene {
     this.el.querySelector('.dock').hidden = true;
     this.el.querySelector('.decor-tray').hidden = false;
     this.renderTray();
-    toast('아래 보관함에서 꺼내 원하는 곳에 놓아요. 보관함으로 끌어다 넣을 수도 있어요');
+    toast('보관함에서 꺼내 원하는 곳에 놓아요. 장식의 ↩ 를 누르면 다시 보관함에 들어가요');
   }
 
   exitDecor() {
