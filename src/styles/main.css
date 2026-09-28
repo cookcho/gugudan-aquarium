@@ -192,6 +192,11 @@ button.pill { cursor: pointer; }
 .tray-item { flex: none; min-width: calc(var(--u) * 9); height: calc(var(--u) * 9); display: flex; align-items: flex-end; justify-content: center; background: #E6F4F8; border-radius: calc(var(--u) * 1.4); padding: calc(var(--u) * 0.6); cursor: grab; touch-action: none; }
 .tray-item svg { max-height: 100%; width: auto; }
 .tray-empty { color: var(--muted); font-size: calc(var(--u) * 1.9); align-self: center; }
+.decor.floating > svg { animation: floatBob 4.5s ease-in-out infinite; }
+.decor.floating:nth-child(2n) > svg { animation-duration: 5.5s; animation-delay: -2s; }
+.decor.dragging > svg { animation: none; }
+@keyframes floatBob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(calc(var(--u) * -1.6)) rotate(2deg); } }
+.prop-spin { transform-box: fill-box; transform-origin: center; animation: flap .35s linear infinite alternate; }
 .decor.dragging { cursor: grabbing; filter: drop-shadow(0 calc(var(--u) * 0.8) calc(var(--u) * 0.6) rgba(0, 0, 0, .3)); z-index: 5; }
 .tank { position: absolute; left: 0; right: 0; top: calc(var(--u) * 8); bottom: 0; pointer-events: none; }
 .fish { position: absolute; left: 0; top: 0; cursor: pointer; will-change: transform; pointer-events: auto; }

@@ -1,12 +1,14 @@
-// 상점 목록: 장식 25종 + 어항 배경 4종. need = 부화시킨 친구 수 조건
+// 상점 목록: 장식 30종 + 어항 배경 4종. need = 부화시킨 친구 수 조건
 import { createSeaweedSVG, createCoralSVG, createTreasureChestSVG, createSeabedPebblesSVG } from '../graphics/decorations.js';
 import * as more from '../graphics/decorMore.js';
+import * as floating from '../graphics/decorFloat.js';
 
 export const SHOP_TABS = [
   { id: 'plant', label: '🌿 식물' },
   { id: 'rock', label: '🪸 산호·돌' },
   { id: 'prop', label: '🏰 소품' },
   { id: 'special', label: '✨ 특별' },
+  { id: 'float', label: '🫧 물속' },
   { id: 'theme', label: '🎨 배경' },
   { id: 'care', label: '💊 돌보기' }
 ];
@@ -39,7 +41,14 @@ export const SHOP_ITEMS = [
   { type: 'clam', cat: 'special', name: '진주 조개', cost: 25, size: 8, need: 1, draw: more.createClamSVG },
   { type: 'bubbler', cat: 'special', name: '거품 기계', cost: 30, size: 5, need: 1, draw: more.createBubblerSVG },
   { type: 'jellyLamp', cat: 'special', name: '해파리 등불', cost: 35, size: 6, need: 2, draw: more.createJellyLampSVG },
-  { type: 'crystal', cat: 'special', name: '반짝 수정', cost: 50, size: 9, need: 3, draw: more.createCrystalSVG }
+  { type: 'crystal', cat: 'special', name: '반짝 수정', cost: 50, size: 9, need: 3, draw: more.createCrystalSVG },
+
+  // 물속에 떠 있는 장식 (float: 어항에서 둥실둥실 흔들려요)
+  { type: 'jellyTrio', cat: 'float', float: true, name: '꼬마 해파리 삼형제', cost: 15, size: 12, draw: floating.createJellyTrioSVG },
+  { type: 'diverBlue', cat: 'float', float: true, name: '꼬마 잠수부 (파랑)', cost: 20, size: 15, draw: floating.createDiverBlueSVG },
+  { type: 'diverPink', cat: 'float', float: true, name: '꼬마 잠수부 (분홍)', cost: 20, size: 15, draw: floating.createDiverPinkSVG },
+  { type: 'submarine', cat: 'float', float: true, name: '노란 잠수함', cost: 35, size: 14, need: 1, draw: floating.createSubmarineSVG },
+  { type: 'robot', cat: 'float', float: true, name: '탐사 로봇', cost: 40, size: 12, need: 2, draw: floating.createRobotSVG }
 ];
 
 export const THEMES = [

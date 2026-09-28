@@ -8,13 +8,14 @@ import { createFoodSVG, createFoodCanSVG, createPoopSVG } from '../graphics/food
 import { openDecorShop, openDex, openRequests, hearts, openCard } from './overlays.js';
 import { REQUESTS, LOVE_PERKS, ANNIVERSARIES, GIFT_PRIZES, josa, hasBatchim } from '../data/care.js';
 import confetti from 'canvas-confetti';
-import { decorSVG } from '../data/shop.js';
+import { decorSVG, SHOP_ITEMS } from '../data/shop.js';
 import { Swimmer, PROFILES } from '../core/swim.js';
 import { GuestManager } from './guests.js';
 
 // 장식이 놓일 수 있는 높이 (어항 바닥에서 %)
 const MIN_B = 2;
 const MAX_B = 70;
+const isFloating = (type) => SHOP_ITEMS.find((it) => it.type === type)?.float;
 const CLEAN_COST = 3;
 
 // 돌봐야 할 일이 있으면 게임 추천보다 먼저 알려줘요
@@ -389,7 +390,7 @@ export class HomeScene {
     const layer = this.el.querySelector('.decor-layer');
     layer.innerHTML = '';
     for (const d of store.data.decorations.filter((it) => it.placed)) {
-      const item = h(`<div class="decor" data-type="${d.type}" style="left:${d.x}%;bottom:${Math.max(MIN_B, d.b)}%">${decorSVG(d.type, this.u)}</div>`);
+      const item = h(`<div class="decor${isFloating(d.type) ? ' floating' : ''}" data-type="${d.type}" style="left:${d.x}%;bottom:${Math.max(MIN_B, d.b)}%">${decorSVG(d.type, this.u)}</div>`);
       item.addEventListener('pointerdown', (e) => {
         if (!this.decorating) return;
         e.stopPropagation();
@@ -453,7 +454,8 @@ export class HomeScene {
       tray.classList.remove('drop-here');
       const overTray = isOver(ev);
       if (fromTray && !moved) {
-        store.placeDecoration(id, 50, 30);
+        const d = store.data.decorations.find((it) => it.id === id);
+        store.placeDecoration(id, 50, isFloating(d.type) ? 50 : 30);
         sound.playStar();
       } else if (overTray) {
         store.storeDecoration(id);
