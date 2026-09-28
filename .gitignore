@@ -1,0 +1,6 @@
+node_modules/
+dist/
+# 이미지 AI 원본 그림(큰 파일)은 이 PC에만 보관해요
+art-source/
+*.log
+.DS_Store

@@ -1,0 +1,21 @@
+{
+  "name": "gugudan-aquarium",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "scripts": {
+    "predev": "python scripts/optimize-characters.py",
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "optimize-images": "python scripts/optimize-characters.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^8.3.1"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.4"
+  }
+}
