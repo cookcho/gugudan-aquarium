@@ -23,7 +23,7 @@ export const GUESTS = [
     riddle: (a, b) => `뽀용! 가시가 ${a}개씩 ${b}줄 있어. 모두 몇 개게?`
   },
   {
-    id: 'pirate', name: '캡틴 앵무', species: '해적 앵무조개', color: '#D9793A',
+    id: 'pirate', name: '캡틴 소라', species: '해적 소라게', color: '#D9793A',
     likes: ['ship', 'chest', 'anchor', 'helmet'],
     motion: { speed: 0.9, zone: 'any', bob: 0.6, rest: 0.2, dash: 0.1, wag: 0.8, tilt: true },
     hello: '어이, 선원! 보물 냄새를 맡고 왔다!',

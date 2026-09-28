@@ -54,14 +54,16 @@ const DRAW = {
   },
 
   pirate: () => `
-    <circle cx="44" cy="58" r="34" fill="#FFF3E0" stroke="#B8651E" stroke-width="3"/>
-    <path d="M44 58 m0 -26 a26 26 0 1 1 -1 0 M44 58 m0 -16 a16 16 0 1 1 -1 0 M44 58 m0 -7 a7 7 0 1 1 -1 0" fill="none" stroke="#D9793A" stroke-width="4"/>
-    <g stroke="#D9793A" stroke-width="3" stroke-linecap="round"><path d="M76 80 q8 10 2 22"/><path d="M84 78 q12 8 8 22"/><path d="M92 74 q14 4 14 18"/></g>
-    <path d="M70 46 Q92 40 104 56 Q106 76 80 80 Q70 70 70 46Z" fill="#F4A261" stroke="#B8651E" stroke-width="3"/>
-    <path d="M70 44 Q88 26 108 40 L104 48 Q88 38 72 50Z" fill="#2B2B2B"/><circle cx="92" cy="38" r="3" fill="#fff"/>
-    <circle cx="96" cy="60" r="4" fill="#10222e"/><circle cx="97.5" cy="58.5" r="1.3" fill="#fff"/>
-    <path d="M78 56 l10 8" stroke="#2B2B2B" stroke-width="3"/><ellipse cx="82" cy="60" rx="5" ry="4" fill="#2B2B2B"/>
-    <path d="M90 70 q5 4 10 -1" stroke="#10222e" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    <g stroke="#C0442A" stroke-width="4" stroke-linecap="round"><path d="M70 92 l-4 14"/><path d="M80 92 l2 14"/><path d="M90 88 l8 12"/></g>
+    <path d="M14 92 Q8 50 40 34 Q60 26 70 46 Q78 70 66 92 Z" fill="#FFF3E0" stroke="#B8651E" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M40 40 Q62 44 60 68 Q56 86 30 88 M46 54 Q52 66 44 76 Q36 80 30 74" fill="none" stroke="#D9793A" stroke-width="4" stroke-linecap="round"/>
+    <path d="M80 70 l-2 -18 M92 70 l2 -18" stroke="#C0442A" stroke-width="3.5" stroke-linecap="round"/>
+    <ellipse cx="84" cy="80" rx="18" ry="13" fill="#E8603C" stroke="#C0442A" stroke-width="3"/>
+    <path d="M100 80 q16 -8 12 -22 q-8 2 -8 10 q-6 -6 -12 0 q2 10 8 12z" fill="#E8603C" stroke="#C0442A" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="78" cy="48" r="6" fill="#fff" stroke="#C0442A" stroke-width="2"/><circle cx="79.5" cy="49" r="3" fill="#10222e"/>
+    <circle cx="96" cy="48" r="6" fill="#2B2B2B"/><path d="M88 44 l16 8" stroke="#2B2B2B" stroke-width="2.5"/>
+    <path d="M70 38 Q86 20 106 34 L102 42 Q86 32 74 44Z" fill="#2B2B2B"/><circle cx="88" cy="32" r="3" fill="#fff"/>
+    <path d="M80 84 q5 4 10 -1" stroke="#10222e" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
 
   angler: () => `
     <path d="M60 30 Q66 6 88 10" stroke="#3B4F8C" stroke-width="3" fill="none" stroke-linecap="round"/>

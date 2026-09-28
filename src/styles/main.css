@@ -506,6 +506,7 @@ button.pill { cursor: pointer; }
 .dash-credit { margin: 0; text-align: center; font-size: 13px; color: var(--muted); }
 .dash-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .dash-head h1 { font-family: var(--kid); font-weight: 400; font-size: 32px; }
+.dash-story { margin: 0; padding: 14px 18px; background: #fff; border: 1px solid #CFDDE2; border-left: 4px solid var(--sea); border-radius: 12px; font-size: 16px; line-height: 1.7; color: var(--ink); }
 .dash-close { border: 1px solid #CFDDE2; background: #fff; border-radius: 12px; padding: 12px 18px; font-size: 16px; cursor: pointer; min-height: 48px; }
 .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 .dash-card { background: #fff; border: 1px solid #CFDDE2; border-radius: 14px; padding: 16px 18px; display: grid; gap: 2px; }

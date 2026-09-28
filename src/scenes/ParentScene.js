@@ -100,6 +100,7 @@ export class ParentScene {
           <h1>보호자 화면</h1>
           <button class="dash-close" data-a="home">어항으로 돌아가기</button>
         </header>
+        <p class="dash-story">이 앱은 아빠 DooJo가 아들 Seonu를 위해 사랑을 담아 만들었어요.<br>세상 모든 아이들이 구구단을 쉽고 재미있게 배우길 바라요. 💙</p>
 
         <div class="dash-cards">
           <div class="dash-card"><span>오늘 학습 시간</span><b>${minutes(t.ms)}분</b><small>푼 문제 ${t.solved}개 · 오늘의 복습 ${t.reviewDone ? '완료 ✓' : '아직'}</small></div>
