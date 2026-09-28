@@ -9,7 +9,7 @@ export const GUESTS = [
     riddle: (a, b) => `조개를 ${a}개씩 ${b}번 집었어! 모두 몇 개게?`
   },
   {
-    id: 'clown', name: '니모', species: '흰동가리', color: '#FF8C1A',
+    id: 'clown', name: '동동이', species: '흰동가리', color: '#FF8C1A',
     likes: ['anemone', 'seaweed', 'kelp', 'bush'],
     motion: { speed: 0.9, zone: 'any', bob: 0.3, rest: 0.2, dash: 0.1, wag: 0.35, tilt: true },
     hello: '말미잘 집이 있어서 신나게 놀러 왔어!',
@@ -40,8 +40,8 @@ export const GUESTS = [
     id: 'tang', name: '블루', species: '블루탱', color: '#2F6FE0',
     likes: ['crystal', 'clam', 'castle'],
     motion: { speed: 1, zone: 'any', bob: 0.4, rest: 0.2, dash: 0.1, wag: 0.4, tilt: true },
-    hello: '반짝이는 게 좋아서 왔… 어? 내가 뭐 하러 왔더라?',
-    riddle: (a, b) => `반짝이는 진주가 ${a}개씩 ${b}줄… 모두 몇 개였더라?`
+    hello: '반짝이는 게 좋아서 놀러 왔어! 오늘은 뭘 모아 볼까?',
+    riddle: (a, b) => `반짝이는 진주를 ${a}개씩 ${b}줄 모았어! 모두 몇 개게?`
   },
   {
     id: 'orca', name: '범범이', species: '꼬마 범고래', color: '#22303C',
