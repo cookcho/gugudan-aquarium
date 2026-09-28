@@ -270,7 +270,8 @@ button.pill { cursor: pointer; }
 
 /* ---------- 바다 지도 ---------- */
 .map { display: grid; grid-template-columns: 1fr minmax(calc(var(--u) * 40), 36%); background: #1D83B0; }
-.map-sea { position: relative; padding-top: calc(var(--u) * 10); overflow: hidden; }
+.map-sea { position: relative; padding: calc(var(--u) * 9) 0 calc(var(--u) * 1.8); overflow: hidden; }
+.map-sea .chart { overflow: visible; } /* 물결이 위아래 빈 곳까지 이어져요 */
 .chart { width: 100%; height: 100%; display: block; }
 .wave-layer { animation: drift 14s linear infinite; }
 .isle { cursor: pointer; }
@@ -298,9 +299,9 @@ button.pill { cursor: pointer; }
 .boat { transition: transform .9s cubic-bezier(.45, 0, .25, 1); }
 .boat-bob { animation: rock 2.4s ease-in-out infinite; }
 .map-panel {
-  background: var(--foam); padding: calc(var(--u) * 9) calc(var(--u) * 2.6) calc(var(--u) * 2.4);
+  background: var(--foam); padding: calc(var(--u) * 8) calc(var(--u) * 2.4) calc(var(--u) * 1.8);
   border-left: calc(var(--u) * 0.6) solid #C98A4B; box-shadow: inset calc(var(--u) * 0.4) 0 0 #E7B982;
-  overflow-y: auto; display: flex; flex-direction: column; gap: calc(var(--u) * 1.4);
+  overflow-y: auto; display: flex; flex-direction: column; gap: calc(var(--u) * 1.1);
 }
 .panel-head { display: flex; align-items: center; gap: calc(var(--u) * 1.4); }
 .panel-head h2 { font-size: calc(var(--u) * 2.8); font-weight: 400; }
@@ -308,11 +309,11 @@ button.pill { cursor: pointer; }
 .ladder { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
 .ladder span { text-align: center; font-size: calc(var(--u) * 1.7); padding: calc(var(--u) * 0.6) 0; border-radius: calc(var(--u) * 1); background: #E3EEF2; color: #8AA3AE; }
 .ladder span.on { background: #FFF1C9; color: var(--ink); }
-.modes { display: grid; gap: calc(var(--u) * 1); }
+.modes { display: grid; gap: calc(var(--u) * 0.8); }
 .mode {
   position: relative; display: flex; align-items: center; gap: calc(var(--u) * 1.4); text-align: left; cursor: pointer;
   border: 2px solid #CFE6EE; background: #fff; border-radius: calc(var(--u) * 1.8);
-  padding: calc(var(--u) * 1.1) calc(var(--u) * 1.6); min-height: 72px;
+  padding: calc(var(--u) * 0.8) calc(var(--u) * 1.6); min-height: 60px;
 }
 .mode:active { transform: scale(.98); }
 .mode-icon { font-size: calc(var(--u) * 3.2); }
@@ -705,7 +706,8 @@ button.pill { cursor: pointer; }
 .tip-art { position: relative; }
 .tip-bubble { cursor: pointer; }
 .tip-badge { position: absolute; top: calc(var(--u) * -0.6); right: calc(var(--u) * -0.4); width: calc(var(--u) * 2.4); height: calc(var(--u) * 2.4); display: grid; place-items: center; border-radius: 50%; background: var(--coral, #FF7A59); color: #fff; font-size: calc(var(--u) * 1.6); border: 2px solid #fff; animation: badgePulse 1.4s ease-in-out infinite; }
-/* 지도: 위쪽 띠를 뽀글이 자리로 써서 섬을 가리지 않아요 */
-.map-guide { left: calc(var(--u) * 21); right: calc(var(--u) * 1.2); top: calc(var(--u) * 0.6); bottom: auto; align-items: center; }
-.map-guide .tip-art svg { width: calc(var(--u) * 8); height: calc(var(--u) * 8); }
-.map-guide .tip-bubble { max-width: none; flex: 1; font-size: calc(var(--u) * 1.8); padding: calc(var(--u) * 0.7) calc(var(--u) * 1.2); border-bottom-left-radius: calc(var(--u) * 1.6); border-top-left-radius: calc(var(--u) * 0.3); }
+/* 지도: 뽀글이는 위쪽 버튼 줄(별 옆)에 있고, 말풍선은 지도 위쪽 빈 곳으로 나와요 */
+.map-guide { position: relative; left: auto; bottom: auto; align-items: center; }
+.map-guide .tip-art svg { width: calc(var(--u) * 6); height: calc(var(--u) * 6); }
+.map-guide .tip-bubble { position: absolute; left: calc(100% + var(--u) * 0.6); top: 50%; transform: translateY(-50%); width: max(calc(var(--u) * 30), calc(64vw - var(--u) * 34)); max-width: none; font-size: calc(var(--u) * 1.8); padding: calc(var(--u) * 0.7) calc(var(--u) * 1.2); border-bottom-left-radius: calc(var(--u) * 1.6); border-top-left-radius: calc(var(--u) * 0.3); }
+.map-guide .tip-bubble.pop { animation: fadeIn .25s ease-out; }

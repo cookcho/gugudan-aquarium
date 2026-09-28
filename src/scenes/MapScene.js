@@ -138,7 +138,7 @@ export class MapScene {
     this.renderPanel();
     this.buildCritters();
     // 뽀글이는 지도에 늘 있어요. 누르면 지금 무엇을 하면 되는지 알려줘요
-    this.guide = guideBubble(this.el.querySelector('.map-sea'), { stay: true, cls: 'map-guide', onTap: () => this.hint() });
+    this.guide = guideBubble(this.bar.el.querySelector('.group'), { stay: true, cls: 'map-guide', onTap: () => this.hint() });
   }
 
   hint() {
@@ -388,7 +388,7 @@ export class MapScene {
     const panel = this.el.querySelector('.map-panel');
     panel.innerHTML = `
       <div class="panel-head">
-        <div class="panel-art">${charSVG(dan, Math.max(1, p), Math.round(this.u * 11))}</div>
+        <div class="panel-art">${charSVG(dan, Math.max(1, p), Math.round(this.u * 9))}</div>
         <div>
           <h2 style="color:${c.color}">${dan}단 ${c.island}</h2>
           <p>${p > 0 ? stageName(dan, p) : `${c.species} ${c.name}의 알을 찾아요`}</p>
