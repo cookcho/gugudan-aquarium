@@ -55,6 +55,15 @@ function freshSave() {
   };
 }
 
+// 손님 꼬마 고래(whale)가 범고래(orca)로 바뀌었어요. 예전 기록을 옮겨요.
+function renameGuests(save) {
+  if (save.guests?.whale) {
+    save.guests.orca = save.guests.whale;
+    delete save.guests.whale;
+  }
+  return save;
+}
+
 function fromV1(v1) {
   const save = freshSave();
   save.stars = v1.stars ?? save.stars;
@@ -79,7 +88,7 @@ class Store {
         const parsed = JSON.parse(raw);
         const base = freshSave();
         const decorations = (parsed.decorations || base.decorations).map((d) => ({ placed: true, ...d }));
-        return { ...base, ...parsed, decorations, progress: { ...base.progress, ...parsed.progress } };
+        return renameGuests({ ...base, ...parsed, decorations, progress: { ...base.progress, ...parsed.progress } });
       }
       const v1 = localStorage.getItem(V1_KEY);
       if (v1) return fromV1(JSON.parse(v1));
@@ -534,7 +543,7 @@ class Store {
       const parsed = JSON.parse(decodeURIComponent(escape(atob(raw))));
       if (parsed.version !== 2 || !parsed.progress) return false;
       const base = freshSave();
-      this.data = { ...base, ...parsed, progress: { ...base.progress, ...parsed.progress } };
+      this.data = renameGuests({ ...base, ...parsed, progress: { ...base.progress, ...parsed.progress } });
       this.save();
       return true;
     } catch {

@@ -1,5 +1,6 @@
 // 놀러 오는 손님 그림 (120×120, 오른쪽을 봐요)
-import { face } from './characters.js';
+// public/characters/guest-손님id.png 그림이 있으면 그림으로 보여줘요.
+import { face, hasImage, imageArt } from './characters.js';
 
 const DRAW = {
   crab: () => `
@@ -73,15 +74,17 @@ const DRAW = {
     <g fill="#5B6FAF" opacity=".7"><circle cx="42" cy="52" r="3"/><circle cx="50" cy="44" r="2.4"/><circle cx="38" cy="70" r="2.6"/></g>
     ${face(72, 56, 0.85)}`,
 
-  whale: () => `
-    <path d="M92 26 v-10 M92 20 q-8 -8 -14 -4 M92 20 q8 -8 14 -4" stroke="#7FD3E6" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <path d="M24 72 L8 58 Q14 72 8 88 Z" fill="#4A9CD1"/>
-    <path d="M20 74 Q22 42 62 42 Q100 42 102 72 Q100 98 62 98 Q24 98 20 74Z" fill="#6CB4E4" stroke="#3E86BD" stroke-width="3"/>
-    <path d="M36 86 Q64 100 96 82 Q92 96 62 97 Q42 97 36 86Z" fill="#E3F4FC"/>
-    <path d="M58 40 l-8 -8 l2 10 z M58 40 l8 -8 l-2 10 z" fill="#FF8FB1" stroke="#E0508A" stroke-width="1.5"/><circle cx="58" cy="40" r="3.5" fill="#E0508A"/>
-    ${face(78, 68, 0.8)}`
+  orca: () => `
+    <path d="M24 72 L8 56 Q14 72 8 90 Z" fill="#22303C"/>
+    <path d="M56 46 Q60 22 72 18 Q70 36 74 46 Z" fill="#22303C"/>
+    <path d="M20 74 Q22 44 62 44 Q100 44 104 72 Q100 98 62 98 Q24 98 20 74Z" fill="#22303C" stroke="#10222e" stroke-width="3"/>
+    <path d="M34 84 Q64 102 100 80 Q96 96 62 97 Q40 97 34 84Z" fill="#fff"/>
+    <ellipse cx="80" cy="60" rx="10" ry="6" fill="#fff" transform="rotate(-12 80 60)"/>
+    <ellipse cx="44" cy="58" rx="8" ry="4" fill="#5B6B78" opacity=".7"/>
+    ${face(84, 74, 0.72)}`
 };
 
 export function guestSVG(id, size = 120, silhouette = false) {
+  if (hasImage(`guest-${id}`)) return imageArt(`guest-${id}`, size).replace('class="char-svg', `class="char-svg guest-svg ${silhouette ? 'silhouette' : ''}`);
   return `<svg class="char-svg guest-svg ${silhouette ? 'silhouette' : ''}" width="${size}" height="${size}" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${DRAW[id]()}</svg>`;
 }

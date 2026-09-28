@@ -1,6 +1,7 @@
 // 코드로 그린 바다 친구 8명 (나중에 이미지로 바꿀 자리).
 // charSVG(dan, progress, size): progress 1 알 · 2 아기 · 3 성장 · 4 황금
 import { CHARACTERS } from '../data/characters.js';
+import { GUESTS } from '../data/guests.js';
 
 const GOLD = { c: '#FFD54A', d: '#D9A400', l: '#FFF3B0' };
 
@@ -167,14 +168,14 @@ function eggSVG(color, dan) {
     <text x="60" y="76" text-anchor="middle" font-family="Jua, sans-serif" font-size="34" fill="${darken(color, 0.25)}">${dan}</text>`;
 }
 
-// ---- 그림 파일 (public/characters/단-단계.png, guide.png) ----
+// ---- 그림 파일 (public/characters/단-단계.png, guide.png, guest-손님id.png) ----
 // 있는 그림은 그림으로, 없는 칸은 아래 코드 그림으로 보여줘요.
 const available = new Set();
 const imageUrl = (name) => `${import.meta.env.BASE_URL}characters/${name}.png`;
 
 // 앱 시작 때 한 번 어떤 그림이 있는지 확인해요
 export function preloadCharacterImages() {
-  const names = ['guide', ...Object.keys(CHARACTERS).flatMap((d) => [1, 2, 3, 4].map((p) => `${d}-${p}`))];
+  const names = ['guide', ...GUESTS.map((g) => `guest-${g.id}`), ...Object.keys(CHARACTERS).flatMap((d) => [1, 2, 3, 4].map((p) => `${d}-${p}`))];
   return Promise.all(names.map((name) => new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -186,8 +187,10 @@ export function preloadCharacterImages() {
   })));
 }
 
+export const hasImage = (name) => available.has(name);
+
 // HTML 안에서도, 지도 같은 SVG 안에서도 쓸 수 있게 svg로 감싸요
-function imageArt(name, size, wobble = false) {
+export function imageArt(name, size, wobble = false) {
   const image = `<image href="${imageUrl(name)}" x="0" y="0" width="120" height="120" preserveAspectRatio="xMidYMid meet"/>`;
   return `<svg class="char-svg char-img" width="${size}" height="${size}" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${wobble ? `<g class="egg-wobble">${image}</g>` : image}</svg>`;
 }

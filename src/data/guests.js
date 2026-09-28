@@ -44,7 +44,7 @@ export const GUESTS = [
     riddle: (a, b) => `반짝이는 진주가 ${a}개씩 ${b}줄… 모두 몇 개였더라?`
   },
   {
-    id: 'whale', name: '꼬마 고래', species: '아기 고래', color: '#6CB4E4',
+    id: 'orca', name: '범범이', species: '꼬마 범고래', color: '#22303C',
     likes: ['bubbler', 'mushroom', 'sign'],
     motion: { speed: 0.7, zone: 'upper', bob: 0.6, rest: 0.25, dash: 0.05, wag: 1, tilt: true },
     hello: '뿌우~ 거품 놀이 하러 왔어!',
