@@ -1,7 +1,8 @@
 // 한 번 열어 본 뒤에는 인터넷이 없어도 열리도록 파일을 저장해 둬요.
 // - 화면(index.html): 새 버전을 먼저 받아 보고, 안 되면 저장해 둔 것
 // - 그림·코드·글꼴: 저장해 둔 것을 먼저 쓰고, 없으면 받아서 저장
-const CACHE = 'gugudan-v1';
+// 같은 이름의 그림을 바꿨으면 숫자를 올려 주세요. 그래야 태블릿이 예전 그림을 버리고 새로 받아요.
+const CACHE = 'gugudan-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 
