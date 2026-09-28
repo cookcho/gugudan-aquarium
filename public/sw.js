@@ -1,7 +1,7 @@
 // 한 번 열어 본 뒤에는 인터넷이 없어도 열리도록 파일을 저장해 둬요.
-// - 화면(index.html): 새 버전을 먼저 받아 보고, 안 되면 저장해 둔 것
-// - 그림·코드·글꼴: 저장해 둔 것을 먼저 쓰고, 없으면 받아서 저장
-// 같은 이름의 그림을 바꿨으면 숫자를 올려 주세요. 그래야 태블릿이 예전 그림을 버리고 새로 받아요.
+// - 화면(index.html)과 그림: 새 버전을 먼저 받아 보고, 인터넷이 없으면 저장해 둔 것
+// - 코드(assets, 이름에 버전이 붙음)와 글꼴: 저장해 둔 것을 먼저 쓰고, 없으면 받아서 저장
+// 그래서 새 버전을 올리면 다음에 앱을 열 때 자동으로 새 화면과 새 그림이 나와요.
 const CACHE = 'gugudan-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
@@ -32,6 +32,15 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
+  // 그림 등 이름이 그대로인 파일: 새 파일을 먼저 받아 보고(바뀌지 않았으면 브라우저가 짧게 확인만 해요), 인터넷이 없으면 저장해 둔 것
+  const fixedName = !isFont && !url.pathname.includes('/assets/');
+  if (fixedName) {
+    event.respondWith(
+      fetch(req).then((res) => (res.ok ? save(req, res) : res)).catch(() => caches.match(req))
+    );
+    return;
+  }
+  // 이름에 버전이 붙은 코드(assets)와 글꼴: 저장해 둔 것을 먼저
   event.respondWith(
     caches.match(req).then((hit) => hit || fetch(req).then((res) => (res.ok || res.type === 'opaque' ? save(req, res) : res)))
   );
