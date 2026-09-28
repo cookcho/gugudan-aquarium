@@ -5,7 +5,7 @@ import { sound } from '../audio/soundManager.js';
 import { CHARACTERS, DAN_ORDER } from '../data/characters.js';
 import { charSVG, guideSVG } from '../graphics/characters.js';
 import { createFoodSVG, createFoodCanSVG, createPoopSVG } from '../graphics/food.js';
-import { openDecorShop, openDex, openRequests, hearts, openCard } from './overlays.js';
+import { openDecorShop, openDex, openRequests, hearts, openCard, openKidName } from './overlays.js';
 import { REQUESTS, LOVE_PERKS, ANNIVERSARIES, GIFT_PRIZES, josa, chatLine, callKid } from '../data/care.js';
 import confetti from 'canvas-confetti';
 import { decorSVG, SHOP_ITEMS } from '../data/shop.js';
@@ -133,6 +133,12 @@ export class HomeScene {
     };
     this.raf = requestAnimationFrame(loop);
     setTimeout(() => this.alive && this.checkAnniversary(), 1200);
+    // 처음 한 번, 뽀글이가 아이 이름을 물어봐요
+    if (!store.data.kidName && !store.data.askedName) {
+      setTimeout(() => this.alive && openKidName((name) => {
+        if (name) this.say(`${callKid(name)}, 반가워! 친구들이랑 같이 놀자 💙`);
+      }), 800);
+    }
     // 켜 둔 동안에도 배고픔이 생기고 똥이 쌓이도록 가끔 확인해요
     this.careTimer = setInterval(() => {
       store.careTick();

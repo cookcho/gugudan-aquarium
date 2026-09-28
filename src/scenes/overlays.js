@@ -3,7 +3,7 @@ import { store } from '../core/store.js';
 import { h, toast, unit } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
 import { CHARACTERS, DAN_ORDER, STAGES, stageName } from '../data/characters.js';
-import { charSVG } from '../graphics/characters.js';
+import { charSVG, guideSVG } from '../graphics/characters.js';
 import { SHOP_TABS, SHOP_ITEMS, THEMES } from '../data/shop.js';
 import { createFoodCanSVG, createMedicineSVG } from '../graphics/food.js';
 import { REQUESTS, josa } from '../data/care.js';
@@ -315,4 +315,42 @@ export function openCard(dan) {
   });
   document.getElementById('app').appendChild(el);
   sound.playStar();
+}
+
+// 처음 켰을 때 뽀글이가 아이 이름을 물어봐요. 이름이 있으면 친구들이 불러 줘요 (보호자 화면에서도 바꿀 수 있어요)
+export function openKidName(onDone) {
+  store.setOption('askedName', true);
+  const el = sheet('💙 반가워!', `
+    <div class="rename">
+      <div class="rename-art">${guideSVG(110)}</div>
+      <label for="kid-input" class="kid-ask">나는 뽀글이야! 네 이름은 뭐야?</label>
+      <input id="kid-input" maxlength="6" placeholder="이름을 써 줘" autocomplete="off">
+      <div class="row">
+        <button class="btn btn-foam" data-v="later">나중에</button>
+        <button class="btn btn-coral" data-v="save">이게 내 이름이야!</button>
+      </div>
+    </div>`);
+  const input = el.querySelector('#kid-input');
+  setTimeout(() => input.focus(), 50);
+  const done = (save) => {
+    const name = input.value.trim().slice(0, 6);
+    if (save && !name) {
+      sound.playBoing();
+      input.focus();
+      return;
+    }
+    if (save) {
+      sound.playStar();
+      store.setOption('kidName', name);
+    } else {
+      sound.playPop();
+    }
+    el.remove();
+    onDone(save ? name : '');
+  };
+  input.addEventListener('keydown', (e) => e.key === 'Enter' && !e.isComposing && done(true));
+  el.addEventListener('click', (e) => {
+    const v = e.target.closest('[data-v]')?.dataset.v;
+    if (v) done(v === 'save');
+  });
 }

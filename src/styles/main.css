@@ -429,6 +429,7 @@ button.pill { cursor: pointer; }
 .link-mini { justify-self: start; border: 0; background: none; color: var(--sea); font-family: inherit; font-size: calc(var(--u) * 1.6); padding: 2px 0; cursor: pointer; }
 .rename { display: grid; justify-items: center; gap: calc(var(--u) * 1.2); }
 .rename label { color: var(--muted); font-size: calc(var(--u) * 1.9); }
+.rename .kid-ask { color: var(--ink); font-size: calc(var(--u) * 2.6); }
 .rename input { font-family: var(--kid); font-size: calc(var(--u) * 3.4); text-align: center; width: min(100%, calc(var(--u) * 30)); padding: calc(var(--u) * 0.8); border: 3px solid #CFE6EE; border-radius: calc(var(--u) * 1.6); color: var(--ink); }
 .rename input:focus { outline: none; border-color: var(--sea); }
 .req-list { display: grid; gap: calc(var(--u) * 1); margin-bottom: calc(var(--u) * 1.6); }
