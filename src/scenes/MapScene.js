@@ -104,12 +104,6 @@ function mapSVG(selected) {
       <rect class="wave-layer2" x="-400" y="-360" width="${W + 800}" height="${H + 800}" fill="url(#waves)" opacity=".6"/>
       ${UNDERWATER}
       <g class="critters-under"></g>
-      <g transform="translate(690 90)" class="compass">
-        <circle r="42" fill="#FFF7E3" stroke="#C98A4B" stroke-width="4"/>
-        <path d="M0 -34 L8 0 L0 34 L-8 0Z" fill="#E8603C"/><path d="M-34 0 L0 -8 L34 0 L0 8Z" fill="#0B6E99"/>
-        <circle r="5" fill="#fff" stroke="#8A5528" stroke-width="2"/>
-        <text y="-46" text-anchor="middle" font-family="Jua, sans-serif" font-size="18" fill="#fff">북</text>
-      </g>
       ${route}
       ${DAN_ORDER.map((d, i) => islandSVG(d, i, d === selected)).join('')}
       <g class="critters-over"></g>
@@ -144,24 +138,27 @@ export class MapScene {
     this.renderPanel();
     this.buildCritters();
     // 뽀글이는 지도에 늘 있어요. 누르면 지금 무엇을 하면 되는지 알려줘요
-    this.guide = guideBubble(this.el.querySelector('.map-sea'), { stay: true, onTap: () => this.guide.say(this.hint()) });
+    this.guide = guideBubble(this.el.querySelector('.map-sea'), { stay: true, cls: 'map-guide', onTap: () => this.hint() });
   }
 
   hint() {
     const dan = this.selected;
     const k = callKid(store.data.kidName);
     const text = [
-      `${dan}단 섬이야! 따라 하기로 노래를 듣고, 무지개 징검다리를 건너면 알을 찾아 🌈`,
-      '알을 찾았어! 섞어 풀기에서 7개 맞히면 알이 깨어나 🥚',
-      '조개 숫자판으로 답을 직접 써 봐! 7개 맞히면 친구가 자라 🐚',
-      '상어 보스전이야! 상어를 이기면 황금 친구가 돼 🦈',
-      '황금 친구가 됐어! 연습하면서 별을 더 모아 봐 ⭐'
+      `${dan}단 섬에 왔네! 따라 하기로 노래를 들어 볼까? 무지개 징검다리를 건너면 알을 찾을 수 있어 🌈`,
+      '알을 찾았구나! 섞어 풀기를 해 보면 알이 깨어날지도 몰라 🥚',
+      '조개 숫자판으로 답을 직접 써 보는 건 어때? 친구가 쑥쑥 자랄 거야 🐚',
+      '준비되면 상어 보스전에 도전해 봐! 이기면 황금 친구가 돼 🦈',
+      '황금 친구가 됐어! 하고 싶은 게임을 골라서 별을 모아 봐 ⭐'
     ][store.data.progress[dan]];
     return k && Math.random() < 0.5 ? `${k}, ${text}` : text;
   }
 
   mounted() {
-    setTimeout(() => this.guide.say(takeTip('map') || this.hint()), 700);
+    // 지도가 처음이면 사용법을 말해 주고, 아니면 "!"만 띄워서 궁금할 때 누르게 해요
+    const tip = takeTip('map');
+    if (tip) setTimeout(() => this.guide.say(tip), 700);
+    else this.guide.notify(this.hint());
     this.last = performance.now();
     this.t = 0;
     const loop = () => {
@@ -379,6 +376,8 @@ export class MapScene {
     const [x, y] = SPOTS[DAN_ORDER.indexOf(dan)];
     this.el.querySelector('.boat').style.transform = `translate(${x + 100}px, ${y + 30}px)`;
     this.renderPanel();
+    if (this.guide.open) this.guide.say(this.hint());
+    else this.guide.notify(this.hint());
   }
 
   renderPanel() {

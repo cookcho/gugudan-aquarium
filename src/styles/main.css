@@ -270,7 +270,7 @@ button.pill { cursor: pointer; }
 
 /* ---------- 바다 지도 ---------- */
 .map { display: grid; grid-template-columns: 1fr minmax(calc(var(--u) * 40), 36%); background: #1D83B0; }
-.map-sea { position: relative; padding-top: calc(var(--u) * 7); overflow: hidden; }
+.map-sea { position: relative; padding-top: calc(var(--u) * 10); overflow: hidden; }
 .chart { width: 100%; height: 100%; display: block; }
 .wave-layer { animation: drift 14s linear infinite; }
 .isle { cursor: pointer; }
@@ -702,4 +702,10 @@ button.pill { cursor: pointer; }
 .tip-art { flex: none; animation: bob 2.6s ease-in-out infinite; filter: drop-shadow(0 0 calc(var(--u) * 0.5) rgba(255, 255, 255, .9)) drop-shadow(0 calc(var(--u) * 0.3) calc(var(--u) * 0.6) rgba(10, 40, 60, .3)); }
 .tip-bubble { max-width: min(46vw, calc(var(--u) * 42)); background: #fff; color: var(--ink); border-radius: calc(var(--u) * 1.6); border-bottom-left-radius: calc(var(--u) * 0.3); padding: calc(var(--u) * 1) calc(var(--u) * 1.4); font-size: calc(var(--u) * 1.9); line-height: 1.4; box-shadow: 0 calc(var(--u) * 0.4) calc(var(--u) * 1.2) rgba(10, 40, 60, .25); }
 .tip-bubble.pop { animation: popIn .25s ease-out; }
-.map-sea .tip-guide { bottom: auto; top: calc(var(--u) * 8); left: 40%; align-items: flex-start; }
+.tip-art { position: relative; }
+.tip-bubble { cursor: pointer; }
+.tip-badge { position: absolute; top: calc(var(--u) * -0.6); right: calc(var(--u) * -0.4); width: calc(var(--u) * 2.4); height: calc(var(--u) * 2.4); display: grid; place-items: center; border-radius: 50%; background: var(--coral, #FF7A59); color: #fff; font-size: calc(var(--u) * 1.6); border: 2px solid #fff; animation: badgePulse 1.4s ease-in-out infinite; }
+/* 지도: 위쪽 띠를 뽀글이 자리로 써서 섬을 가리지 않아요 */
+.map-guide { left: calc(var(--u) * 21); right: calc(var(--u) * 1.2); top: calc(var(--u) * 0.6); bottom: auto; align-items: center; }
+.map-guide .tip-art svg { width: calc(var(--u) * 8); height: calc(var(--u) * 8); }
+.map-guide .tip-bubble { max-width: none; flex: 1; font-size: calc(var(--u) * 1.8); padding: calc(var(--u) * 0.7) calc(var(--u) * 1.2); border-bottom-left-radius: calc(var(--u) * 1.6); border-top-left-radius: calc(var(--u) * 0.3); }
