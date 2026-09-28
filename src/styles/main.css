@@ -696,3 +696,10 @@ button.pill { cursor: pointer; }
 /* 진행 기록 옮기기 */
 .row-left { display: flex; gap: 10px; flex-wrap: wrap; }
 #transfer-code { width: 100%; font-family: ui-monospace, Consolas, monospace; font-size: 13px; border: 1px solid #CFDDE2; border-radius: 10px; padding: 10px; resize: vertical; color: var(--ink); background: #F8FBFC; }
+
+/* 뽀글이 가이드 말풍선 (처음 하는 것마다 한 번, 지도에는 늘) */
+.tip-guide { position: absolute; left: calc(var(--u) * 1.4); bottom: calc(var(--u) * 1.4); z-index: 60; display: flex; align-items: flex-end; gap: calc(var(--u) * 0.6); cursor: pointer; animation: popIn .3s ease-out; }
+.tip-art { flex: none; animation: bob 2.6s ease-in-out infinite; filter: drop-shadow(0 0 calc(var(--u) * 0.5) rgba(255, 255, 255, .9)) drop-shadow(0 calc(var(--u) * 0.3) calc(var(--u) * 0.6) rgba(10, 40, 60, .3)); }
+.tip-bubble { max-width: min(46vw, calc(var(--u) * 42)); background: #fff; color: var(--ink); border-radius: calc(var(--u) * 1.6); border-bottom-left-radius: calc(var(--u) * 0.3); padding: calc(var(--u) * 1) calc(var(--u) * 1.4); font-size: calc(var(--u) * 1.9); line-height: 1.4; box-shadow: 0 calc(var(--u) * 0.4) calc(var(--u) * 1.2) rgba(10, 40, 60, .25); }
+.tip-bubble.pop { animation: popIn .25s ease-out; }
+.map-sea .tip-guide { bottom: auto; top: calc(var(--u) * 8); left: 40%; align-items: flex-start; }

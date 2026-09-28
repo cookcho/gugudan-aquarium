@@ -13,6 +13,7 @@ import { BossScene } from './scenes/BossScene.js';
 import { ReviewScene } from './scenes/ReviewScene.js';
 import { ResultScene } from './scenes/ResultScene.js';
 import { ParentScene } from './scenes/ParentScene.js';
+import { firstTip } from './scenes/tips.js';
 
 const SCENES = {
   home: HomeScene,
@@ -74,6 +75,7 @@ class App {
     this.scene = new SCENES[name](this, params);
     this.root.appendChild(this.scene.el);
     this.scene.mounted?.();
+    if (name !== 'map') firstTip(name, this.scene.el); // 지도는 뽀글이가 늘 있어서 따로 알려줘요
     if (LEARNING.has(name)) this.learningSince = Date.now();
   }
 }

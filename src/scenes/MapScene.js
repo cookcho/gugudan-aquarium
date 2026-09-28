@@ -4,6 +4,8 @@ import { h, topbar, toast, unit } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
 import { CHARACTERS, DAN_ORDER, STAGES, stageName } from '../data/characters.js';
 import { charSVG } from '../graphics/characters.js';
+import { guideBubble, takeTip } from './tips.js';
+import { callKid } from '../data/care.js';
 import { ISLAND_PROPS, UNDERWATER, SHARK, FISH_SCHOOL, CLOUD, GULLS, DOLPHIN, LITTLE_FISH } from '../graphics/mapArt.js';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -141,9 +143,25 @@ export class MapScene {
     this.svg.addEventListener('click', (e) => this.onTap(e));
     this.renderPanel();
     this.buildCritters();
+    // 뽀글이는 지도에 늘 있어요. 누르면 지금 무엇을 하면 되는지 알려줘요
+    this.guide = guideBubble(this.el.querySelector('.map-sea'), { stay: true, onTap: () => this.guide.say(this.hint()) });
+  }
+
+  hint() {
+    const dan = this.selected;
+    const k = callKid(store.data.kidName);
+    const text = [
+      `${dan}단 섬이야! 따라 하기로 노래를 듣고, 무지개 징검다리를 건너면 알을 찾아 🌈`,
+      '알을 찾았어! 섞어 풀기에서 7개 맞히면 알이 깨어나 🥚',
+      '조개 숫자판으로 답을 직접 써 봐! 7개 맞히면 친구가 자라 🐚',
+      '상어 보스전이야! 상어를 이기면 황금 친구가 돼 🦈',
+      '황금 친구가 됐어! 연습하면서 별을 더 모아 봐 ⭐'
+    ][store.data.progress[dan]];
+    return k && Math.random() < 0.5 ? `${k}, ${text}` : text;
   }
 
   mounted() {
+    setTimeout(() => this.guide.say(takeTip('map') || this.hint()), 700);
     this.last = performance.now();
     this.t = 0;
     const loop = () => {
