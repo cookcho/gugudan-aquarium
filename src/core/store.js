@@ -1,6 +1,9 @@
 // 저장 데이터 v2 (LocalStorage). v1(MVP) 저장이 있으면 자동으로 옮겨요.
 import { DANS, DAN_ORDER, CHARACTERS } from '../data/characters.js';
 import { LOVE_LEVELS, DAILY_LOVE_CAP, REQUESTS } from '../data/care.js';
+import { SHOP_ITEMS } from '../data/shop.js';
+
+const FLOAT_TYPES = SHOP_ITEMS.filter((it) => it.float).map((it) => it.type);
 
 const KEY = 'gugudan_aquarium_save_v2';
 
@@ -213,9 +216,10 @@ class Store {
       this.data.requests = null;
       return null;
     }
-    const types = ['feed', 'pet', 'play'];
+    const types = ['feed', 'pet', 'play', 'study', 'card'];
     if (this.data.poops.length >= 3) types.push('clean');
     if (this.data.decorations.some((d) => d.placed)) types.push('decor');
+    if (this.data.decorations.some((d) => FLOAT_TYPES.includes(d.type))) types.push('float');
     if (this.reviewFacts(1).length && !this.reviewDoneToday()) types.push('review', 'review');
     const picked = [];
     while (picked.length < 3 && types.length) {
@@ -226,7 +230,7 @@ class Store {
     this.data.requests = {
       date: today(),
       rewarded: false,
-      list: picked.map((type, i) => ({ type, dan: order[i % order.length], done: false }))
+      list: picked.map((type, i) => ({ type, dan: order[i % order.length], done: false, v: Math.floor(Math.random() * 6) }))
     };
     this.save();
     return this.data.requests;
@@ -475,8 +479,10 @@ class Store {
     this.save();
   }
 
-  addGame() {
+  // 게임 한 판을 끝냈어요. 그 단 친구가 "한 판 하자"고 부탁했으면 들어준 거예요
+  addGame(dan) {
     this.day().games++;
+    if (this.completeRequest('study', dan)) this.addLove(dan, 5, 'request');
     this.save();
   }
 

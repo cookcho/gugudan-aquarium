@@ -131,7 +131,7 @@ export class SteppingScene {
 
   finish() {
     store.addStars(3);
-    store.addGame();
+    store.addGame(this.dan);
     const { from, to } = store.raiseProgress(this.dan, 1);
     this.app.go('result', {
       dan: this.dan, mode: 'stepping', firstTry: this.firstTry, total: 9,

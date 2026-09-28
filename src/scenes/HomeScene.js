@@ -6,7 +6,7 @@ import { CHARACTERS, DAN_ORDER } from '../data/characters.js';
 import { charSVG, guideSVG } from '../graphics/characters.js';
 import { createFoodSVG, createFoodCanSVG, createPoopSVG } from '../graphics/food.js';
 import { openDecorShop, openDex, openRequests, hearts, openCard } from './overlays.js';
-import { REQUESTS, LOVE_PERKS, ANNIVERSARIES, GIFT_PRIZES, josa, hasBatchim } from '../data/care.js';
+import { REQUESTS, LOVE_PERKS, ANNIVERSARIES, GIFT_PRIZES, josa, chatLine, callKid } from '../data/care.js';
 import confetti from 'canvas-confetti';
 import { decorSVG, SHOP_ITEMS } from '../data/shop.js';
 import { Swimmer, PROFILES } from '../core/swim.js';
@@ -107,7 +107,7 @@ export class HomeScene {
     this.aquarium = this.el.querySelector('.aquarium');
     this.foodLayer = this.el.querySelector('.food-layer');
     this.rec = recommend();
-    this.say(careMessage() || this.rec.text);
+    this.say(careMessage() || this.guideLine());
     this.makeBubbles();
     this.renderDecor();
     this.buildAlgae();
@@ -368,6 +368,12 @@ export class HomeScene {
   }
 
   // 말풍선은 3초 보여주고 사라져요. 뽀글이를 누르면 다시 볼 수 있어요.
+  // 뽀글이의 오늘 추천. 이름이 있으면 반쯤은 "선우야, ..." 하고 불러요
+  guideLine() {
+    const k = callKid(store.data.kidName);
+    return k && Math.random() < 0.5 ? `${k}, ${this.rec.text}` : this.rec.text;
+  }
+
   say(text) {
     const sp = this.el.querySelector('.speech');
     sp.textContent = text;
@@ -463,10 +469,11 @@ export class HomeScene {
       window.removeEventListener('pointerup', up);
       tray.classList.remove('drop-here');
       const overTray = isOver(ev);
+      const d = store.data.decorations.find((it) => it.id === id);
       if (fromTray && !moved) {
-        const d = store.data.decorations.find((it) => it.id === id);
         store.placeDecoration(id, 50, isFloating(d.type) ? 50 : 30);
         sound.playStar();
+        if (isFloating(d.type)) this.requestDone(store.completeRequest('float'));
       } else if (overTray) {
         store.storeDecoration(id);
         if (!fromTray) toast('보관함에 넣었어요');
@@ -474,6 +481,7 @@ export class HomeScene {
         store.placeDecoration(id, pos.x, pos.b);
         sound.playStar();
         if (moved) this.requestDone(store.completeRequest('decor'));
+        if (isFloating(d.type)) this.requestDone(store.completeRequest('float'));
       }
       this.renderDecor();
       this.renderTray();
@@ -642,6 +650,7 @@ export class HomeScene {
       f.info.addEventListener('click', () => {
         f.info.hidden = true;
         openCard(f.dan);
+        this.requestDone(store.completeRequest('card', f.dan));
       });
       this.tank.appendChild(el);
       this.tank.appendChild(f.badge);
@@ -684,27 +693,22 @@ export class HomeScene {
     }
     const req = store.pendingRequest(f.dan);
     if (req) {
-      this.say(REQUESTS[req.type].text(c.name));
+      this.say(REQUESTS[req.type].text(c.name, req, store.data.kidName));
       if (req.type === 'feed' && !this.feeding) this.toggleFeed();
       if (req.type === 'play' && !this.ball) this.toggleBall();
       if (req.type === 'clean') this.el.querySelector('[data-act="clean"]').classList.add('hint-pulse');
       return;
     }
-    // 친해질수록 반응이 늘어요
+    // 친해질수록 반응이 늘고, 아이 이름을 더 자주 불러요
     const level = store.loveLevel(f.dan);
-    const kid = store.data.kidName;
-    if (level >= 4 && kid) {
-      this.say(`${c.name}: "${kid}${hasBatchim(kid) ? '아' : '야'}, 사랑해! 💖"`);
-      f.sw.dance = 2.5;
-    } else if (level >= 3) {
-      this.say(`${c.name}: "신난다~ 같이 춤추자!"`);
+    const line = level === 0 ? c.line : chatLine({ kid: store.data.kidName, level, golden: f.p === 4, streak: store.data.streak.count, hour: new Date().getHours() });
+    this.say(`${c.name}: "${line}"`);
+    if (level >= 3) {
       f.sw.dance = 2.5;
     } else if (level >= 2) {
-      this.say(`${c.name}: "재주넘기 보여 줄게!"`);
       f.sw.spin = 2;
       f.sw.vy = -3;
     } else {
-      this.say(level >= 1 ? `${c.name}: "안녕! 반가워 👋"` : `${c.name}: "${c.line}"`);
       f.sw.spin = 1;
       f.sw.vy = -2;
     }
@@ -717,7 +721,7 @@ export class HomeScene {
       if (!act) return;
       sound.playPop();
       if (act === 'go') this.app.go('map', { dan: this.rec.dan });
-      if (act === 'guide') this.say(careMessage() || this.rec.text);
+      if (act === 'guide') this.say(careMessage() || this.guideLine());
       if (act === 'review') this.app.go('review');
       if (act === 'dex') openDex();
       if (act === 'decor') this.enterDecor();
@@ -728,7 +732,7 @@ export class HomeScene {
       if (act === 'ball') this.toggleBall();
       if (act === 'requests') openRequests(() => {
         this.updateRequestPill();
-        this.say(careMessage() || this.rec.text);
+        this.say(careMessage() || this.guideLine());
       });
       if (act === 'gift') this.openGift();
     });
@@ -783,7 +787,7 @@ export class HomeScene {
     const b = this.el.querySelector('[data-act="feed"]');
     b.classList.toggle('active', this.feeding);
     if (this.feeding) this.say('어항을 톡톡 누르면 먹이가 떨어져요!');
-    else this.say(careMessage() || this.rec.text);
+    else this.say(careMessage() || this.guideLine());
   }
 
   step() {

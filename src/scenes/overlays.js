@@ -228,7 +228,7 @@ export function openRequests(onChange) {
     const rows = r.list.map((q) => `
       <div class="req-row ${q.done ? 'done' : ''}">
         <span class="req-art">${charSVG(q.dan, store.data.progress[q.dan], 56)}</span>
-        <span class="req-text">${REQUESTS[q.type].icon} ${REQUESTS[q.type].text(store.petName(q.dan))}</span>
+        <span class="req-text">${REQUESTS[q.type].icon} ${REQUESTS[q.type].text(store.petName(q.dan), q, store.data.kidName)}</span>
         <span class="req-state">${q.done ? '✓ 들어줬어요' : '하는 중'}</span>
       </div>`).join('');
     const filled = r.rewarded && store.data.stamps % 7 === 0 ? 7 : store.data.stamps % 7;

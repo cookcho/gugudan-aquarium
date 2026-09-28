@@ -161,7 +161,7 @@ export class MixScene {
 
   finish() {
     const passed = this.firstTry >= PASS;
-    store.addGame();
+    store.addGame(this.dan);
     let from = store.data.progress[this.dan];
     let to = from;
     let bonus = 0;
