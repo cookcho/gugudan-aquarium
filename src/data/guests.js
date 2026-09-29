@@ -25,7 +25,7 @@ export const GUESTS = [
   {
     id: 'pirate', name: '캡틴 소라', species: '해적 소라게', color: '#D9793A',
     likes: ['ship', 'chest', 'anchor', 'helmet'],
-    motion: { speed: 0.9, zone: 'any', bob: 0.6, rest: 0.2, dash: 0.1, wag: 0.8, tilt: true },
+    motion: { speed: 0.5, zone: 'floor', bob: 0, rest: 0.4, dash: 0.05, wag: 0.8 }, // 소라게는 바닥을 엉금엉금
     hello: '어이, 선원! 보물 냄새를 맡고 왔다!',
     riddle: (a, b) => `금화가 ${a}개씩 ${b}자루 있다! 모두 몇 개냐, 선원?`
   },
