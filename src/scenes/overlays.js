@@ -377,12 +377,14 @@ function photoCard(ph, cardW) {
     const size = Math.round(f.s * cardW);
     return `<div class="photo-fish ${f.flip ? 'flip' : ''}" style="left:${Math.round(f.x * cardW)}px;top:${Math.round((ph.top + f.y * ph.tankH) * cardH)}px">${charSVG(f.dan, f.p, size)}</div>`;
   }).join('');
+  const gu = ph.guest;
+  const guest = gu ? `<div class="photo-fish ${gu.flip ? 'flip' : ''}" style="left:${Math.round(gu.x * cardW)}px;top:${Math.round((ph.top + gu.y * ph.tankH) * cardH)}px">${guestSVG(gu.id, Math.round(gu.s * cardW))}</div>` : '';
   const d = new Date(ph.at);
   const icon = { day: '☀️', evening: '🌇', night: '🌙' }[ph.time] || '';
   return `
     <figure class="photo" data-id="${ph.id}">
       <div class="photo-tank time-${ph.time}" style="width:${cardW}px;height:${cardH}px;background:linear-gradient(180deg, ${theme.colors[0]}, ${theme.colors[1]})">
-        <div class="photo-sand"></div>${decor}${fish}
+        <div class="photo-sand"></div>${decor}${fish}${guest}
       </div>
       <figcaption>${d.getMonth() + 1}월 ${d.getDate()}일 ${icon}<button class="photo-del" data-del="${ph.id}" aria-label="사진 지우기">✕</button></figcaption>
     </figure>`;

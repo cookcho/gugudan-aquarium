@@ -388,13 +388,21 @@ export class HomeScene {
       top: +((this.bounds.top - aq.top) / aq.height).toFixed(3), // 친구 영역이 어항에서 시작하는 높이
       tankH: +(H / aq.height).toFixed(3),
       decor: store.data.decorations.filter((d) => d.placed).map(({ type, x, b }) => ({ type, x, b })),
-      fish: this.fishes.map((f) => ({ dan: f.dan, p: f.p, x: +(f.x / W).toFixed(3), y: +(f.y / H).toFixed(3), s: +(f.size / W).toFixed(3), flip: (f.sw?.face ?? 1) < 0 }))
+      fish: this.fishes.map((f) => ({ dan: f.dan, p: f.p, x: +(f.x / W).toFixed(3), y: +(f.y / H).toFixed(3), s: +(f.size / W).toFixed(3), flip: (f.sw?.face ?? 1) < 0 })),
+      guest: this.guestSnap(W, H)
     });
     const flash = h('<div class="photo-flash"></div>');
     this.el.appendChild(flash);
     setTimeout(() => flash.remove(), 600);
     sound.playShutter();
     toast('찰칵! 📸 앨범에 저장했어요');
+  }
+
+  // 놀러 와 있는 손님도 사진에 담아요 (떠나는 중이면 빼요)
+  guestSnap(W, H) {
+    const gst = this.guests?.guest;
+    if (!gst || gst.leaving) return null;
+    return { id: gst.g.id, x: +(gst.sw.x / W).toFixed(3), y: +(gst.sw.y / H).toFixed(3), s: +(gst.size / W).toFixed(3), flip: (gst.sw.face ?? 1) < 0 };
   }
 
   // ---- 비눗방울 놀이: 어항을 누르면 비눗방울이 나오고, 친구들이 쫓아가서 톡 터뜨려요 ----
