@@ -368,7 +368,7 @@ function photoCard(ph, cardW) {
   const d = new Date(ph.at);
   const icon = { day: '☀️', evening: '🌇', night: '🌙' }[ph.time] || '';
   return `
-    <figure class="photo">
+    <figure class="photo" data-id="${ph.id}">
       <div class="photo-tank time-${ph.time}" style="width:${cardW}px;height:${cardH}px;background:linear-gradient(180deg, ${theme.colors[0]}, ${theme.colors[1]})">
         <div class="photo-sand"></div>${decor}${fish}
       </div>
@@ -395,9 +395,28 @@ export function openAlbum(onShoot) {
       return;
     }
     const del = e.target.closest('[data-del]');
-    if (del && await confirmBox('이 사진을 지울까요?', '지우기', '그냥 둘래요')) {
-      store.removePhoto(del.dataset.del);
-      del.closest('.photo').remove();
+    if (del) {
+      if (await confirmBox('이 사진을 지울까요?', '지우기', '그냥 둘래요')) {
+        store.removePhoto(del.dataset.del);
+        del.closest('.photo').remove();
+      }
+      return;
     }
+    const card = e.target.closest('.photo');
+    const ph = card && photos.find((x) => x.id === card.dataset.id);
+    if (ph) openPhoto(ph);
   });
+}
+
+// 사진 크게 보기: 화면에 꽉 차게 다시 그려요. 아무 데나 누르면 닫혀요
+function openPhoto(ph) {
+  sound.playPop();
+  const w = Math.round(Math.min(innerWidth * 0.86, (innerHeight * 0.76) / ph.ratio));
+  const el = h(`<div class="overlay photo-view">${photoCard(ph, w)}<p class="photo-view-hint">아무 데나 누르면 닫혀요</p></div>`);
+  el.querySelector('.photo-del')?.remove();
+  el.addEventListener('click', () => {
+    sound.playPop();
+    el.remove();
+  });
+  document.getElementById('app').appendChild(el);
 }

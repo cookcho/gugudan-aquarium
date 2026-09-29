@@ -837,3 +837,8 @@ button.pill { cursor: pointer; }
 .photo-fish.flip .char-svg { transform: scaleX(-1); }
 .photo figcaption { display: flex; align-items: center; justify-content: space-between; font-size: calc(var(--u) * 1.8); padding: calc(var(--u) * 0.5) calc(var(--u) * 0.2); color: var(--ink); }
 .photo-del { border: 0; background: none; color: var(--muted); font-size: calc(var(--u) * 1.8); cursor: pointer; padding: 4px 8px; }
+.photo { cursor: zoom-in; }
+.photo-view { flex-direction: column; gap: calc(var(--u) * 1.2); cursor: zoom-out; }
+.photo-view .photo { rotate: 0deg; cursor: zoom-out; animation: popIn .3s ease-out; padding: calc(var(--u) * 1.2) calc(var(--u) * 1.2) 0; }
+.photo-view .photo figcaption { font-size: calc(var(--u) * 2.4); justify-content: center; }
+.photo-view-hint { color: #fff; font-size: calc(var(--u) * 1.8); opacity: .8; margin: 0; }
