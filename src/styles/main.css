@@ -707,8 +707,6 @@ button.pill { cursor: pointer; }
 .riddle-choices { display: grid; grid-template-columns: repeat(4, auto); gap: calc(var(--u) * 1.4); margin-top: calc(var(--u) * 0.6); }
 .riddle-choices .answer { width: calc(var(--u) * 13); height: calc(var(--u) * 10); font-size: calc(var(--u) * 4.2); }
 .riddle-result { display: grid; place-items: center; min-height: calc(var(--u) * 3); font-size: calc(var(--u) * 2.2); color: var(--sea); }
-.dex-sub { font-size: calc(var(--u) * 2.6); font-weight: 400; color: var(--sea); margin-top: calc(var(--u) * 2.4); }
-.dex-sub small { font-size: .75em; color: var(--muted); }
 .guest-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--u) * 17), 1fr)); gap: calc(var(--u) * 1.2); }
 .guest-card { background: #fff; border-radius: calc(var(--u) * 1.8); padding: calc(var(--u) * 1); display: grid; justify-items: center; text-align: center; gap: 2px; font-size: calc(var(--u) * 1.8); }
 .guest-card small { font-size: calc(var(--u) * 1.5); color: var(--muted); line-height: 1.35; word-break: keep-all; }

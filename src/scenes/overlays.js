@@ -134,7 +134,8 @@ export function openDecorShop(onChange, startTab = 'plant') {
   });
 }
 
-export function openDex() {
+export function openDex(startTab = 'fish') {
+  let tab = startTab;
   const rows = DAN_ORDER.map((dan) => {
     const c = CHARACTERS[dan];
     const p = store.data.progress[dan];
@@ -169,13 +170,24 @@ export function openDex() {
         <small>${met ? `${g.species} · ${info.visits}번 놀러 왔어요` : `좋아하는 것: ${g.likes.map(itemName).filter(Boolean).join(', ')}`}</small>
       </div>`;
   }).join('');
-  const el = sheet('📖 바다 도감', `
-    <p class="sheet-sub">모은 친구 <b>${total}</b> / 32 · 하트는 친구와 친한 정도예요</p>
-    <div class="dex">${rows}</div>
-    <h3 class="dex-sub">🦀 놀러 온 손님 <small>${metCount} / ${GUESTS.length}</small></h3>
-    <p class="sheet-sub">손님이 좋아하는 장식을 어항에 놓으면 가끔 놀러 와요</p>
-    <div class="guest-grid">${guestCards}</div>`);
+  // 상점처럼 탭으로 나눠요: 바다 친구 / 손님
+  const render = () => `
+    <div class="shop-tabs">
+      <button class="shop-tab ${tab === 'fish' ? 'on' : ''}" data-tab="fish">🐠 바다 친구 <small>${total}/32</small></button>
+      <button class="shop-tab ${tab === 'guests' ? 'on' : ''}" data-tab="guests">🦀 손님 <small>${metCount}/${GUESTS.length}</small></button>
+    </div>
+    ${tab === 'fish'
+      ? `<p class="sheet-sub">모은 친구 <b>${total}</b> / 32 · 하트는 친구와 친한 정도예요</p><div class="dex">${rows}</div>`
+      : `<p class="sheet-sub">만난 손님 <b>${metCount}</b> / ${GUESTS.length} · 손님이 좋아하는 장식을 어항에 놓으면 가끔 놀러 와요</p><div class="guest-grid">${guestCards}</div>`}`;
+  const el = sheet('📖 바다 도감', render());
   el.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-tab]');
+    if (t) {
+      sound.playPop();
+      tab = t.dataset.tab;
+      el.querySelector('.sheet-body').innerHTML = render();
+      return;
+    }
     const card = e.target.closest('[data-card]');
     if (card) {
       openCard(Number(card.dataset.card));
@@ -186,7 +198,7 @@ export function openDex() {
     sound.playPop();
     openRename(Number(b.dataset.rename), () => {
       el.remove();
-      openDex();
+      openDex(tab);
     });
   });
 }
