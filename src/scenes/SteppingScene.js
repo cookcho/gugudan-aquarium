@@ -3,6 +3,7 @@
 import { store } from '../core/store.js';
 import { h, topbar, unit } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
+import { correctFx } from '../core/juice.js';
 import { speakLine, gugudanLine } from '../core/speech.js';
 import { stepChoices, hintDotsHTML } from '../core/quiz.js';
 import { charSVG, guideSVG } from '../graphics/characters.js';
@@ -113,7 +114,7 @@ export class SteppingScene {
       store.record(dan, n, true, Date.now() - this.started);
       this.firstTry++;
     }
-    sound.playCorrect();
+    correctFx(this, btn, this.miss === 0);
     store.addStars(1);
     this.earned++;
     btn.classList.add('right');

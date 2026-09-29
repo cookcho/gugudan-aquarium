@@ -753,3 +753,16 @@ button.pill { cursor: pointer; }
 .tip-center::before { content: ''; position: fixed; inset: -100vmax; background: rgba(4, 30, 50, .35); z-index: -1; }
 .tip-center .tip-art svg { width: calc(var(--u) * 10); height: calc(var(--u) * 10); }
 .tip-center .tip-bubble { max-width: min(80vw, calc(var(--u) * 56)); text-align: center; font-size: calc(var(--u) * 2.5); padding: calc(var(--u) * 1.6) calc(var(--u) * 2.4); border-radius: calc(var(--u) * 2); }
+
+/* 공통 정답 효과: 날아가는 별, 별 개수 톡, 연속 배지 */
+.fly-star { position: fixed; z-index: 400; font-size: calc(var(--u) * 3.4); pointer-events: none; filter: drop-shadow(0 0 calc(var(--u) * 0.6) rgba(255, 220, 90, .9)); }
+.pill.bump { animation: pillBump .35s ease-out; }
+@keyframes pillBump { 40% { transform: scale(1.18); background: #FFF1C9; } }
+.combo-badge { position: absolute; left: 50%; top: 24%; z-index: 50; translate: -50% 0; background: linear-gradient(90deg, #FF7A59, #FFC53D); color: #fff; font-size: calc(var(--u) * 3); padding: calc(var(--u) * 0.6) calc(var(--u) * 2.2); border-radius: 999px; box-shadow: 0 calc(var(--u) * 0.5) 0 rgba(0, 0, 0, .18); pointer-events: none; animation: comboPop 1.4s ease-out forwards; }
+@keyframes comboPop { 0% { transform: scale(.3) rotate(-8deg); opacity: 0; } 18% { transform: scale(1.15) rotate(3deg); opacity: 1; } 30% { transform: scale(1) rotate(0); } 80% { opacity: 1; } 100% { transform: translateY(calc(var(--u) * -3)); opacity: 0; } }
+
+/* 화면 전환: 새 화면이 살짝 나타나고, 거품이 휙 올라가요 */
+.scene-in { animation: fadeIn .35s ease-out; }
+.wipe { position: fixed; inset: 0; z-index: 350; pointer-events: none; overflow: hidden; }
+.wipe i { position: absolute; bottom: -120px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, .95), rgba(190, 240, 255, .35) 60%, rgba(255, 255, 255, .6)); animation: wipeUp .75s ease-in forwards; }
+@keyframes wipeUp { to { transform: translateY(-120vh); } }

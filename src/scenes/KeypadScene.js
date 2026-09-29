@@ -4,6 +4,7 @@
 import { store } from '../core/store.js';
 import { h, topbar, unit } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
+import { correctFx } from '../core/juice.js';
 import { speakLine, gugudanLine } from '../core/speech.js';
 import { shuffle, hintDotsHTML } from '../core/quiz.js';
 import { charSVG, guideSVG } from '../graphics/characters.js';
@@ -162,7 +163,7 @@ export class KeypadScene {
       store.record(dan, n, true, Date.now() - this.started);
       this.firstTry++;
     }
-    sound.playCorrect();
+    correctFx(this, this.el.querySelector('.kp-clam'), this.miss === 0);
     store.addStars(1);
     this.earned++;
     this.el.querySelector('.kp-clam').innerHTML = clamSVG(Math.round(this.u * 12), true);

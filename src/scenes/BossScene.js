@@ -5,6 +5,7 @@ import confetti from 'canvas-confetti';
 import { store } from '../core/store.js';
 import { h, topbar, unit, floatUp } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
+import { correctFx } from '../core/juice.js';
 import { speakLine, gugudanLine } from '../core/speech.js';
 import { mixChoices, hintDotsHTML } from '../core/quiz.js';
 import { charSVG, hasImage, imageArt } from '../graphics/characters.js';
@@ -236,7 +237,7 @@ export class BossScene {
     }
 
     this.locked = true;
-    sound.playCorrect();
+    correctFx(this, btn, this.miss === 0, { badge: false }); // 보스전은 슈퍼 물대포 배너가 따로 있어요
     btn.classList.add('right');
     store.addStars(1);
     this.earned++;

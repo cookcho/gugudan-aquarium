@@ -15,6 +15,18 @@ import { ResultScene } from './scenes/ResultScene.js';
 import { ParentScene } from './scenes/ParentScene.js';
 import { firstTip } from './scenes/tips.js';
 
+// 화면이 바뀔 때 거품이 아래에서 위로 휙 올라가요
+function bubbleWipe() {
+  const wipe = document.createElement('div');
+  wipe.className = 'wipe';
+  wipe.innerHTML = Array.from({ length: 16 }, () => {
+    const s = 20 + Math.random() * 70;
+    return `<i style="width:${s}px;height:${s}px;left:${Math.random() * 100}%;animation-delay:${(Math.random() * 0.18).toFixed(2)}s"></i>`;
+  }).join('');
+  document.getElementById('app').appendChild(wipe);
+  setTimeout(() => wipe.remove(), 1000);
+}
+
 const SCENES = {
   home: HomeScene,
   map: MapScene,
@@ -74,6 +86,8 @@ class App {
     music.play(MUSIC_FOR[name] || null);
     this.scene = new SCENES[name](this, params);
     this.root.appendChild(this.scene.el);
+    this.scene.el.classList.add('scene-in');
+    bubbleWipe();
     this.scene.mounted?.();
     if (name !== 'map') firstTip(name, this.scene.el); // 지도는 뽀글이가 늘 있어서 따로 알려줘요
     if (LEARNING.has(name)) this.learningSince = Date.now();

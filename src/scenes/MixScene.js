@@ -3,6 +3,7 @@
 import { store } from '../core/store.js';
 import { h, topbar, unit } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
+import { correctFx } from '../core/juice.js';
 import { speakLine, gugudanLine } from '../core/speech.js';
 import { shuffle, mixChoices, hintDotsHTML } from '../core/quiz.js';
 import { charSVG } from '../graphics/characters.js';
@@ -131,11 +132,11 @@ export class MixScene {
     }
 
     this.locked = true;
-    sound.playCorrect();
+    const clean = this.miss === 0 && !retry;
+    correctFx(this, btn, clean);
     btn.classList.add('right');
     store.addStars(1);
     this.earned++;
-    const clean = this.miss === 0 && !retry;
     if (!retry) {
       if (clean) {
         store.record(dan, n, true, Date.now() - this.started);

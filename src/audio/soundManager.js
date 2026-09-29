@@ -40,11 +40,12 @@ class SoundManager {
     osc.stop(now + 0.12);
   }
 
-  // 2. 정답 화음 (맑고 경쾌한 실로폰 도-미-솔 3연음)
-  playCorrect() {
+  // 2. 정답 화음 (맑고 경쾌한 실로폰 도-미-솔 3연음). combo: 연속 정답이면 반음씩 높아져요 (최대 7)
+  playCorrect(combo = 0) {
     if (!this.enabled) return;
     this.init();
-    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+    const up = 2 ** (Math.min(Math.max(combo - 1, 0), 7) / 12);
+    const notes = [523.25, 659.25, 783.99, 1046.50].map((f) => f * up); // C5, E5, G5, C6
     const now = this.ctx.currentTime;
 
     notes.forEach((freq, index) => {
