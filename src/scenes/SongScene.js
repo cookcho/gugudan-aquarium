@@ -69,6 +69,12 @@ export class SongScene {
     this.playRep();
   }
 
+  floatNote(singer) {
+    const note = h(`<span class="note-float" style="--dx:${Math.round(Math.random() * 60 - 10)}px">${Math.random() < 0.5 ? '🎵' : '🎶'}</span>`);
+    singer.appendChild(note);
+    setTimeout(() => note.remove(), 1400);
+  }
+
   updateReps() {
     this.el.querySelectorAll('.reps i').forEach((d, k) => d.classList.toggle('on', k < this.rep));
   }
@@ -80,7 +86,11 @@ export class SongScene {
     const singer = this.el.querySelector('.singer');
     bubble.hidden = true;
     singer.classList.add('sing');
+    // 읽어 주는 동안 음표가 둥실 떠올라요
+    const notes = setInterval(() => this.alive && this.floatNote(singer), 380);
+    this.floatNote(singer);
     await speakLine(this.dan, i);
+    clearInterval(notes);
     if (!this.alive || this.i !== i || this.rep !== rep) return;
     singer.classList.remove('sing');
     bubble.innerHTML = `따라 말하고<br>톡! <small>${rep + 1}/${REPEATS}</small>`;
@@ -91,7 +101,10 @@ export class SongScene {
     const act = e.target.closest('[data-act]')?.dataset.act;
     if (act === 'again') {
       sound.playPop();
-      speakLine(this.dan, this.i);
+      const singer = this.el.querySelector('.singer');
+      const notes = setInterval(() => this.alive && this.floatNote(singer), 380);
+      this.floatNote(singer);
+      speakLine(this.dan, this.i).then(() => clearInterval(notes));
     } else if (act === 'next') {
       sound.playPop();
       this.rep++;
@@ -100,6 +113,8 @@ export class SongScene {
         this.playRep();
       } else if (this.i < 9) {
         sound.playStar();
+        const li = this.el.querySelector(`.lines li[data-n="${this.i}"]`);
+        li?.classList.add('shine');
         this.i++;
         this.showLine();
       } else {

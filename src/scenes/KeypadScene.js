@@ -108,8 +108,14 @@ export class KeypadScene {
     f.className = `feedback ${tone}`;
   }
 
-  showTyped() {
-    this.el.querySelector('.kp-typed').textContent = this.typed;
+  showTyped(bump = false) {
+    const t = this.el.querySelector('.kp-typed');
+    t.textContent = this.typed;
+    if (bump) {
+      t.classList.remove('bump');
+      void t.offsetWidth;
+      t.classList.add('bump');
+    }
   }
 
   press(k) {
@@ -129,6 +135,7 @@ export class KeypadScene {
     } else if (this.typed.length < 2) {
       sound.playPop();
       this.typed += k;
+      return this.showTyped(true);
     }
     this.showTyped();
   }
@@ -166,7 +173,11 @@ export class KeypadScene {
     correctFx(this, this.el.querySelector('.kp-clam'), this.miss === 0);
     store.addStars(1);
     this.earned++;
-    this.el.querySelector('.kp-clam').innerHTML = clamSVG(Math.round(this.u * 12), true);
+    const clam = this.el.querySelector('.kp-clam');
+    clam.innerHTML = clamSVG(Math.round(this.u * 12), true);
+    clam.classList.remove('shine');
+    void clam.offsetWidth;
+    clam.classList.add('shine');
     this.el.querySelectorAll('.pearls i').forEach((b, i) => {
       if (i === this.idx) b.className = this.miss === 0 ? 'ok' : 'retry';
     });

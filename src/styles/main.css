@@ -792,3 +792,19 @@ button.pill { cursor: pointer; }
 .wipe { position: fixed; inset: 0; z-index: 350; pointer-events: none; overflow: hidden; }
 .wipe i { position: absolute; bottom: -120px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, .95), rgba(190, 240, 255, .35) 60%, rgba(255, 255, 255, .6)); animation: wipeUp .75s ease-in forwards; }
 @keyframes wipeUp { to { transform: translateY(-120vh); } }
+
+/* 게임별 작은 효과 */
+.pop-bubble { position: fixed; z-index: 380; margin: -6px 0 0 -6px; border-radius: 50%; pointer-events: none; background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .95) 0 18%, rgba(190, 240, 255, .25) 22%, rgba(255, 255, 255, .7)); animation: popBubble .75s ease-out forwards; }
+@keyframes popBubble { 70% { opacity: 1; transform: translate(var(--dx), var(--dy)) scale(1); } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) - 10px)) scale(1.5); } }
+.egg-box { --glow: 0; filter: drop-shadow(0 0 calc(var(--u) * 3 * var(--glow)) rgba(255, 246, 170, calc(.3 + var(--glow) * .6))); transition: filter .6s; }
+.egg-box.restless:not(.shake) { animation: eggIdle 2.2s ease-in-out infinite; }
+.kp-typed { display: inline-block; }
+.kp-typed.bump { animation: typedBump .22s ease-out; }
+@keyframes typedBump { 50% { transform: scale(1.25) translateY(calc(var(--u) * -0.4)); } }
+.kp-clam.shine { animation: clamShine .9s ease-out; }
+@keyframes clamShine { 30% { filter: brightness(1.35) drop-shadow(0 0 calc(var(--u) * 2) #FFF6C0); transform: scale(1.08); } }
+.singer { position: relative; }
+.note-float { position: absolute; left: 70%; top: 10%; font-size: calc(var(--u) * 2.6); pointer-events: none; animation: noteUp 1.4s ease-out forwards; }
+@keyframes noteUp { 0% { opacity: 0; transform: translate(0, 0) scale(.6); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--u) * -9)) rotate(15deg) scale(1.1); } }
+.lines li.shine { animation: lineShine .8s ease-out; }
+@keyframes lineShine { 30% { background: #FFF1C9; color: var(--ink); transform: scale(1.06); } }

@@ -158,6 +158,9 @@ export class MixScene {
     void box.offsetWidth;
     box.classList.add('shake');
     this.el.querySelectorAll('.crack').forEach((c) => c.classList.toggle('on', Number(c.dataset.i) < this.firstTry));
+    // 금이 갈수록 알이 환하게 빛나고, 절반을 넘으면 혼자 들썩여요
+    box.style.setProperty('--glow', Math.min(1, this.firstTry / 7).toFixed(2));
+    box.classList.toggle('restless', this.firstTry >= 4);
   }
 
   finish() {

@@ -32,12 +32,28 @@ export function flyStar(sceneEl, fromEl) {
   };
 }
 
+// 정답 자리에서 작은 비눗방울이 퐁퐁 터져요
+export function popBubbles(fromEl, count = 8) {
+  if (!fromEl) return;
+  const r = fromEl.getBoundingClientRect();
+  const app = document.getElementById('app');
+  for (let i = 0; i < count; i++) {
+    const a = Math.PI * (1 + Math.random()); // 위쪽으로 퍼져요
+    const d = 30 + Math.random() * 50;
+    const s = 8 + Math.random() * 14;
+    const b = h(`<i class="pop-bubble" style="left:${r.left + r.width / 2}px;top:${r.top + r.height / 2}px;width:${s}px;height:${s}px;--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d - 20).toFixed(0)}px"></i>`);
+    app.appendChild(b);
+    setTimeout(() => b.remove(), 800);
+  }
+}
+
 // 정답일 때 부르세요. clean: 한 번에 맞혔는지. badge: 연속 배지를 보일지 (보스전은 따로 있어요)
 export function correctFx(scene, fromEl, clean, { badge = true } = {}) {
   scene.combo = clean ? (scene.combo || 0) + 1 : 0;
   sound.playCorrect(scene.combo);
   navigator.vibrate?.(15);
   flyStar(scene.el, fromEl);
+  popBubbles(fromEl);
   if (badge && BADGE_AT.includes(scene.combo)) {
     const el = h(`<div class="combo-badge">🔥 ${scene.combo}연속!</div>`);
     scene.el.appendChild(el);
