@@ -845,3 +845,13 @@ button.pill { cursor: pointer; }
 .time-badge { position: absolute; right: calc(var(--u) * 2); top: calc(var(--u) * 8.5); z-index: 13; width: calc(var(--u) * 5); height: calc(var(--u) * 5); border-radius: 50%; border: 2px solid rgba(255, 255, 255, .7); background: rgba(255, 255, 255, .3); font-size: calc(var(--u) * 2.8); display: grid; place-items: center; cursor: pointer; padding: 0; backdrop-filter: blur(2px); }
 .time-night .time-badge { background: rgba(20, 30, 70, .5); box-shadow: 0 0 calc(var(--u) * 1.4) rgba(255, 240, 180, .5); }
 .time-evening .time-badge { background: rgba(255, 170, 110, .45); }
+
+/* 세로로 든 스마트폰: 옆으로 돌려 달라는 안내 (태블릿·PC는 안 보여요) */
+#rotate-hint { display: none; }
+@media (orientation: portrait) and (max-width: 599px) and (pointer: coarse) {
+  #rotate-hint { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 24px; text-align: center; color: #fff; font-family: var(--kid); background: linear-gradient(180deg, var(--sea-top), var(--sea) 55%, var(--sea-deep)); }
+  #rotate-hint p { font-size: 26px; }
+  .rotate-phone { font-size: 84px; animation: rotatePhone 2.4s ease-in-out infinite; }
+  #go-landscape { font-family: inherit; font-size: 22px; color: var(--ink); background: #fff; border: 0; border-radius: 999px; padding: 14px 28px; box-shadow: 0 5px 0 rgba(0, 0, 0, .18); }
+}
+@keyframes rotatePhone { 0%, 25% { transform: rotate(0); } 55%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }

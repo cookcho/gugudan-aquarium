@@ -100,7 +100,23 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
+// 세로 안내의 "가로로 크게 보기": 전체 화면으로 바꾸고 가로로 고정해요 (안드로이드만 돼요. 아이폰은 버튼을 숨겨요)
+function setupRotateHint() {
+  const btn = document.getElementById('go-landscape');
+  if (!document.documentElement.requestFullscreen || !screen.orientation?.lock) return;
+  btn.hidden = false;
+  btn.addEventListener('click', async () => {
+    try {
+      await document.documentElement.requestFullscreen();
+      await screen.orientation.lock('landscape');
+    } catch {
+      // 안 되는 기기면 안내 문구대로 직접 돌리면 돼요
+    }
+  });
+}
+
 window.addEventListener('DOMContentLoaded', async () => {
+  setupRotateHint();
   await Promise.race([preloadCharacterImages(), new Promise((r) => setTimeout(r, 2000))]);
   new App(document.getElementById('stage'));
 });
