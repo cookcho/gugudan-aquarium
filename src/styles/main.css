@@ -152,7 +152,9 @@ button.pill { cursor: pointer; }
 .time-night .sky-tint { opacity: 1; background: linear-gradient(180deg, rgba(12, 24, 70, .5) 0%, rgba(6, 12, 40, .58) 100%); }
 .glow-dots { position: absolute; inset: 0; pointer-events: none; z-index: 9; display: none; }
 .time-night .glow-dots { display: block; }
-.glow-dots i { position: absolute; width: calc(var(--u) * 0.6); height: calc(var(--u) * 0.6); border-radius: 50%; background: #BFF6FF; box-shadow: 0 0 calc(var(--u) * 1) #7FE8FF; animation: twinkle 2.6s ease-in-out infinite alternate; }
+.glow-dots i { position: absolute; width: calc(var(--u) * var(--s, .6)); height: calc(var(--u) * var(--s, .6)); border-radius: 50%; background: #BFF6FF; box-shadow: 0 0 calc(var(--u) * 1.4 * var(--s, .6)) #7FE8FF; animation: glowTwinkle 2.6s ease-in-out infinite alternate; }
+.glow-dots i:nth-child(5n) { background: #FFF6C8; box-shadow: 0 0 calc(var(--u) * 1.2) #FFE08A; }
+@keyframes glowTwinkle { from { opacity: .15; transform: scale(.7); } to { opacity: 1; transform: scale(1.15); } }
 .time-night .decor[data-type="jellyLamp"] svg, .time-night .decor[data-type="lighthouse"] svg, .time-night .decor[data-type="crystal"] svg { filter: drop-shadow(0 0 calc(var(--u) * 1.2) #FFE08A); }
 .murk { position: absolute; inset: 0; background: #6B7A3A; mix-blend-mode: multiply; opacity: 0; pointer-events: none; transition: opacity .6s; z-index: 7; }
 .cleaning { cursor: grab; }
@@ -694,7 +696,7 @@ button.pill { cursor: pointer; }
 .dock .btn-big { font-size: calc(var(--u) * 2.4); padding: calc(var(--u) * 1.3) calc(var(--u) * 2); }
 
 /* ---------- 놀러 오는 손님 ---------- */
-.guest { position: absolute; left: 0; top: 0; z-index: 10; cursor: pointer; pointer-events: auto; will-change: transform; transition: opacity 1s; }
+.guest { position: absolute; left: 0; top: 0; z-index: 6; cursor: pointer; pointer-events: auto; will-change: transform; transition: opacity 1s; }
 .guest.arriving { animation: guestIn 1.2s ease-out; }
 .guest.leaving { opacity: 0; }
 .guest-badge { background: #E8F7FF; color: var(--sea); }

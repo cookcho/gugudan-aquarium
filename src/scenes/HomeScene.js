@@ -73,7 +73,7 @@ export class HomeScene {
           <div class="gift-layer"></div>
           <div class="murk"></div>
           <div class="sky-tint"></div>
-          <div class="glow-dots">${Array.from({ length: 14 }, () => `<i style="left:${Math.random() * 96}%;top:${10 + Math.random() * 70}%;animation-delay:${-Math.random() * 3}s"></i>`).join('')}</div>
+          <div class="glow-dots">${Array.from({ length: 48 }, () => `<i style="left:${Math.random() * 98}%;top:${3 + Math.random() * 82}%;--s:${(0.35 + Math.random() * 0.75).toFixed(2)};animation-duration:${(1.6 + Math.random() * 2.6).toFixed(1)}s;animation-delay:${-(Math.random() * 4).toFixed(1)}s"></i>`).join('')}</div>
           <div class="algae"></div>
           <div class="tank"></div>
           <div class="food-layer"></div>
