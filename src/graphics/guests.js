@@ -76,6 +76,30 @@ const DRAW = {
     <g fill="#5B6FAF" opacity=".7"><circle cx="42" cy="52" r="3"/><circle cx="50" cy="44" r="2.4"/><circle cx="38" cy="70" r="2.6"/></g>
     ${face(72, 56, 0.85)}`,
 
+  shrimp: () => `
+    <path d="M64 34 Q92 6 116 14 M68 38 Q98 22 118 30" stroke="#E0603C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <g stroke="#E0603C" stroke-width="3" stroke-linecap="round"><path d="M44 78 l-4 12 M54 80 l-2 12 M64 80 l0 12 M74 76 l2 12"/></g>
+    <path d="M22 66 L4 52 L8 70 L2 84 Z" fill="#FF8A65" stroke="#E0603C" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M22 70 Q20 44 50 40 Q86 36 94 56 Q96 72 78 78 Q50 86 22 70Z" fill="#FF8A65" stroke="#E0603C" stroke-width="3"/>
+    <g stroke="#E0603C" stroke-width="2" fill="none" opacity=".7"><path d="M38 44 Q34 60 40 76"/><path d="M52 41 Q48 60 54 80"/><path d="M66 41 Q62 60 68 79"/></g>
+    <ellipse cx="60" cy="72" rx="16" ry="5" fill="#FFC2A8" opacity=".8"/>
+    ${face(82, 56, 0.62)}`,
+
+  manta: () => `
+    <path d="M18 64 Q6 70 2 86" stroke="#2B4470" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M20 62 Q42 26 60 40 Q66 20 108 30 Q96 46 100 60 Q104 80 64 84 Q40 86 20 62Z" fill="#3E5C8A" stroke="#1E3358" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M40 70 Q64 84 96 66 Q92 80 64 84 Q48 84 40 70Z" fill="#EAF3FB"/>
+    <path d="M98 58 q10 -6 12 4 M98 66 q10 6 10 14" stroke="#1E3358" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <g fill="#6F8FBF" opacity=".6"><circle cx="54" cy="48" r="3"/><circle cx="66" cy="44" r="2.5"/><circle cx="46" cy="58" r="2.5"/></g>
+    ${face(84, 60, 0.7)}`,
+
+  cuttle: () => `
+    <g stroke="#9A6BC2" stroke-width="4" stroke-linecap="round" fill="none"><path d="M92 60 q14 -4 20 -12"/><path d="M94 66 q14 2 20 -2"/><path d="M92 72 q12 8 18 10"/></g>
+    <path d="M14 62 Q14 40 50 38 Q90 38 96 62 Q90 86 50 86 Q14 84 14 62Z" fill="#B58AD8" stroke="#7E52A8" stroke-width="3"/>
+    <path d="M16 62 Q14 40 50 36 Q88 36 96 58 M16 64 Q16 88 50 88 Q88 88 96 68" stroke="#E7D3F5" stroke-width="5" fill="none" stroke-dasharray="4 5" stroke-linecap="round"/>
+    <g fill="#E7D3F5" opacity=".75"><ellipse cx="36" cy="54" rx="6" ry="3"/><ellipse cx="50" cy="70" rx="5" ry="3"/><ellipse cx="32" cy="70" rx="4" ry="2.5"/></g>
+    ${face(76, 60, 0.75)}`,
+
   orca: () => `
     <path d="M24 72 L8 56 Q14 72 8 90 Z" fill="#22303C"/>
     <path d="M56 46 Q60 22 72 18 Q70 36 74 46 Z" fill="#22303C"/>

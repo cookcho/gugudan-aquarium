@@ -49,6 +49,27 @@ export const GUESTS = [
     motion: { speed: 0.7, zone: 'upper', bob: 0.6, rest: 0.25, dash: 0.05, wag: 1, tilt: true },
     hello: '뿌우~ 거품 놀이 하러 왔어!',
     riddle: (a, b) => `물방울을 ${a}개씩 ${b}번 뿜었어! 모두 몇 개?`
+  },
+  {
+    id: 'shrimp', name: '꼬물이', species: '꼬마 새우', color: '#FF8A65',
+    likes: ['anemone', 'bush', 'fanCoral', 'pebbles'],
+    motion: { speed: 0.8, zone: 'low', bob: 0.2, rest: 0.3, dash: 0.25, wag: 0.4, tilt: true },
+    hello: '꼬물꼬물~ 말미잘이랑 수초가 좋아서 놀러 왔어!',
+    riddle: (a, b) => `새우 친구들이 ${a}마리씩 ${b}줄로 헤엄쳐! 모두 몇 마리게?`
+  },
+  {
+    id: 'manta', name: '망토', species: '만타가오리', color: '#3E5C8A',
+    likes: ['submarine', 'diverBlue', 'diverPink'],
+    motion: { speed: 0.7, zone: 'upper', bob: 0.8, rest: 0.1, dash: 0, wag: 1.6, tilt: true },
+    hello: '휘익~ 잠수부랑 잠수함 구경하러 날아왔어!',
+    riddle: (a, b) => `날개를 ${a}번씩 ${b}번 펄럭였어! 모두 몇 번?`
+  },
+  {
+    id: 'cuttle', name: '갑돌이', species: '갑오징어', color: '#B58AD8',
+    likes: ['robot', 'jellyTrio', 'crystal'],
+    motion: { speed: 0.6, zone: 'any', bob: 0.5, rest: 0.35, dash: 0.1, wag: 0.9 },
+    hello: '반짝반짝 신기한 게 있어서 왔지! 내 몸 색깔 바뀌는 거 봤어?',
+    riddle: (a, b) => `몸 색깔을 ${a}번씩 ${b}번 바꿨어! 모두 몇 번 바꿨게?`
   }
 ];
 
