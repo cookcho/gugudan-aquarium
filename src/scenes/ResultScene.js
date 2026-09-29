@@ -43,6 +43,7 @@ export class ResultScene {
 
     const art = grew
       ? `<div class="evolve">
+           <span class="evo-rays ${r.to === 4 ? 'gold' : ''}"></span>
            <div class="evo-from">${r.from > 0 ? charSVG(r.dan, r.from, size) : guideSVG(size)}</div>
            <div class="evo-to">${charSVG(r.dan, r.to, size)}</div>
          </div>`
@@ -60,9 +61,9 @@ export class ResultScene {
 
     this.el = h(`
       <div class="scene result ${grew ? 'celebrate' : ''}">
-        <h1 class="result-title">${title}</h1>
+        <h1 class="result-title ${grew ? 'pending' : ''}">${title}</h1>
         ${art}
-        ${grew ? `<p class="result-name">${stageName(r.dan, r.to)}</p>` : ''}
+        ${grew ? `<p class="result-name pending">${stageName(r.dan, r.to)}</p>` : ''}
         ${failNote}
         <div class="result-pills">
           <span class="pill">⭐ +${r.stars}</span>
@@ -91,13 +92,45 @@ export class ResultScene {
   }
 
   mounted() {
-    if (this.grew || this.r.passed) sound.playFanfare();
-    if (this.grew) {
-      setTimeout(() => {
-        this.el.querySelector('.evolve')?.classList.add('done');
-        sound.playStar();
-        confetti({ particleCount: 120, spread: 90, origin: { y: 0.45 } });
-      }, 900);
+    if (!this.grew) {
+      if (this.r.passed) sound.playFanfare();
+      return;
+    }
+    // 진화 연출: 흔들리며 빛을 모으고(1.7초) → 번쩍! → 새 모습
+    this.el.querySelector('.evolve').classList.add('charging');
+    sound.playRumble();
+    setTimeout(() => sound.playWhoosh(), 1100);
+    setTimeout(() => this.reveal(), 1700);
+  }
+
+  reveal() {
+    const { r } = this;
+    const evo = this.el.querySelector('.evolve');
+    const flash = h('<div class="evo-flash"></div>');
+    this.el.appendChild(flash);
+    setTimeout(() => flash.remove(), 800);
+    evo.classList.remove('charging');
+    evo.classList.add('done');
+    this.el.querySelectorAll('.pending').forEach((el) => el.classList.remove('pending'));
+    sound.playFanfare();
+    sound.playStar();
+    confetti({ particleCount: 120, spread: 90, origin: { y: 0.45 } });
+    // 알이 깨어날 때: 알껍데기 조각이 사방으로
+    if (r.from === 1 && r.to === 2) {
+      const color = CHARACTERS[r.dan].color;
+      for (let i = 0; i < 10; i++) {
+        const a = (Math.PI * 2 * i) / 10 + Math.random() * 0.4;
+        const d = 14 + Math.random() * 8;
+        const bit = h(`<i class="shell-bit" style="--c:${color};--dx:${(Math.cos(a) * d).toFixed(1)};--dy:${(Math.sin(a) * d).toFixed(1)};--rot:${Math.round(Math.random() * 540 - 270)}deg"></i>`);
+        evo.appendChild(bit);
+        setTimeout(() => bit.remove(), 1200);
+      }
+    }
+    // 황금이 될 때: 금가루가 반짝이며 떨어져요
+    if (r.to === 4) {
+      const dust = h(`<div class="gold-dust">${Array.from({ length: 28 }, () => `<i style="left:${Math.random() * 100}%;animation-delay:${(Math.random() * 2).toFixed(2)}s;animation-duration:${(1.8 + Math.random() * 1.4).toFixed(2)}s"></i>`).join('')}</div>`);
+      evo.appendChild(dust);
+      setTimeout(() => dust.remove(), 5500);
     }
   }
 }
