@@ -840,3 +840,8 @@ button.pill { cursor: pointer; }
 .photo-view .photo { rotate: 0deg; cursor: zoom-out; animation: popIn .3s ease-out; padding: calc(var(--u) * 1.2) calc(var(--u) * 1.2) 0; }
 .photo-view .photo figcaption { font-size: calc(var(--u) * 2.4); justify-content: center; }
 .photo-view-hint { color: #fff; font-size: calc(var(--u) * 1.8); opacity: .8; margin: 0; }
+
+/* 어항 구석의 해·노을·달 표시 */
+.time-badge { position: absolute; right: calc(var(--u) * 2); top: calc(var(--u) * 8.5); z-index: 13; width: calc(var(--u) * 5); height: calc(var(--u) * 5); border-radius: 50%; border: 2px solid rgba(255, 255, 255, .7); background: rgba(255, 255, 255, .3); font-size: calc(var(--u) * 2.8); display: grid; place-items: center; cursor: pointer; padding: 0; backdrop-filter: blur(2px); }
+.time-night .time-badge { background: rgba(20, 30, 70, .5); box-shadow: 0 0 calc(var(--u) * 1.4) rgba(255, 240, 180, .5); }
+.time-evening .time-badge { background: rgba(255, 170, 110, .45); }

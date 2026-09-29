@@ -15,6 +15,11 @@ import { GuestManager } from './guests.js';
 // 장식이 놓일 수 있는 높이 (어항 바닥에서 %)
 const MIN_B = 2;
 const MAX_B = 70;
+const TIME_INFO = {
+  day: { icon: '☀️', label: '낮', say: '지금은 낮이에요! 친구들이 신나게 헤엄쳐요 ☀️' },
+  evening: { icon: '🌇', label: '노을 (저녁 7~9시)', say: '노을이 졌어요. 저녁 7시부터 어항이 노을빛이 돼요 🌇' },
+  night: { icon: '🌙', label: '밤 (저녁 9시~아침 6시)', say: '밤이에요. 친구들이 졸려해요. 아침 6시에 해가 떠요 🌙' }
+};
 const isFloating = (type) => SHOP_ITEMS.find((it) => it.type === type)?.float;
 const CLEAN_COST = 3;
 
@@ -73,6 +78,7 @@ export class HomeScene {
           <div class="gift-layer"></div>
           <div class="murk"></div>
           <div class="sky-tint"></div>
+          <button class="time-badge" data-act="time" aria-label="지금 어항 시간"></button>
           <div class="glow-dots">${Array.from({ length: 48 }, () => `<i style="left:${Math.random() * 98}%;top:${3 + Math.random() * 82}%;--s:${(0.35 + Math.random() * 0.75).toFixed(2)};animation-duration:${(1.6 + Math.random() * 2.6).toFixed(1)}s;animation-delay:${-(Math.random() * 4).toFixed(1)}s"></i>`).join('')}</div>
           <div class="algae"></div>
           <div class="tank"></div>
@@ -119,6 +125,7 @@ export class HomeScene {
     this.rec = recommend();
     this.say(careMessage() || this.guideLine());
     this.makeBubbles();
+    this.drawTimeBadge();
     this.renderDecor();
     this.buildAlgae();
     this.renderPoops();
@@ -152,6 +159,7 @@ export class HomeScene {
       this.renderPoops();
       this.refreshStatus();
       this.el.className = this.el.className.replace(/time-\w+/, `time-${timeOfDay()}`);
+      this.drawTimeBadge();
     }, 30000);
   }
 
@@ -539,6 +547,14 @@ export class HomeScene {
     return k && Math.random() < 0.5 ? `${k}, ${this.rec.text}` : this.rec.text;
   }
 
+  // 어항 구석의 해·노을·달 표시 (실제 시각에 따라 어항이 바뀐다는 걸 알려줘요)
+  drawTimeBadge() {
+    const info = TIME_INFO[timeOfDay()];
+    const b = this.el.querySelector('.time-badge');
+    b.textContent = info.icon;
+    b.title = info.label;
+  }
+
   // 밤 배경을 골랐거나 실제로 밤이면 친구들이 자주 졸아요
   isNight() {
     return store.data.theme === 'night' || timeOfDay() === 'night';
@@ -902,6 +918,7 @@ export class HomeScene {
       if (act === 'ball') this.toggleBall();
       if (act === 'bubble') this.toggleBubbles();
       if (act === 'follow') this.toggleFollow();
+      if (act === 'time') this.say(TIME_INFO[timeOfDay()].say);
       if (act === 'requests') openRequests(() => {
         this.updateRequestPill();
         this.say(careMessage() || this.guideLine());

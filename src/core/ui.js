@@ -10,10 +10,10 @@ export function h(html) {
 }
 
 // CSS의 --u와 같은 값(px)
-// 실제 시각에 따라 어항이 바뀌어요: 낮 · 저녁(17~21시) · 밤(21시~아침 6시)
+// 실제 시각에 따라 어항이 바뀌어요: 낮 · 노을(19~21시) · 밤(21시~아침 6시)
 export function timeOfDay(hour = new Date().getHours()) {
   if (hour >= 21 || hour < 6) return 'night';
-  if (hour >= 17) return 'evening';
+  if (hour >= 19) return 'evening';
   return 'day';
 }
 
