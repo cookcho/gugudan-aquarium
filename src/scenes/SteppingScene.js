@@ -17,6 +17,7 @@ export class SteppingScene {
   constructor(app, { dan }) {
     this.app = app;
     this.dan = dan;
+    this.practice = store.isPractice(dan, 'stepping'); // 이미 깬 게임이면 연습 (하루 한 판)
     this.n = 1;
     this.firstTry = 0;
     this.missed = [];
@@ -177,6 +178,7 @@ export class SteppingScene {
   finish() {
     store.addStars(3);
     store.addGame(this.dan);
+    if (this.practice) store.markPractice(this.dan);
     const { from, to } = store.raiseProgress(this.dan, 1);
     this.app.go('result', {
       dan: this.dan, mode: 'stepping', firstTry: this.firstTry, total: 9,

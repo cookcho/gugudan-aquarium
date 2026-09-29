@@ -855,3 +855,9 @@ button.pill { cursor: pointer; }
   #go-landscape { font-family: inherit; font-size: 22px; color: var(--ink); background: #fff; border: 0; border-radius: 999px; padding: 14px 28px; box-shadow: 0 5px 0 rgba(0, 0, 0, .18); }
 }
 @keyframes rotatePhone { 0%, 25% { transform: rotate(0); } 55%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+
+/* 학습 밸런스: 오늘의 도전 섬, 오늘 연습 끝난 게임 */
+.challenge-tag { background: linear-gradient(90deg, #FF7A59, #FFC53D); color: #fff; border-radius: 999px; padding: calc(var(--u) * 0.6) calc(var(--u) * 1.6); font-size: calc(var(--u) * 1.9); text-align: center; box-shadow: 0 calc(var(--u) * 0.3) 0 rgba(0, 0, 0, .12); }
+.challenge-mark { animation: bob 1.6s ease-in-out infinite; }
+.mode.rest { opacity: .6; }
+.mode.rest .mode-icon { filter: grayscale(.6); }

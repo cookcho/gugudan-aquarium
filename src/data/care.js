@@ -57,6 +57,10 @@ const REQUEST_LINES = {
     () => '내 네임카드 한번 봐 줘!',
     (kid) => `${kid || '있잖아'}, 내 이름표 눌러 봐! 카드가 있어`
   ],
+  challenge: [
+    (kid, dan, t) => `${kid || '있잖아'}, 오늘의 도전 섬 ${t}단에 가 보자! 별이 2배래!`,
+    (kid, dan, t) => `${t}단 섬 친구가 기다리고 있대! 같이 가 볼래?`
+  ],
   float: [
     () => '위쪽이 심심해, 물속 장식 하나 놓아 줘!',
     (kid) => `${kid || '있잖아'}, 물속에 둥실둥실 장식 놓아 줄래?`
@@ -73,7 +77,8 @@ const REQUEST_INFO = {
   review: { icon: '📅', who: 'any' },
   study: { icon: '🎮', who: 'fish' },
   card: { icon: '🪪', who: 'fish' },
-  float: { icon: '🫧', who: 'any' }
+  float: { icon: '🫧', who: 'any' },
+  challenge: { icon: '🎯', who: 'any' }
 };
 
 // 아이 이름을 부르는 말: 선우 → 선우야, 지훈 → 지훈아
@@ -84,7 +89,7 @@ export const REQUESTS = Object.fromEntries(Object.entries(REQUEST_INFO).map(([ty
   ...info,
   text: (name, q = {}, kid = '') => {
     const lines = REQUEST_LINES[type];
-    return `${name}: "${lines[(q.v || 0) % lines.length](callKid(kid), q.dan)}"`;
+    return `${name}: "${lines[(q.v || 0) % lines.length](callKid(kid), q.dan, q.target)}"`;
   }
 }]));
 

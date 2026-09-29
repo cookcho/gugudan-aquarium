@@ -44,6 +44,12 @@ export function recommend() {
   if (store.day().games >= 3) {
     return { dan: null, text: '오늘 벌써 세 판이나 했어! 이제 친구들이랑 놀자 🐠' };
   }
+  // 오늘의 도전 섬을 먼저 추천해요 (별 2배). 쉬운 단만 하지 않도록 덜 자란 섬으로 이끌어요
+  const ch = store.challengeDan();
+  if (ch) {
+    const step = ['노래부터 들어볼까?', '알을 깨워 볼까?', '친구를 키워 볼까?', '상어 보스전에 도전해 볼까?'][store.data.progress[ch]];
+    return { dan: ch, text: `🎯 오늘의 도전 섬은 ${ch}단! 별이 2배야. ${step}` };
+  }
   for (const dan of DAN_ORDER) {
     if (!store.isUnlocked(dan)) break;
     const p = store.data.progress[dan];

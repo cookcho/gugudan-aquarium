@@ -1,7 +1,7 @@
 // 결과: 진화 장면을 먼저 보여주고, 숫자는 짧게.
 import confetti from 'canvas-confetti';
 import { store } from '../core/store.js';
-import { h, unit } from '../core/ui.js';
+import { h, unit, toast } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
 import { CHARACTERS, DAN_ORDER, stageName } from '../data/characters.js';
 import { charSVG, guideSVG } from '../graphics/characters.js';
@@ -24,6 +24,10 @@ export class ResultScene {
     else if (r.mode === 'boss' && r.passed) title = '상어를 또 이겼어요!';
     else if (r.mode === 'boss') title = '상어가 지쳐서 도망갔어요!';
     else if (!r.passed) title = '조금만 더 하면 돼요!';
+
+    // 오늘의 도전 섬이면 별 2배 (받은 만큼 한 번 더)
+    const bonus = r.dan && r.dan === store.challengeDan() && r.stars > 0 ? r.stars : 0;
+    if (bonus) store.addStars(bonus);
 
     const nextIdx = DAN_ORDER.indexOf(r.dan) + 1;
     const newIsland = grew && r.to === 2 && nextIdx < DAN_ORDER.length ? DAN_ORDER[nextIdx] : null;
@@ -67,6 +71,7 @@ export class ResultScene {
         ${failNote}
         <div class="result-pills">
           <span class="pill">⭐ +${r.stars}</span>
+          ${bonus ? `<span class="pill new">🎯 도전 섬 보너스 ⭐ +${bonus}</span>` : ''}
           <span class="pill">한 번에 맞힌 문제 ${r.firstTry} / ${r.total}</span>
           ${newIsland ? `<span class="pill new">🏝️ ${newIsland}단 섬이 열렸어요!</span>` : ''}
           ${r.fed ? '<span class="pill new">🍽️ 어항 친구들이 모두 밥을 먹었어요!</span>' : ''}
@@ -85,7 +90,14 @@ export class ResultScene {
       sound.playPop();
       if (act === 'home') app.go('home');
       if (act === 'map') app.go('map', { dan: r.dan });
-      if (act === 'again') app.go(r.mode, { dan: r.dan });
+      if (act === 'again') {
+        // 연습은 하루 한 판: 오늘 이미 했으면 지도로 보내요
+        if (store.isPractice(r.dan, r.mode) && store.practiceDone(r.dan)) {
+          const ch = store.challengeDan();
+          app.go('map', { dan: ch || r.dan }); // 화면을 바꾼 뒤에 안내해요 (바꿀 때 안내가 지워져요)
+          toast(ch && ch !== r.dan ? `${r.dan}단 연습은 오늘 끝! 🎯 ${ch}단 섬은 별이 2배야` : `${r.dan}단 연습은 오늘 끝! 내일 또 만나요 🌙`);
+        } else app.go(r.mode, { dan: r.dan });
+      }
       if (act === 'mix') app.go('mix', { dan: r.dan });
       if (act === 'boss') app.go('boss', { dan: r.dan });
     });

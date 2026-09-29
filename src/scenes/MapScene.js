@@ -90,6 +90,8 @@ function islandSVG(dan, i, selected) {
         <text x="0" y="0" text-anchor="middle" font-family="Jua, sans-serif" font-size="24" fill="#fff">${dan}단</text>
       </g>
       ${open ? `<g transform="translate(0 0)">${pips}</g>` : ''}
+      ${open && dan === store.challengeDan() ? '<g class="challenge-mark" transform="translate(62 50)"><circle r="19" fill="#FF7A59" stroke="#fff" stroke-width="3"/><text y="8" text-anchor="middle" font-size="22">🎯</text></g>' : ''}
+      ${open && store.practiceDone(dan) ? '<text x="-70" y="-50" font-size="26" class="rest-mark">💤</text>' : ''}
     </g>`;
 }
 
@@ -137,7 +139,8 @@ export class MapScene {
   constructor(app, { dan } = {}) {
     this.app = app;
     this.u = unit();
-    this.selected = dan && store.isUnlocked(dan) ? dan : DAN_ORDER.find((d) => store.isUnlocked(d) && store.data.progress[d] < 2) || 2;
+    // 처음엔 오늘의 도전 섬을 골라 둬요
+    this.selected = dan && store.isUnlocked(dan) ? dan : store.challengeDan() || DAN_ORDER.find((d) => store.isUnlocked(d) && store.data.progress[d] < 2) || 2;
     this.bar = topbar(app, { back: 'home', backLabel: '← 어항' });
     this.k = fitWidth(this.u);
     this.el = h(`
@@ -157,6 +160,13 @@ export class MapScene {
   hint() {
     const dan = this.selected;
     const k = callKid(store.data.kidName);
+    const challenge = store.challengeDan();
+    if (store.practiceDone(dan) && challenge && challenge !== dan) {
+      return `${k ? `${k}, ` : ''}${dan}단 연습은 오늘 끝! 🎯 오늘의 도전 섬 ${challenge}단에 가 보면 별이 2배야`;
+    }
+    if (dan === challenge) {
+      return `${k ? `${k}, ` : ''}🎯 여기가 오늘의 도전 섬이야! 별을 2배로 받을 수 있어. ${['따라 하기와 징검다리부터 해 볼까?', '섞어 풀기로 알을 깨워 볼까?', '조개 숫자판으로 키워 볼까?', '상어 보스전에 도전해 볼까?'][store.data.progress[dan]] || ''}`;
+    }
     const text = [
       `${dan}단 섬에 왔네! 따라 하기로 노래를 들어 볼까? 무지개 징검다리를 건너면 알을 찾을 수 있어 🌈`,
       '알을 찾았구나! 섞어 풀기를 해 보면 알이 깨어날지도 몰라 🥚',
@@ -398,6 +408,11 @@ export class MapScene {
     const c = CHARACTERS[dan];
     const p = store.data.progress[dan];
     const rec = nextMode(p);
+    const challenge = store.challengeDan();
+    const resting = store.practiceDone(dan);
+    // 이미 깬 게임(연습)은 섬마다 하루 한 판: 오늘 했으면 내일까지 쉬어요
+    const modes = modesFor(p).map((m) => (resting && store.isPractice(dan, m.id)
+      ? { ...m, open: false, rest: true, sub: '오늘 연습 끝! 내일 또 만나요 🌙' } : m));
     const panel = this.el.querySelector('.map-panel');
     panel.innerHTML = `
       <div class="panel-head">
@@ -407,10 +422,11 @@ export class MapScene {
           <p>${p > 0 ? stageName(dan, p) : `${c.species} ${c.name}의 알을 찾아요`}</p>
         </div>
       </div>
+      ${dan === challenge ? '<div class="challenge-tag">🎯 오늘의 도전 섬 · 별 2배!</div>' : ''}
       <div class="ladder">${STAGES.map((s) => `<span class="${p >= s.progress ? 'on' : ''}">${s.icon} ${s.label}</span>`).join('')}</div>
       <div class="modes">
-        ${modesFor(p).map((m) => `
-          <button class="mode ${m.open ? '' : 'closed'} ${m.id === rec ? 'recommended' : ''}" data-mode="${m.id}">
+        ${modes.map((m) => `
+          <button class="mode ${m.open ? '' : 'closed'} ${m.rest ? 'rest' : ''} ${m.id === rec ? 'recommended' : ''}" data-mode="${m.id}">
             <span class="mode-icon">${m.icon}</span>
             <span class="mode-text"><b>${m.label}</b><small>${m.sub}</small></span>
             ${m.done ? '<span class="mode-done">✓</span>' : ''}
@@ -420,10 +436,10 @@ export class MapScene {
     panel.onclick = (e) => {
       const b = e.target.closest('[data-mode]');
       if (!b) return;
-      const m = modesFor(p).find((x) => x.id === b.dataset.mode);
+      const m = modes.find((x) => x.id === b.dataset.mode);
       if (!m.open) {
         sound.playBoing();
-        toast(m.sub);
+        toast(m.rest && challenge && challenge !== dan ? `${dan}단 연습은 오늘 끝! 🎯 ${challenge}단 섬은 별이 2배야` : m.sub);
         return;
       }
       sound.playPop();

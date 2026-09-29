@@ -121,6 +121,37 @@ class Store {
     return this.data.days[date];
   }
 
+  // ---- 학습 밸런스 ----
+  // 이미 깬 게임(연습)은 섬마다 하루 한 판. 다음 단계로 가는 도전은 몇 번이든 돼요
+  isPractice(dan, mode) {
+    const clearAt = { stepping: 1, mix: 2, keypad: 3, boss: 4 }[mode];
+    return clearAt !== undefined && (this.data.progress[dan] ?? 0) >= clearAt;
+  }
+
+  practiceDone(dan) {
+    return !!this.day().practice?.[dan];
+  }
+
+  markPractice(dan) {
+    const d = this.day();
+    d.practice = { ...(d.practice || {}), [dan]: true };
+    this.save();
+  }
+
+  // 오늘의 도전 섬: 열린 섬 중 가장 덜 자란 섬 (같으면 나중에 열린 어려운 섬). 여기서 받은 별은 2배
+  challengeDan() {
+    const d = this.day();
+    if (d.challenge !== undefined) return d.challenge;
+    let pick = null;
+    for (const x of DAN_ORDER) {
+      if (!this.isUnlocked(x) || this.data.progress[x] >= 4) continue;
+      if (pick === null || this.data.progress[x] <= this.data.progress[pick]) pick = x;
+    }
+    d.challenge = pick;
+    this.save();
+    return pick;
+  }
+
   addStars(n) {
     this.data.stars = Math.max(0, this.data.stars + n);
     this.save();
@@ -221,6 +252,8 @@ class Store {
     if (this.data.poops.length >= 3) types.push('clean');
     if (this.data.decorations.some((d) => d.placed)) types.push('decor');
     if (this.data.decorations.some((d) => FLOAT_TYPES.includes(d.type))) types.push('float');
+    const challenge = this.challengeDan();
+    if (challenge) types.push('challenge', 'challenge'); // 도전 섬 부탁은 자주 나와요
     if (this.reviewFacts(1).length && !this.reviewDoneToday()) types.push('review', 'review');
     const picked = [];
     while (picked.length < 3 && types.length) {
@@ -231,7 +264,7 @@ class Store {
     this.data.requests = {
       date: today(),
       rewarded: false,
-      list: picked.map((type, i) => ({ type, dan: order[i % order.length], done: false, v: Math.floor(Math.random() * 6) }))
+      list: picked.map((type, i) => ({ type, dan: order[i % order.length], done: false, v: Math.floor(Math.random() * 6), ...(type === 'challenge' ? { target: challenge } : {}) }))
     };
     this.save();
     return this.data.requests;
@@ -484,6 +517,10 @@ class Store {
   addGame(dan) {
     this.day().games++;
     if (this.completeRequest('study', dan)) this.addLove(dan, 5, 'request');
+    if (dan && dan === this.challengeDan()) {
+      const q = this.completeRequest('challenge');
+      if (q) this.addLove(q.dan, 5, 'request');
+    }
     this.save();
   }
 

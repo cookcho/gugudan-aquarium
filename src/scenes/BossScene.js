@@ -34,6 +34,7 @@ export class BossScene {
   constructor(app, { dan }) {
     this.app = app;
     this.dan = dan;
+    this.practice = store.isPractice(dan, 'boss'); // 이미 깬 게임이면 연습 (하루 한 판)
     this.hp = SHARK_HP;
     this.hearts = HEARTS;
     this.firstTry = 0;
@@ -298,6 +299,7 @@ export class BossScene {
 
   finish(won) {
     store.addGame(this.dan);
+    if (this.practice) store.markPractice(this.dan);
     let from = store.data.progress[this.dan];
     let to = from;
     let bonus = 0;
