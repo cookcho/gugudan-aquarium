@@ -858,6 +858,19 @@ button.pill { cursor: pointer; }
 
 /* 학습 밸런스: 오늘의 도전 섬, 오늘 연습 끝난 게임 */
 .challenge-tag { background: linear-gradient(90deg, #FF7A59, #FFC53D); color: #fff; border-radius: 999px; padding: calc(var(--u) * 0.6) calc(var(--u) * 1.6); font-size: calc(var(--u) * 1.9); text-align: center; box-shadow: 0 calc(var(--u) * 0.3) 0 rgba(0, 0, 0, .12); }
-.challenge-mark { animation: bob 1.6s ease-in-out infinite; }
 .mode.rest { opacity: .6; }
 .mode.rest .mode-icon { filter: grayscale(.6); }
+
+/* 오늘의 도전 섬 강조: 숨 쉬는 금빛, 통통 튀는 리본과 화살표, 도는 별 */
+.ch-glow { transform-box: fill-box; transform-origin: center; animation: chGlow 1.6s ease-in-out infinite; pointer-events: none; }
+@keyframes chGlow { 0%, 100% { scale: .85; opacity: .8; } 50% { scale: 1.12; opacity: 1; } }
+.ch-orbit { transform-box: fill-box; transform-origin: center; animation: chOrbit 6s linear infinite; pointer-events: none; }
+@keyframes chOrbit { to { rotate: 360deg; } }
+.ch-flag { animation: chFlag 1s ease-in-out infinite; pointer-events: none; }
+@keyframes chFlag { 0%, 100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+.ch-arrow { animation: chArrow .5s ease-in-out infinite alternate; }
+@keyframes chArrow { to { translate: 0 5px; } }
+/* 어항의 모험 떠나기 버튼 배지 */
+.btn-big { position: relative; }
+.go-badge { position: absolute; top: calc(var(--u) * -2.2); right: calc(var(--u) * -1); white-space: nowrap; background: #FFC53D; color: var(--ink); font-size: calc(var(--u) * 1.6); padding: calc(var(--u) * 0.3) calc(var(--u) * 1); border-radius: 999px; border: 2px solid #fff; box-shadow: 0 calc(var(--u) * 0.3) 0 rgba(0, 0, 0, .15); animation: goBadge 1.2s ease-in-out infinite; pointer-events: none; }
+@keyframes goBadge { 0%, 100% { transform: scale(1) rotate(-3deg); } 50% { transform: scale(1.12) rotate(3deg); } }

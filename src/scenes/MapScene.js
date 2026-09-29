@@ -58,6 +58,7 @@ function segment(i) {
 function islandSVG(dan, i, selected) {
   const [x, y] = SPOTS[i];
   const open = store.isUnlocked(dan);
+  const challenge = open && dan === store.challengeDan(); // 오늘의 도전 섬: 금빛, 리본, 도는 별로 강조
   const p = store.data.progress[dan];
   const c = CHARACTERS[dan];
   const pips = STAGES.map((s, k) => `<circle cx="${-24 + k * 16}" cy="84" r="5.5" fill="${p >= s.progress ? '#FFC53D' : 'rgba(255,255,255,.55)'}" stroke="#8A5528" stroke-width="1.5"/>`).join('');
@@ -74,6 +75,7 @@ function islandSVG(dan, i, selected) {
 
   return `
     <g class="isle ${open ? '' : 'locked'} ${selected ? 'selected' : ''}" data-dan="${dan}" transform="translate(${x} ${y})" role="button" aria-label="${dan}단 섬">
+      ${challenge ? '<ellipse class="ch-glow" cx="0" cy="10" rx="175" ry="110" fill="url(#chGlow)"/>' : ''}
       <ellipse cx="0" cy="16" rx="112" ry="52" fill="#8FE0EE" opacity=".55"/>
       <ellipse class="surf" cx="0" cy="16" rx="98" ry="42" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="12 10" opacity=".7"/>
       <circle class="ring" cx="0" cy="-8" r="112" fill="none" stroke="#FFC53D" stroke-width="5" stroke-dasharray="18 12"/>
@@ -90,7 +92,13 @@ function islandSVG(dan, i, selected) {
         <text x="0" y="0" text-anchor="middle" font-family="Jua, sans-serif" font-size="24" fill="#fff">${dan}단</text>
       </g>
       ${open ? `<g transform="translate(0 0)">${pips}</g>` : ''}
-      ${open && dan === store.challengeDan() ? '<g class="challenge-mark" transform="translate(62 50)"><circle r="19" fill="#FF7A59" stroke="#fff" stroke-width="3"/><text y="8" text-anchor="middle" font-size="22">🎯</text></g>' : ''}
+      ${challenge ? `
+        <g class="ch-orbit">${[0, 90, 180, 270].map((a) => `<path transform="rotate(${a}) translate(0 -118)" d="M0 -12 L3.5 -3.5 L12 0 L3.5 3.5 L0 12 L-3.5 3.5 L-12 0 L-3.5 -3.5Z" fill="#FFF3A8" stroke="#E8A800" stroke-width="1.5"/>`).join('')}</g>
+        <g class="ch-flag" transform="translate(0 -158)">
+          <rect x="-100" y="-28" width="200" height="54" rx="27" fill="#FF6B4A" stroke="#fff" stroke-width="5"/>
+          <text x="0" y="10" text-anchor="middle" font-family="Jua, sans-serif" font-size="31" fill="#fff">🎯 도전! 별 2배</text>
+          <path d="M-14 32 L14 32 L0 50Z" fill="#FF6B4A" stroke="#fff" stroke-width="3" stroke-linejoin="round" class="ch-arrow"/>
+        </g>` : ''}
       ${open && store.practiceDone(dan) ? '<text x="-70" y="-50" font-size="26" class="rest-mark">💤</text>' : ''}
     </g>`;
 }
@@ -105,6 +113,7 @@ function mapSVG(selected) {
   return `
     <svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
       <defs>
+        <radialGradient id="chGlow"><stop offset="0%" stop-color="#FFF3A8" stop-opacity=".95"/><stop offset="55%" stop-color="#FFC53D" stop-opacity=".45"/><stop offset="100%" stop-color="#FFC53D" stop-opacity="0"/></radialGradient>
         <radialGradient id="seaGrad" cx="50%" cy="45%" r="75%">
           <stop offset="0%" stop-color="#7AD3E8"/><stop offset="60%" stop-color="#3AA4CC"/><stop offset="100%" stop-color="#1D83B0"/>
         </radialGradient>

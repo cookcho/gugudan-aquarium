@@ -102,7 +102,7 @@ export class HomeScene {
             <button class="btn btn-foam" data-act="ball">⚽ 공놀이</button>
             <button class="btn btn-foam" data-act="follow">✨ 따라와</button>
           </div>
-          <button class="btn btn-coral btn-big" data-act="go">🗺️ 모험 떠나기</button>
+          <button class="btn btn-coral btn-big" data-act="go">🗺️ 모험 떠나기${store.challengeDan() ? `<span class="go-badge">🎯 ${store.challengeDan()}단 별 2배</span>` : ''}</button>
           <div class="dock-side end">
             <button class="btn btn-foam" data-act="bubble">🫧 비눗방울</button>
             <button class="btn btn-foam" data-act="feed">${createFoodCanSVG(Math.round(this.u * 3))} 밥주기 <span class="feed-n">${store.data.food}</span></button>
