@@ -1,10 +1,10 @@
 // 어항 위에 뜨는 창: 꾸미기(상점), 도감
 import { store } from '../core/store.js';
-import { h, toast, unit } from '../core/ui.js';
+import { h, toast, unit, confirmBox } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
 import { CHARACTERS, DAN_ORDER, STAGES, stageName } from '../data/characters.js';
 import { charSVG, guideSVG } from '../graphics/characters.js';
-import { SHOP_TABS, SHOP_ITEMS, THEMES } from '../data/shop.js';
+import { SHOP_TABS, SHOP_ITEMS, THEMES, decorSVG } from '../data/shop.js';
 import { createFoodCanSVG, createMedicineSVG } from '../graphics/food.js';
 import { REQUESTS, josa } from '../data/care.js';
 import confetti from 'canvas-confetti';
@@ -352,5 +352,52 @@ export function openKidName(onDone) {
   el.addEventListener('click', (e) => {
     const v = e.target.closest('[data-v]')?.dataset.v;
     if (v) done(v === 'save');
+  });
+}
+
+// ---- 사진 앨범: 찍은 순간의 어항을 작게 다시 그려서 보여줘요 ----
+function photoCard(ph, cardW) {
+  const cardH = Math.round(cardW * ph.ratio);
+  const du = cardW / ph.wu; // 사진 속 장식 크기 단위
+  const theme = THEMES.find((t) => t.id === ph.theme) || THEMES[0];
+  const decor = ph.decor.map((d) => `<div class="photo-decor" style="left:${d.x}%;bottom:${Math.max(2, d.b)}%">${decorSVG(d.type, du)}</div>`).join('');
+  const fish = ph.fish.map((f) => {
+    const size = Math.round(f.s * cardW);
+    return `<div class="photo-fish ${f.flip ? 'flip' : ''}" style="left:${Math.round(f.x * cardW)}px;top:${Math.round((ph.top + f.y * ph.tankH) * cardH)}px">${charSVG(f.dan, f.p, size)}</div>`;
+  }).join('');
+  const d = new Date(ph.at);
+  const icon = { day: '☀️', evening: '🌇', night: '🌙' }[ph.time] || '';
+  return `
+    <figure class="photo">
+      <div class="photo-tank time-${ph.time}" style="width:${cardW}px;height:${cardH}px;background:linear-gradient(180deg, ${theme.colors[0]}, ${theme.colors[1]})">
+        <div class="photo-sand"></div>${decor}${fish}
+      </div>
+      <figcaption>${d.getMonth() + 1}월 ${d.getDate()}일 ${icon}<button class="photo-del" data-del="${ph.id}" aria-label="사진 지우기">✕</button></figcaption>
+    </figure>`;
+}
+
+export function openAlbum(onShoot) {
+  const cardW = Math.round(unit() * 26);
+  const photos = store.data.photos || [];
+  const el = sheet('📸 사진 앨범', `
+    <div class="album">
+      <div class="album-top">
+        <button class="btn btn-coral" data-v="shoot">📸 지금 찍기</button>
+        <span class="album-note">예쁘게 꾸민 어항을 사진으로 남겨요 (30장까지)</span>
+      </div>
+      <div class="album-grid">${photos.length ? photos.map((ph) => photoCard(ph, cardW)).join('') : '<p class="album-empty">아직 사진이 없어요. 친구들과 첫 사진을 찍어 볼까?</p>'}</div>
+    </div>`);
+  el.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-v="shoot"]')) {
+      sound.playPop();
+      el.remove();
+      onShoot();
+      return;
+    }
+    const del = e.target.closest('[data-del]');
+    if (del && await confirmBox('이 사진을 지울까요?', '지우기', '그냥 둘래요')) {
+      store.removePhoto(del.dataset.del);
+      del.closest('.photo').remove();
+    }
   });
 }

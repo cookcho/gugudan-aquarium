@@ -688,10 +688,10 @@ button.pill { cursor: pointer; }
 }
 
 /* 받침대 버튼 6개가 한 줄에 들어가게 조금 작게 */
-.dock { gap: calc(var(--u) * 1.2); }
-.dock .dock-side { gap: calc(var(--u) * 0.9); }
-.dock .btn { font-size: calc(var(--u) * 2.05); padding: calc(var(--u) * 1) calc(var(--u) * 1.6); gap: calc(var(--u) * 0.5); }
-.dock .btn-big { font-size: calc(var(--u) * 2.6); padding: calc(var(--u) * 1.3) calc(var(--u) * 2.8); }
+.dock { gap: calc(var(--u) * 1); }
+.dock .dock-side { gap: calc(var(--u) * 0.7); }
+.dock .btn { font-size: calc(var(--u) * 1.75); padding: calc(var(--u) * 1) calc(var(--u) * 0.95); gap: calc(var(--u) * 0.4); }
+.dock .btn-big { font-size: calc(var(--u) * 2.4); padding: calc(var(--u) * 1.3) calc(var(--u) * 2); }
 
 /* ---------- 놀러 오는 손님 ---------- */
 .guest { position: absolute; left: 0; top: 0; z-index: 10; cursor: pointer; pointer-events: auto; will-change: transform; transition: opacity 1s; }
@@ -808,3 +808,30 @@ button.pill { cursor: pointer; }
 @keyframes noteUp { 0% { opacity: 0; transform: translate(0, 0) scale(.6); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--u) * -9)) rotate(15deg) scale(1.1); } }
 .lines li.shine { animation: lineShine .8s ease-out; }
 @keyframes lineShine { 30% { background: #FFF1C9; color: var(--ink); transform: scale(1.06); } }
+
+/* 반짝이 따라오기 */
+.home.following .aquarium { touch-action: none; cursor: crosshair; }
+.follow-light { position: absolute; left: 0; top: 0; width: calc(var(--u) * 3); height: calc(var(--u) * 3); margin: calc(var(--u) * -1.5) 0 0 calc(var(--u) * -1.5); border-radius: 50%; z-index: 12; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(circle, #fff 0 25%, #FFF3A8 40%, rgba(255, 220, 120, 0) 70%); box-shadow: 0 0 calc(var(--u) * 2) calc(var(--u) * 0.8) rgba(255, 240, 160, .7); }
+.follow-light.on { opacity: 1; animation: twinkle .5s ease-in-out infinite alternate; }
+.follow-trail { position: absolute; z-index: 11; width: calc(var(--u) * 1); height: calc(var(--u) * 1); margin: calc(var(--u) * -0.5) 0 0 calc(var(--u) * -0.5); pointer-events: none; background: #FFF3A8; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: trailFade .6s ease-out forwards; }
+@keyframes trailFade { to { opacity: 0; transform: scale(.2) translateY(calc(var(--u) * 1)); } }
+
+/* 기념사진 */
+.photo-flash { position: fixed; inset: 0; z-index: 400; background: #fff; pointer-events: none; animation: evoFlash .55s ease-out forwards; }
+.album { display: grid; gap: calc(var(--u) * 1.6); }
+.album-top { display: flex; align-items: center; gap: calc(var(--u) * 1.6); flex-wrap: wrap; }
+.album-note { color: var(--muted); font-size: calc(var(--u) * 1.8); }
+.album-grid { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 1.6); max-height: 55vh; overflow-y: auto; }
+.album-empty { color: var(--muted); font-size: calc(var(--u) * 2); }
+.photo { margin: 0; background: #fff; padding: calc(var(--u) * 0.8) calc(var(--u) * 0.8) 0; border-radius: calc(var(--u) * 1); box-shadow: 0 calc(var(--u) * 0.4) calc(var(--u) * 1) rgba(10, 40, 60, .2); rotate: -1deg; }
+.photo:nth-child(2n) { rotate: 1.2deg; }
+.photo-tank { position: relative; overflow: hidden; border-radius: calc(var(--u) * 0.5); }
+.photo-tank.time-night::after { content: ''; position: absolute; inset: 0; background: rgba(8, 18, 55, .5); }
+.photo-tank.time-evening::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 150, 90, .3), rgba(80, 40, 120, .2)); }
+.photo-sand { position: absolute; left: 0; right: 0; bottom: 0; height: 9%; background: var(--sand); }
+.photo-decor { position: absolute; translate: -50% 0; line-height: 0; }
+.photo-fish { position: absolute; line-height: 0; }
+.photo-fish.flip .char-svg { transform: scaleX(-1); }
+.photo figcaption { display: flex; align-items: center; justify-content: space-between; font-size: calc(var(--u) * 1.8); padding: calc(var(--u) * 0.5) calc(var(--u) * 0.2); color: var(--ink); }
+.photo-del { border: 0; background: none; color: var(--muted); font-size: calc(var(--u) * 1.8); cursor: pointer; padding: 4px 8px; }

@@ -5,7 +5,7 @@ import { sound } from '../audio/soundManager.js';
 import { CHARACTERS, DAN_ORDER } from '../data/characters.js';
 import { charSVG, guideSVG } from '../graphics/characters.js';
 import { createFoodSVG, createFoodCanSVG, createPoopSVG } from '../graphics/food.js';
-import { openDecorShop, openDex, openRequests, hearts, openCard, openKidName } from './overlays.js';
+import { openDecorShop, openDex, openRequests, hearts, openCard, openKidName, openAlbum } from './overlays.js';
 import { REQUESTS, LOVE_PERKS, ANNIVERSARIES, GIFT_PRIZES, josa, chatLine, callKid } from '../data/care.js';
 import confetti from 'canvas-confetti';
 import { decorSVG, SHOP_ITEMS } from '../data/shop.js';
@@ -88,6 +88,7 @@ export class HomeScene {
             <button class="btn btn-foam" data-act="decor">🪸 꾸미기</button>
             <button class="btn btn-foam" data-act="dex">📖 도감</button>
             <button class="btn btn-foam" data-act="ball">⚽ 공놀이</button>
+            <button class="btn btn-foam" data-act="follow">✨ 따라와</button>
           </div>
           <button class="btn btn-coral btn-big" data-act="go">🗺️ 모험 떠나기</button>
           <div class="dock-side end">
@@ -106,6 +107,12 @@ export class HomeScene {
     this.el.prepend(this.bar.el);
     this.addReviewButton();
     this.addRequestButton();
+    const cam = h('<button class="pill" aria-label="사진 앨범">📸 사진</button>');
+    cam.addEventListener('click', () => {
+      sound.playPop();
+      openAlbum(() => setTimeout(() => this.alive && this.takePhoto(), 250));
+    });
+    this.bar.el.querySelectorAll('.group')[1].prepend(cam);
     this.tank = this.el.querySelector('.tank');
     this.aquarium = this.el.querySelector('.aquarium');
     this.foodLayer = this.el.querySelector('.food-layer');
@@ -254,6 +261,7 @@ export class HomeScene {
     }
     if (this.feeding) this.toggleFeed();
     if (this.blowing) this.toggleBubbles();
+    if (this.following) this.toggleFollow();
     const r = Math.round(this.u * 2.6);
     const el = h(`<div class="ball" style="width:${r * 2}px;height:${r * 2}px"></div>`);
     this.tank.appendChild(el);
@@ -307,6 +315,80 @@ export class HomeScene {
     b.el.style.transform = `translate(${b.x - b.r}px, ${b.y - b.r}px) rotate(${b.x * 2}deg)`;
   }
 
+  // ---- 반짝이 따라오기: 어항을 누른 채 움직이면 반짝이 불빛을 친구들이 졸졸 따라와요 ----
+  toggleFollow() {
+    this.following = !this.following;
+    this.el.querySelector('[data-act="follow"]').classList.toggle('active', this.following);
+    this.el.classList.toggle('following', this.following);
+    if (!this.following) {
+      this.followLight?.remove();
+      this.followLight = null;
+      return;
+    }
+    if (this.feeding) this.toggleFeed();
+    if (this.ball) this.toggleBall();
+    if (this.blowing) this.toggleBubbles();
+    this.followIdle = 0;
+    this.say('어항을 누른 채로 움직여 봐! 친구들이 반짝이를 따라와요 ✨');
+  }
+
+  startFollow(e) {
+    const r = this.tank.getBoundingClientRect();
+    if (!this.followLight) {
+      this.followLight = h('<div class="follow-light"></div>');
+      this.tank.appendChild(this.followLight);
+    }
+    const light = this.followLight;
+    let lastTrail = 0;
+    const at = (ev) => {
+      const x = ev.clientX - r.left;
+      const y = ev.clientY - r.top;
+      this.attention = { x, y, until: performance.now() + 2500, all: true };
+      this.followIdle = 0;
+      light.style.transform = `translate(${x}px, ${y}px)`;
+      light.classList.add('on');
+      const now = performance.now();
+      if (now - lastTrail > 45) {
+        lastTrail = now;
+        const t = h(`<i class="follow-trail" style="left:${x}px;top:${y}px"></i>`);
+        this.tank.appendChild(t);
+        setTimeout(() => t.remove(), 600);
+      }
+    };
+    at(e);
+    const up = () => {
+      window.removeEventListener('pointermove', at);
+      window.removeEventListener('pointerup', up);
+      light.classList.remove('on');
+    };
+    window.addEventListener('pointermove', at);
+    window.addEventListener('pointerup', up);
+  }
+
+  // ---- 기념사진: 지금 어항 모습(장식과 친구 위치)을 앨범에 남겨요 ----
+  takePhoto() {
+    const W = this.bounds.width;
+    const H = this.bounds.height;
+    const aq = this.aquarium.getBoundingClientRect();
+    store.addPhoto({
+      id: `ph${Date.now()}`,
+      at: Date.now(),
+      theme: store.data.theme,
+      time: timeOfDay(),
+      wu: +(aq.width / this.u).toFixed(1), // 어항 가로 (u 단위)
+      ratio: +(aq.height / aq.width).toFixed(3),
+      top: +((this.bounds.top - aq.top) / aq.height).toFixed(3), // 친구 영역이 어항에서 시작하는 높이
+      tankH: +(H / aq.height).toFixed(3),
+      decor: store.data.decorations.filter((d) => d.placed).map(({ type, x, b }) => ({ type, x, b })),
+      fish: this.fishes.map((f) => ({ dan: f.dan, p: f.p, x: +(f.x / W).toFixed(3), y: +(f.y / H).toFixed(3), s: +(f.size / W).toFixed(3), flip: (f.sw?.face ?? 1) < 0 }))
+    });
+    const flash = h('<div class="photo-flash"></div>');
+    this.el.appendChild(flash);
+    setTimeout(() => flash.remove(), 600);
+    sound.playShutter();
+    toast('찰칵! 📸 앨범에 저장했어요');
+  }
+
   // ---- 비눗방울 놀이: 어항을 누르면 비눗방울이 나오고, 친구들이 쫓아가서 톡 터뜨려요 ----
   toggleBubbles() {
     this.blowing = !this.blowing;
@@ -314,6 +396,7 @@ export class HomeScene {
     if (!this.blowing) return;
     if (this.feeding) this.toggleFeed();
     if (this.ball) this.toggleBall();
+    if (this.following) this.toggleFollow();
     this.bubbleIdle = 0;
     this.say('어항을 톡톡 누르면 비눗방울이 나와요! 친구들이 터뜨려요 🫧');
   }
@@ -818,6 +901,7 @@ export class HomeScene {
       if (act === 'clean') this.startCleaning();
       if (act === 'ball') this.toggleBall();
       if (act === 'bubble') this.toggleBubbles();
+      if (act === 'follow') this.toggleFollow();
       if (act === 'requests') openRequests(() => {
         this.updateRequestPill();
         this.say(careMessage() || this.guideLine());
@@ -840,6 +924,7 @@ export class HomeScene {
     this.el.addEventListener('pointerdown', (e) => {
       if (this.feeding || this.decorating || this.cleaning || e.target.closest('button, .topbar, .stand, .fish, .fish-info, .guide, .ball, .guest, .play-bubble')) return;
       const r = this.tank.getBoundingClientRect();
+      if (this.following) return this.startFollow(e);
       if (this.blowing) return this.blowBubbles(e.clientX - r.left, e.clientY - r.top);
       this.attention = { x: e.clientX - r.left, y: e.clientY - r.top, until: performance.now() + 2500 };
       const ripple = h(`<div class="ripple" style="left:${this.attention.x}px;top:${this.attention.y}px"></div>`);
@@ -873,6 +958,7 @@ export class HomeScene {
 
   toggleFeed() {
     if (!this.feeding && this.blowing) this.toggleBubbles();
+    if (!this.feeding && this.following) this.toggleFollow();
     this.feeding = !this.feeding;
     const b = this.el.querySelector('[data-act="feed"]');
     b.classList.toggle('active', this.feeding);
@@ -900,6 +986,7 @@ export class HomeScene {
     if (this.attention && now > this.attention.until) this.attention = null;
     this.stepBall(dt, W, H);
     this.stepBubbles(dt, W);
+    if (this.following && (this.followIdle += dt) > 40) this.toggleFollow(); // 40초 동안 안 놀면 끝나요
 
     const swimmers = this.fishes.filter((f) => f.sw);
     if (!this.decorPts || now - this.decorAt > 2000) {
@@ -928,7 +1015,17 @@ export class HomeScene {
       const toy = !food && this.ball && !this.ball.held && !f.hungry && !f.sick && Math.hypot(this.ball.x - cx, this.ball.y - cy) < 520
         ? { x: this.ball.x, y: this.ball.y } : null;
       const bubble = !food && !toy && !f.hungry && !f.sick ? this.nearestBubble(cx, cy) : null;
-      const near = this.attention && Math.hypot(this.attention.x - cx, this.attention.y - cy) < 380;
+      const dAtt = this.attention ? Math.hypot(this.attention.x - cx, this.attention.y - cy) : Infinity;
+      const near = this.attention && (this.attention.all || dAtt < 380); // 반짝이 따라오기는 멀리 있어도 와요
+      // 반짝이 가까이서 3초 동안 따라오면 친해져요
+      if (this.attention?.all && !f.sick && dAtt < f.size) {
+        f.followT = (f.followT || 0) + dt;
+        if (f.followT > 3) {
+          f.followT = 0;
+          floatUp(this.tank, cx, f.y, '💖');
+          this.giveLove(f.dan, 1, 'play', f);
+        }
+      }
       const events = f.sw.update({
         W, H, dt, food: food || toy || bubble,
         attention: near && !f.sick ? this.attention : null,

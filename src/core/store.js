@@ -47,6 +47,7 @@ function freshSave() {
     requests: null, // { date, list: [{ type, dan, done }], rewarded }
     stamps: 0,
     guests: {}, // 손님별 { met(처음 만난 날), visits, riddleDate }
+    photos: [], // 기념사진: 찍은 순간의 어항 모습 (장식·친구 위치), 최신이 앞
     gift: null, // { date, dan, x, opened }
     lastVisit: Date.now(),
     lastSickRoll: Date.now(),
@@ -523,6 +524,17 @@ class Store {
     const d = this.data.decorations.find((it) => it.id === id);
     if (!d) return;
     d.placed = false;
+    this.save();
+  }
+
+  // 기념사진은 30장까지 (넘으면 가장 오래된 사진부터 빠져요)
+  addPhoto(photo) {
+    this.data.photos = [photo, ...(this.data.photos || [])].slice(0, 30);
+    this.save();
+  }
+
+  removePhoto(id) {
+    this.data.photos = (this.data.photos || []).filter((ph) => ph.id !== id);
     this.save();
   }
 

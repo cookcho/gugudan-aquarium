@@ -204,6 +204,12 @@ class SoundManager {
     this.noise(0.5, 2500, 400, 0.45);
   }
 
+  // 10. 사진 찰칵
+  playShutter() {
+    this.noise(0.06, 5000, 3000, 0.5, 'highpass');
+    setTimeout(() => this.noise(0.09, 4000, 2000, 0.35, 'highpass'), 90);
+  }
+
   // 9. 상어 등장, 화남: 낮게 쿵
   playRumble() {
     if (!this.enabled) return;
