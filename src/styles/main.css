@@ -383,8 +383,16 @@ button.pill { cursor: pointer; }
 .bank { position: absolute; top: 20%; width: 9%; height: 80%; background: var(--sand); }
 .bank.left { left: 0; border-radius: 0 50% 0 0; }
 .bank.right { right: 0; border-radius: 50% 0 0 0; }
-.stone { position: absolute; bottom: 18%; width: calc(var(--u) * 7); height: calc(var(--u) * 2.4); border-radius: 50%; background: #A9BCC5; box-shadow: 0 calc(var(--u) * 0.4) 0 #7F959F; transform: translateX(-10%); }
-.hero { position: absolute; bottom: 28%; transition: left .45s cubic-bezier(.34, 1.56, .64, 1); z-index: 2; }
+.stone { position: absolute; bottom: 18%; width: calc(var(--u) * 7); height: calc(var(--u) * 2.4); border-radius: 50%; background: #A9BCC5; box-shadow: 0 calc(var(--u) * 0.4) 0 #7F959F; translate: -50% 0; transition: background .4s, box-shadow .4s; }
+.stone.lit { background: var(--c); box-shadow: 0 calc(var(--u) * 0.4) 0 rgba(0, 0, 0, .22), 0 0 calc(var(--u) * 1.6) var(--c); }
+.stone.land { animation: stoneDip .4s ease-out; }
+@keyframes stoneDip { 35% { transform: translateY(calc(var(--u) * 0.7)) scaleX(1.08); } }
+.step-ring { position: absolute; bottom: 12%; width: calc(var(--u) * 9); height: calc(var(--u) * 3); margin-left: calc(var(--u) * -4.5); border: calc(var(--u) * 0.3) solid rgba(255, 255, 255, .8); border-radius: 50%; animation: ripple .8s ease-out forwards; pointer-events: none; }
+.step-drop { position: absolute; bottom: 30%; width: calc(var(--u) * 0.8); height: calc(var(--u) * 1); margin-left: calc(var(--u) * -0.4); border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: #BFEFFF; animation: dropFly .7s ease-out forwards; pointer-events: none; }
+@keyframes dropFly { 40% { transform: translate(calc(var(--u) * var(--dx)), calc(var(--u) * var(--dy) * -1)); } 100% { transform: translate(calc(var(--u) * var(--dx) * 1.6), calc(var(--u) * 1)); opacity: 0; } }
+.hero { position: absolute; bottom: 28%; translate: -50% 0; transition: left .45s cubic-bezier(.34, 1.56, .64, 1); z-index: 2; }
+.hero.cheer { animation: cheer .6s ease-in-out 3; }
+@keyframes cheer { 0%, 100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(calc(var(--u) * -2.6)) rotate(-10deg) scale(1.08); } 65% { transform: translateY(calc(var(--u) * -2.6)) rotate(10deg) scale(1.08); } }
 .hero.jump { animation: jump .5s ease-out; }
 .hero.splash { animation: splash .7s ease-in-out; }
 
@@ -552,11 +560,11 @@ button.pill { cursor: pointer; }
 .heat td { border-radius: 8px; padding: 6px 4px; text-align: center; font-size: 13px; font-variant-numeric: tabular-nums; line-height: 1.3; height: 58px; }
 .heat td b { display: block; font-size: 12px; font-weight: 400; opacity: .75; }
 .heat td small { display: block; font-size: 11px; opacity: .8; }
-.good { background: #CDEFD9; color: #165C33; }
-.mid { background: #FFF0C2; color: #7A5A00; }
-.low { background: #FFD9CC; color: #9A3412; }
-.swap { background: #EAF7EE; color: #3F7A55; outline: 1px dashed #8CCB9F; outline-offset: -1px; }
-.none { background: #EEF3F5; color: #8AA0AA; }
+.parent .good { background: #CDEFD9; color: #165C33; }
+.parent .mid { background: #FFF0C2; color: #7A5A00; }
+.parent .low { background: #FFD9CC; color: #9A3412; }
+.parent .swap { background: #EAF7EE; color: #3F7A55; outline: 1px dashed #8CCB9F; outline-offset: -1px; }
+.parent .none { background: #EEF3F5; color: #8AA0AA; }
 .dash-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
 .weak, .isl { list-style: none; display: grid; gap: 8px; }
 .weak li, .isl li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #E6EEF0; font-size: 15px; }
@@ -711,3 +719,8 @@ button.pill { cursor: pointer; }
 .map-guide .tip-art svg { width: calc(var(--u) * 6); height: calc(var(--u) * 6); }
 .map-guide .tip-bubble { position: absolute; left: calc(100% + var(--u) * 0.6); top: 50%; transform: translateY(-50%); width: max(calc(var(--u) * 30), calc(64vw - var(--u) * 34)); max-width: none; font-size: calc(var(--u) * 1.8); padding: calc(var(--u) * 0.7) calc(var(--u) * 1.2); border-bottom-left-radius: calc(var(--u) * 1.6); border-top-left-radius: calc(var(--u) * 0.3); }
 .map-guide .tip-bubble.pop { animation: fadeIn .25s ease-out; }
+/* 게임 화면 첫 설명: 가운데 카드, 뒤는 살짝 어둡게. 아무 데나 누르면 닫혀요 */
+.tip-center { left: 50%; top: 42%; bottom: auto; translate: -50% -50%; flex-direction: column; align-items: center; gap: calc(var(--u) * 1); }
+.tip-center::before { content: ''; position: fixed; inset: -100vmax; background: rgba(4, 30, 50, .35); z-index: -1; }
+.tip-center .tip-art svg { width: calc(var(--u) * 10); height: calc(var(--u) * 10); }
+.tip-center .tip-bubble { max-width: min(80vw, calc(var(--u) * 56)); text-align: center; font-size: calc(var(--u) * 2.5); padding: calc(var(--u) * 1.6) calc(var(--u) * 2.4); border-radius: calc(var(--u) * 2); }

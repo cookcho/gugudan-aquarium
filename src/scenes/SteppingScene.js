@@ -6,6 +6,11 @@ import { sound } from '../audio/soundManager.js';
 import { speakLine, gugudanLine } from '../core/speech.js';
 import { stepChoices, hintDotsHTML } from '../core/quiz.js';
 import { charSVG, guideSVG } from '../graphics/characters.js';
+import confetti from 'canvas-confetti';
+
+// 건넌 돌은 무지개색으로 빛나요 (×1 빨강 … ×9 분홍)
+const RAINBOW = ['#FF5A5A', '#FF9A3C', '#FFD23C', '#7ED957', '#3BC9A8', '#3FA9F5', '#5B6CF0', '#A56CF0', '#F26BB5'];
+const stoneX = (k) => 12 + k * 9; // k번째 돌 가운데 (%)
 
 export class SteppingScene {
   constructor(app, { dan }) {
@@ -32,9 +37,9 @@ export class SteppingScene {
         </div>
         <div class="river">
           <div class="bank left"></div>
-          ${Array.from({ length: 9 }, (_, k) => `<span class="stone" style="left:${12 + k * 9}%"></span>`).join('')}
+          ${Array.from({ length: 9 }, (_, k) => `<span class="stone" style="left:${stoneX(k)}%;--c:${RAINBOW[k]}"></span>`).join('')}
           <div class="bank right"></div>
-          <div class="hero" style="left:4%">${hero}</div>
+          <div class="hero" style="left:4.5%">${hero}</div>
         </div>
         <div class="answers three"></div>
       </div>`);
@@ -115,9 +120,10 @@ export class SteppingScene {
     this.el.querySelector('.big-q').innerHTML = `${dan} × ${n} = <em class="pop">${answer}</em>`;
     this.setFeedback(`"${gugudanLine(dan, n)}"`, 'good');
     hero.classList.remove('splash');
-    hero.style.left = `${12 + (n - 1) * 9}%`;
+    hero.style.left = `${stoneX(n - 1)}%`;
     hero.classList.add('jump');
     setTimeout(() => hero.classList.remove('jump'), 500);
+    setTimeout(() => this.alive && this.land(n - 1), 300);
 
     await Promise.all([speakLine(dan, n), new Promise((r) => setTimeout(r, 800))]);
     if (!this.alive) return;
@@ -125,8 +131,46 @@ export class SteppingScene {
       this.n++;
       this.render();
     } else {
-      this.finish();
+      await this.arrive();
+      if (this.alive) this.finish();
     }
+  }
+
+  // 돌에 착지: 돌이 살짝 가라앉고 물방울이 튀고, 무지개색으로 빛나요
+  land(k) {
+    const stone = this.el.querySelectorAll('.stone')[k];
+    stone.classList.add('lit');
+    stone.classList.remove('land');
+    void stone.offsetWidth;
+    stone.classList.add('land');
+    const river = this.el.querySelector('.river');
+    const ring = h(`<i class="step-ring" style="left:${stoneX(k)}%"></i>`);
+    river.appendChild(ring);
+    setTimeout(() => ring.remove(), 800);
+    for (let i = 0; i < 6; i++) {
+      const dx = (i - 2.5) * 1.2 + (Math.random() - 0.5);
+      const drop = h(`<i class="step-drop" style="left:${stoneX(k)}%;--dx:${dx.toFixed(2)};--dy:${(2.5 + Math.random() * 2).toFixed(2)}"></i>`);
+      river.appendChild(drop);
+      setTimeout(() => drop.remove(), 700);
+    }
+  }
+
+  // 마지막 돌을 건너면 오른쪽 땅에 도착해서 만세!
+  async arrive() {
+    const hero = this.el.querySelector('.hero');
+    hero.style.left = '95.5%';
+    hero.classList.add('jump');
+    await new Promise((r) => setTimeout(r, 550));
+    if (!this.alive) return;
+    hero.classList.remove('jump');
+    hero.classList.add('cheer');
+    sound.playFanfare();
+    this.setFeedback('도착! 만세! 🎉', 'good');
+    const r = hero.getBoundingClientRect();
+    const o = { x: (r.left + r.width / 2) / innerWidth, y: r.top / innerHeight };
+    confetti({ particleCount: 90, spread: 80, origin: o, zIndex: 300 });
+    setTimeout(() => this.alive && confetti({ particleCount: 60, spread: 110, origin: o, zIndex: 300 }), 400);
+    await new Promise((r2) => setTimeout(r2, 1800));
   }
 
   finish() {

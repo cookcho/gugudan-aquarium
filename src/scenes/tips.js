@@ -49,6 +49,7 @@ export function guideBubble(parent, { stay = false, onTap = null, cls = '' } = {
     badge.hidden = false;
   };
   el.addEventListener('pointerdown', (e) => e.stopPropagation());
+  if (!stay) el.addEventListener('click', hide); // 첫 설명 카드는 아무 데나 누르면 닫혀요
   bubble.addEventListener('click', () => {
     sound.playPop();
     hide();
@@ -72,8 +73,8 @@ export function takeTip(name) {
   return k ? `${k}, ${text}` : text;
 }
 
-// 이 화면이 처음이면 뽀글이가 한 번 알려줘요
+// 이 화면이 처음이면 뽀글이가 가운데 카드로 한 번 알려줘요 (답 버튼을 가리지 않게 누르면 바로 닫혀요)
 export function firstTip(name, parent) {
   const text = takeTip(name);
-  if (text) setTimeout(() => guideBubble(parent).say(text, 9000), 600);
+  if (text) setTimeout(() => guideBubble(parent, { cls: 'tip-center' }).say(text, 9000), 600);
 }
