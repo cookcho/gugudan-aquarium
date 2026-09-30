@@ -34,7 +34,7 @@ export class BossScene {
   constructor(app, { dan }) {
     this.app = app;
     this.dan = dan;
-    this.practice = store.isPractice(dan, 'boss'); // 이미 깬 게임이면 연습 (하루 한 판)
+    this.practice = store.isPractice(dan, 'boss'); // 황금 섬이면 연습 (하루 한 판)
     this.hp = SHARK_HP;
     this.hearts = HEARTS;
     this.firstTry = 0;

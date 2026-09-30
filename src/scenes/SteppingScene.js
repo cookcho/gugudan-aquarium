@@ -17,7 +17,7 @@ export class SteppingScene {
   constructor(app, { dan }) {
     this.app = app;
     this.dan = dan;
-    this.practice = store.isPractice(dan, 'stepping'); // 이미 깬 게임이면 연습 (하루 한 판)
+    this.practice = store.isPractice(dan, 'stepping'); // 황금 섬이면 연습 (하루 한 판)
     this.n = 1;
     this.firstTry = 0;
     this.missed = [];

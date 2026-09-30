@@ -26,7 +26,7 @@ export class KeypadScene {
   constructor(app, { dan }) {
     this.app = app;
     this.dan = dan;
-    this.practice = store.isPractice(dan, 'keypad'); // 이미 깬 게임이면 연습 (하루 한 판)
+    this.practice = store.isPractice(dan, 'keypad'); // 황금 섬이면 연습 (하루 한 판)
     this.setup(shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).map((n) => ({ dan, n })), `🐚 ${dan}단 조개 숫자판`);
   }
 

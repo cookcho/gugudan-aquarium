@@ -122,10 +122,10 @@ class Store {
   }
 
   // ---- 학습 밸런스 ----
-  // 이미 깬 게임(연습)은 섬마다 하루 한 판. 다음 단계로 가는 도전은 몇 번이든 돼요
+  // 상어까지 다 깬 황금 섬의 게임(연습)만 섬마다 하루 한 판. 아직 키우는 섬은 몇 번이든 돼요
+  // (따라 하기는 별을 주지 않아서 제한이 없어요)
   isPractice(dan, mode) {
-    const clearAt = { stepping: 1, mix: 2, keypad: 3, boss: 4 }[mode];
-    return clearAt !== undefined && (this.data.progress[dan] ?? 0) >= clearAt;
+    return ['stepping', 'mix', 'keypad', 'boss'].includes(mode) && (this.data.progress[dan] ?? 0) >= 4;
   }
 
   practiceDone(dan) {

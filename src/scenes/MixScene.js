@@ -31,7 +31,7 @@ export class MixScene {
   constructor(app, { dan }) {
     this.app = app;
     this.dan = dan;
-    this.practice = store.isPractice(dan, 'mix'); // 이미 깬 게임이면 연습 (하루 한 판)
+    this.practice = store.isPractice(dan, 'mix'); // 황금 섬이면 연습 (하루 한 판)
     this.queue = [...shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]), weakest(dan)].map((n) => ({ n, retry: false }));
     this.results = []; // 'ok' | 'retry'
     this.missed = [];

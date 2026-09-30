@@ -419,7 +419,7 @@ export class MapScene {
     const rec = nextMode(p);
     const challenge = store.challengeDan();
     const resting = store.practiceDone(dan);
-    // 이미 깬 게임(연습)은 섬마다 하루 한 판: 오늘 했으면 내일까지 쉬어요
+    // 황금 섬의 연습은 하루 한 판: 오늘 했으면 내일까지 쉬어요
     const modes = modesFor(p).map((m) => (resting && store.isPractice(dan, m.id)
       ? { ...m, open: false, rest: true, sub: '오늘 연습 끝! 내일 또 만나요 🌙' } : m));
     const panel = this.el.querySelector('.map-panel');
