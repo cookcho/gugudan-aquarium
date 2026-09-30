@@ -204,6 +204,26 @@ class SoundManager {
     this.noise(0.5, 2500, 400, 0.45);
   }
 
+  // 11. 스포이드로 쪼옥
+  playSlurp() {
+    if (!this.enabled) return;
+    this.init();
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(900, now + 0.22);
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.exponentialRampToValueAtTime(0.3, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.26);
+    this.noise(0.18, 1200, 3000, 0.12);
+  }
+
   // 10. 사진 찰칵
   playShutter() {
     this.noise(0.06, 5000, 3000, 0.5, 'highpass');

@@ -144,7 +144,7 @@ button.pill { cursor: pointer; }
 .sand { position: absolute; left: -5%; right: -5%; bottom: 0; height: 14%; background: var(--sand); border-radius: 50% 50% 0 0 / 40% 40% 0 0; box-shadow: inset 0 calc(var(--u) * 0.8) 0 var(--sand-dark); }
 .decor-layer { position: absolute; inset: 0; pointer-events: none; }
 .poop-layer { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
-.poop { position: absolute; margin-left: calc(var(--u) * -1.6); }
+.poop { position: absolute; margin-left: calc(var(--u) * -2.4); }
 .poop.falling { animation: poopFall 1.6s ease-in forwards; }
 /* 낮과 밤: 실제 시각에 따라 저녁엔 노을빛, 밤엔 어둡고 반짝이는 플랑크톤 */
 .sky-tint { position: absolute; inset: 0; pointer-events: none; z-index: 8; opacity: 0; transition: opacity 3s; }
@@ -158,6 +158,7 @@ button.pill { cursor: pointer; }
 .time-night .decor[data-type="jellyLamp"] svg, .time-night .decor[data-type="lighthouse"] svg, .time-night .decor[data-type="crystal"] svg { filter: drop-shadow(0 0 calc(var(--u) * 1.2) #FFE08A); }
 .murk { position: absolute; inset: 0; background: #6B7A3A; mix-blend-mode: multiply; opacity: 0; pointer-events: none; transition: opacity .6s; z-index: 7; }
 .cleaning { cursor: grab; }
+.cleaning .aquarium { cursor: none; touch-action: none; }
 .cleaning .poop-layer { z-index: 26; }
 .cleaning .poop { pointer-events: auto; animation: wobble 1.2s ease-in-out infinite; filter: drop-shadow(0 0 calc(var(--u) * 0.6) #fff); }
 .cleaning .fish { pointer-events: none; }
@@ -874,3 +875,13 @@ button.pill { cursor: pointer; }
 .btn-big { position: relative; }
 .go-badge { position: absolute; top: calc(var(--u) * -2.2); right: calc(var(--u) * -1); white-space: nowrap; background: #FFC53D; color: var(--ink); font-size: calc(var(--u) * 1.6); padding: calc(var(--u) * 0.3) calc(var(--u) * 1); border-radius: 999px; border: 2px solid #fff; box-shadow: 0 calc(var(--u) * 0.3) 0 rgba(0, 0, 0, .15); animation: goBadge 1.2s ease-in-out infinite; pointer-events: none; }
 @keyframes goBadge { 0%, 100% { transform: scale(1) rotate(-3deg); } 50% { transform: scale(1.12) rotate(3deg); } }
+
+/* 청소 스포이드: 끝이 손가락 위치, 가까운 똥을 쏙 빨아들여요 */
+.siphon { position: absolute; z-index: 60; width: calc(var(--u) * 6.2); height: calc(var(--u) * 17.5); translate: -50% -97%; pointer-events: none; filter: drop-shadow(0 calc(var(--u) * 0.4) calc(var(--u) * 0.6) rgba(0, 0, 0, .25)); }
+.siphon svg { width: 100%; height: 100%; display: block; }
+.siphon .siphon-blob { opacity: 0; }
+.siphon.gulp .siphon-bulb { transform-box: fill-box; transform-origin: center bottom; animation: bulbSqueeze .38s ease-out; }
+.siphon.gulp .siphon-blob { animation: blobUp .45s ease-in forwards; }
+@keyframes bulbSqueeze { 35% { transform: scale(1.25, .7); } }
+@keyframes blobUp { 0% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; } 100% { opacity: 0; transform: translateY(-95px); } }
+.poop.sucked { animation: none !important; transition: transform .35s ease-in, opacity .35s ease-in; transform: translate(var(--tx), var(--ty)) scale(.1); opacity: 0; }

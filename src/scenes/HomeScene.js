@@ -20,6 +20,15 @@ const TIME_INFO = {
   evening: { icon: '🌇', label: '노을 (저녁 7~9시)', say: '노을이 졌어요. 저녁 7시부터 어항이 노을빛이 돼요 🌇' },
   night: { icon: '🌙', label: '밤 (저녁 9시~아침 6시)', say: '밤이에요. 친구들이 졸려해요. 아침 6시에 해가 떠요 🌙' }
 };
+const POOP_U = 4.8; // 똥 크기 (--u 배수)
+// 청소 스포이드: 위는 빨간 고무 꼭지, 아래는 투명한 유리관. 끝(아래 가운데)이 손가락 위치예요
+const SIPHON_SVG = `<svg viewBox="0 0 60 170" aria-hidden="true">
+  <g class="siphon-bulb"><rect x="12" y="4" width="36" height="46" rx="18" fill="#FF6B6B" stroke="#B83A3A" stroke-width="3"/><ellipse cx="22" cy="18" rx="5" ry="9" fill="#FFB0B0" opacity=".8"/></g>
+  <rect x="16" y="44" width="28" height="10" rx="3" fill="#E04848" stroke="#B83A3A" stroke-width="2.5"/>
+  <path d="M20 54 H40 V132 L32 166 H28 L20 132 Z" fill="rgba(210, 245, 255, .55)" stroke="#5E9FB8" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M25 60 V128" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+  <circle class="siphon-blob" cx="30" cy="150" r="6" fill="#8B5A2B"/>
+</svg>`;
 const isFloating = (type) => SHOP_ITEMS.find((it) => it.type === type)?.float;
 const CLEAN_COST = 3;
 
@@ -751,7 +760,7 @@ export class HomeScene {
     const layer = this.el.querySelector('.poop-layer');
     layer.innerHTML = store.data.poops.map((p) => {
       const lift = (parseInt(p.id.slice(-2), 10) || 0) % 4;
-      return `<div class="poop" data-id="${p.id}" style="left:${p.x}%;bottom:${3 + lift * 1.5}%">${createPoopSVG(Math.round(this.u * 3.2))}</div>`;
+      return `<div class="poop" data-id="${p.id}" style="left:${p.x}%;bottom:${3 + lift * 1.5}%">${createPoopSVG(Math.round(this.u * POOP_U))}</div>`;
     }).join('');
     this.updateDirt();
   }
@@ -763,7 +772,7 @@ export class HomeScene {
     if (!poop) return;
     const top = f.y + f.size * 0.8 + this.u * 8;
     this.el.querySelector('.poop-layer').appendChild(
-      h(`<div class="poop falling" style="left:${x}%;top:${top}px">${createPoopSVG(Math.round(this.u * 3.2))}</div>`)
+      h(`<div class="poop falling" style="left:${x}%;top:${top}px">${createPoopSVG(Math.round(this.u * POOP_U))}</div>`)
     );
     setTimeout(() => this.alive && this.renderPoops(), 1600);
   }
@@ -783,34 +792,71 @@ export class HomeScene {
     this.cleaning = true;
     this.el.classList.add('cleaning');
     this.el.querySelector('[data-act="clean"]').classList.add('active');
-    this.say('스펀지로 똥을 문질러서 치워요! 🧽');
+    this.say('스포이드를 똥에 대고 꾹 누르면 쏙 빨아들여요! 🧪');
+    // 손가락을 따라다니는 스포이드 (끝이 손가락 위치)
+    this.siphon = h(`<div class="siphon">${SIPHON_SVG}</div>`);
+    this.el.appendChild(this.siphon);
+    const r = this.aquarium.getBoundingClientRect();
+    this.moveSiphon(r.left + r.width / 2, r.top + r.height * 0.6);
+  }
+
+  moveSiphon(x, y) {
+    if (!this.siphon) return;
+    const r = this.el.getBoundingClientRect();
+    this.siphon.style.left = `${x - r.left}px`;
+    this.siphon.style.top = `${y - r.top}px`;
   }
 
   stopCleaning() {
     this.cleaning = false;
+    this.siphon?.remove();
+    this.siphon = null;
     this.el.classList.remove('cleaning');
     this.el.querySelector('[data-act="clean"]').classList.remove('active');
   }
 
   // 손가락이 지나간 자리의 똥을 치워요
+  // 스포이드 끝 가까이 있는 똥을 쏙 빨아들여요
   wipeAt(x, y) {
-    const hit = document.elementFromPoint(x, y)?.closest('.poop:not(.falling)');
-    if (!hit) return;
-    sound.playPop();
-    store.removePoop(hit.dataset.id);
-    const rect = this.el.getBoundingClientRect();
-    floatUp(this.el, x - rect.left, y - rect.top, '✨');
-    hit.remove();
-    this.updateDirt();
-    if (store.data.poops.length === 0) {
-      this.stopCleaning();
-      sound.playFanfare();
-      this.say('반짝반짝 깨끗해졌어요! 친구들이 좋아해요 💖');
-      this.el.querySelector('[data-act="clean"]').classList.remove('hint-pulse');
-      this.requestDone(store.completeRequest('clean'));
-      for (const f of this.fishes) if (f.p >= 2) floatUp(this.tank, f.x + f.size / 2, f.y, '💖');
+    const reach = this.u * 5;
+    let hit = null;
+    let best = reach;
+    for (const el of this.el.querySelectorAll('.poop:not(.falling):not(.sucked)')) {
+      const b = el.getBoundingClientRect();
+      const d = Math.hypot(b.left + b.width / 2 - x, b.top + b.height / 2 - y);
+      if (d < best) { best = d; hit = el; }
     }
+    if (!hit) return;
+    const b = hit.getBoundingClientRect();
+    hit.style.setProperty('--tx', `${x - (b.left + b.width / 2)}px`);
+    hit.style.setProperty('--ty', `${y - (b.top + b.height / 2)}px`);
+    hit.classList.add('sucked');
+    sound.playSlurp();
+    if (this.siphon) {
+      this.siphon.classList.remove('gulp');
+      void this.siphon.offsetWidth;
+      this.siphon.classList.add('gulp');
+    }
+    store.removePoop(hit.dataset.id);
+    setTimeout(() => {
+      hit.remove();
+      if (!this.alive) return;
+      const rect = this.el.getBoundingClientRect();
+      floatUp(this.el, x - rect.left, y - rect.top, '✨');
+      this.updateDirt();
+      if (store.data.poops.length === 0 && this.cleaning) this.cleanDone();
+    }, 380);
   }
+
+  cleanDone() {
+    this.stopCleaning();
+    sound.playFanfare();
+    this.say('반짝반짝 깨끗해졌어요! 친구들이 좋아해요 💖');
+    this.el.querySelector('[data-act="clean"]').classList.remove('hint-pulse');
+    this.requestDone(store.completeRequest('clean'));
+    for (const f of this.fishes) if (f.p >= 2) floatUp(this.tank, f.x + f.size / 2, f.y, '💖');
+  }
+
 
   // ---- 배고픔, 아픔 표시 ----
   refreshStatus() {
@@ -944,10 +990,13 @@ export class HomeScene {
     this.el.addEventListener('pointerdown', (e) => {
       if (!this.cleaning || e.target.closest('button, .topbar')) return;
       this.wiping = true;
+      this.moveSiphon(e.clientX, e.clientY);
       this.wipeAt(e.clientX, e.clientY);
     });
     this.el.addEventListener('pointermove', (e) => {
-      if (this.cleaning && this.wiping) this.wipeAt(e.clientX, e.clientY);
+      if (!this.cleaning) return;
+      this.moveSiphon(e.clientX, e.clientY);
+      if (this.wiping) this.wipeAt(e.clientX, e.clientY);
     });
     this.endWipe = () => { this.wiping = false; };
     window.addEventListener('pointerup', this.endWipe);
