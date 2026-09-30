@@ -48,8 +48,8 @@ function freshSave() {
     stamps: 0,
     guests: {}, // 손님별 { met(처음 만난 날), visits, riddleDate }
     photos: [], // 기념사진: 찍은 순간의 어항 모습 (장식·친구 위치), 최신이 앞
-    bigItems: [], // 산 큰 선물 id
-    goal: null, // 저금통 목표로 찜한 큰 선물 id
+    bigItems: [], // 산 스페셜 id
+    goal: null, // 저금통 목표로 찜한 스페셜 id
     tankLevel: 0, // 어항 단계 0 기본 · 1 큰 수족관 · 2 산호초 · 3 바다 왕궁
     gift: null, // { date, dan, x, opened }
     lastVisit: Date.now(),
@@ -296,7 +296,7 @@ class Store {
     return !!r && r.date === today() && !r.rewarded && r.list.every((q) => q.done);
   }
 
-  // 도장 받기: 선물을 주고, 7개마다 큰 선물
+  // 도장 받기: 선물을 주고, 7개마다 스페셜
   claimRequests() {
     if (!this.requestsReady()) return null;
     this.data.requests.rewarded = true;
@@ -568,7 +568,7 @@ class Store {
     this.save();
   }
 
-  // ---- 큰 선물 (저금통) ----
+  // ---- 스페셜 (저금통) ----
   ownsBig(id) {
     return (this.data.bigItems || []).includes(id);
   }

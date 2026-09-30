@@ -83,7 +83,7 @@ class App {
     document.querySelectorAll('#app > .overlay, #app > .toast').forEach((el) => el.remove());
     this.root.innerHTML = '';
 
-    // 어항 곡은 큰 선물로 산 곡으로 바꿀 수 있어요
+    // 어항 곡은 스페셜로 산 곡으로 바꿀 수 있어요
     music.play(name === 'home' ? store.data.homeMusic || 'aquarium' : MUSIC_FOR[name] || null);
     this.scene = new SCENES[name](this, params);
     this.root.appendChild(this.scene.el);

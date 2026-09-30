@@ -1064,7 +1064,7 @@ export class HomeScene {
     this.el.querySelector('.backdrop').innerHTML = tankBackdrop(level);
   }
 
-  // ---- 전설의 무지개 잉어: 큰 선물로 데려오면 어항에서 가장 크고 화려하게 헤엄쳐요 ----
+  // ---- 전설의 무지개 잉어: 스페셜로 데려오면 어항에서 가장 크고 화려하게 헤엄쳐요 ----
   spawnLegend() {
     if (this.legend || !store.ownsBig('legend')) return;
     const size = Math.round(this.u * 17);
@@ -1198,7 +1198,7 @@ export class HomeScene {
     this.renderGoal();
   }
 
-  // 저금통: 찜한 큰 선물까지 별이 얼마나 모였는지 보여줘요
+  // 저금통: 찜한 스페셜까지 별이 얼마나 모였는지 보여줘요
   renderGoal() {
     const bar = this.el.querySelector('.goal-bar');
     const it = store.data.goal && bigItemById(store.data.goal);

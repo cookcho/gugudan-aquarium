@@ -30,7 +30,7 @@ const TRACKS = {
     bubbles: 0.025,
     waves: 0.04
   },
-  // 큰 선물로 사는 어항 곡
+  // 스페셜로 사는 어항 곡
   party: {
     bpm: 118,
     barsPerChord: 1,

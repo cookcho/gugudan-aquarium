@@ -1,4 +1,4 @@
-// 큰 선물 장식 (w = 가로 px). 누르면 움직여요: 해적선 대포, 거품 분수, 회전목마 / 해저 기차는 저절로 지나가요
+// 스페셜 장식 (w = 가로 px). 누르면 움직여요: 해적선 대포, 거품 분수, 회전목마 / 해저 기차는 저절로 지나가요
 const svg = (w, vw, vh, body, cls = '') =>
   `<svg width="${Math.round(w)}" height="${Math.round((w * vh) / vw)}" viewBox="0 0 ${vw} ${vh}" fill="none" xmlns="http://www.w3.org/2000/svg"${cls ? ` class="${cls}"` : ''}>${body}</svg>`;
 const OUT = '#0F2A3A';
