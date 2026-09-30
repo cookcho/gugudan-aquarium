@@ -11,6 +11,7 @@ import { correctFx } from '../core/juice.js';
 import { SEA2, SEA2_STAGES } from '../data/sea2.js';
 import { WORD_ISLANDS, makeProblem } from '../data/wordProblems.js';
 import { sea2Art } from '../graphics/sea2.js';
+import { hasImage, imageArt } from '../graphics/characters.js';
 
 const HEARTS = 3;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -51,7 +52,7 @@ export class WordScene {
     const beads = this.cfg.boss ? '<span class="boss-hearts"></span>' : `<span class="beads">${'<i></i>'.repeat(this.cfg.count)}</span>`;
     this.bar = topbar(app, { back: 'sea2', backLabel: '← 두 번째 바다', center: beads });
     const art = this.cfg.boss
-      ? '<div class="word-captain" aria-hidden="true">🏴‍☠️</div>'
+      ? `<div class="word-captain" aria-hidden="true">${hasImage('boss-captain') ? imageArt('boss-captain', Math.round(this.u * 16)) : '🏴‍☠️'}</div>`
       : sea2Art(this.isl.id, Math.max(1, store.progress2(this.isl.id)), Math.round(this.u * 13), this.word.icon);
     this.el = h(`
       <div class="scene sea-bg word-scene ${this.cfg.boss ? 'word-boss' : ''}">
