@@ -100,7 +100,7 @@ export class WordScene {
     if (this.cfg.boss) {
       // 해적 선장 등장!
       sound.playWhoosh();
-      requestAnimationFrame(() => this.el.querySelector('.word-captain').classList.remove('entering'));
+      setTimeout(() => this.el.querySelector('.word-captain')?.classList.remove('entering'), 30);
       await wait(900);
       if (!this.alive) return;
       sound.playRumble();
