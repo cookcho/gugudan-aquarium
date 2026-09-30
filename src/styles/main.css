@@ -497,6 +497,23 @@ button.pill { cursor: pointer; }
 .boss-hp-bar i { background: linear-gradient(90deg, #FF7A59, #FFC53D); transition: width .3s ease; }
 .boss-hp-bar b { background: #fff; transition: width .5s ease .5s; }
 .boss-hero { position: absolute; left: calc(var(--u) * 6); bottom: 0; z-index: 2; }
+/* 내 친구도 상어처럼 늘 헤엄쳐요: 앞뒤로 살랑, 위아래로 둥실, 몸을 까딱 + 뒤로 뽀글뽀글 */
+.boss-hero { transition: transform 1s cubic-bezier(.2, .8, .3, 1.1); }
+.boss-hero.entering { transform: translateX(calc(var(--u) * -40)); }
+.hero-swim { position: relative; animation: heroSwim 3s ease-in-out infinite; }
+.boss-hero.brave .hero-swim { animation-duration: 1.5s; filter: drop-shadow(0 0 calc(var(--u) * 1.2) rgba(255, 230, 120, .7)); }
+.boss-hero.sad .hero-swim { animation: heroSad 2.4s ease-in-out infinite; filter: saturate(.6); }
+@keyframes heroSwim {
+  0%, 100% { translate: 0 0; rotate: 0deg; scale: 1; }
+  25% { translate: calc(var(--u) * 1.2) calc(var(--u) * -1.4); rotate: -5deg; scale: 1.03 .97; }
+  50% { translate: calc(var(--u) * 2) 0; rotate: 0deg; scale: 1; }
+  75% { translate: calc(var(--u) * 0.8) calc(var(--u) * 1); rotate: 5deg; scale: .97 1.03; }
+}
+@keyframes heroSad { 50% { translate: 0 calc(var(--u) * 1); rotate: 8deg; } }
+.hero-bub { position: absolute; left: 4%; top: 45%; width: calc(var(--u) * 1.2); height: calc(var(--u) * 1.2); border-radius: 50%; border: 2px solid rgba(255, 255, 255, .8); background: rgba(255, 255, 255, .2); opacity: 0; animation: heroBub 2.4s ease-out infinite; pointer-events: none; }
+.hero-bub:nth-of-type(2) { animation-delay: .8s; width: calc(var(--u) * .8); height: calc(var(--u) * .8); top: 55%; }
+.hero-bub:nth-of-type(3) { animation-delay: 1.6s; top: 38%; }
+@keyframes heroBub { 0% { opacity: 0; translate: 0 0; } 15% { opacity: 1; } 100% { opacity: 0; translate: calc(var(--u) * -4) calc(var(--u) * -7); } }
 .boss-hero.recoil { animation: recoil .3s ease-out; }
 .boss-hero.dodge { animation: dodge .6s ease-out; }
 .boss-hero.cheer { animation: cheer .6s ease-in-out 4; }

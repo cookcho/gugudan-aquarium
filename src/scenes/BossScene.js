@@ -59,7 +59,7 @@ export class BossScene {
         <div class="bubbles">${bubbles}</div>
         <div class="boss-arena">
           <div class="boss-hp"><span>대장 상어 체력</span><div class="boss-hp-bar"><b></b><i></i></div></div>
-          <div class="boss-hero bob">${charSVG(dan, p, Math.round(this.u * 15))}</div>
+          <div class="boss-hero entering"><div class="hero-swim">${charSVG(dan, p, Math.round(this.u * 15))}<i class="hero-bub"></i><i class="hero-bub"></i><i class="hero-bub"></i></div></div>
           <div class="boss-shark entering"><div class="shark-art"></div></div>
           <div class="boss-beam"></div>
           <div class="boss-banner" hidden></div>
@@ -99,7 +99,11 @@ export class BossScene {
   // 대장 상어 등장: 헤엄쳐 들어와서 쿵!
   async enter() {
     sound.playWhoosh();
-    requestAnimationFrame(() => this.shark.classList.remove('entering'));
+    // 상어는 오른쪽에서, 내 친구는 왼쪽에서 헤엄쳐 들어와요
+    setTimeout(() => {
+      this.shark.classList.remove('entering');
+      this.el.querySelector('.boss-hero')?.classList.remove('entering');
+    }, 30);
     await wait(1100);
     if (!this.alive) return;
     sound.playRumble();
@@ -229,6 +233,7 @@ export class BossScene {
       if (this.hearts <= 0) {
         this.locked = true;
         this.shark.classList.add('laugh');
+        this.el.querySelector('.boss-hero').classList.add('sad');
         this.setFeedback('상어가 너무 세다! 다음엔 이길 수 있어', 'soft');
         setTimeout(() => this.alive && this.finish(false), 1600);
       } else {
@@ -260,6 +265,7 @@ export class BossScene {
           if (!this.alive) return;
           this.setShark('angry');
           this.shark.classList.add('angry');
+          this.el.querySelector('.boss-hero').classList.add('brave'); // 상어가 화나면 친구도 힘차게
           sound.playRumble();
           this.banner('대장 상어가 화났다! 💢', 1300, 'angry');
         }, 900);
@@ -285,7 +291,7 @@ export class BossScene {
     this.shark.classList.remove('angry');
     this.shark.classList.add('defeated');
     const hero = this.el.querySelector('.boss-hero');
-    hero.classList.remove('bob');
+    hero.classList.remove('brave');
     hero.classList.add('cheer');
     sound.playFanfare();
     this.banner('상어를 이겼다! 🎉', 2400, 'win');
