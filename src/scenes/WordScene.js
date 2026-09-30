@@ -257,6 +257,7 @@ export class WordScene {
     if (!this.angry && this.hp > 0 && this.hp <= this.cfg.count / 2) {
       this.angry = true;
       cap.classList.add('angry');
+      this.captainArt('angry');
       setTimeout(() => {
         if (!this.alive) return;
         sound.playRumble();
@@ -268,11 +269,19 @@ export class WordScene {
   async captainDefeated() {
     const cap = this.el.querySelector('.word-captain');
     cap.classList.remove('angry');
+    this.captainArt('dizzy');
     cap.classList.add('defeated');
     sound.playFanfare();
     this.banner('해적 선장을 이겼다! 🎉', 2200, 'win');
     confetti({ particleCount: 100, spread: 90, origin: { x: 0.2, y: 0.4 }, zIndex: 300 });
     await wait(2300);
+  }
+
+  // 해적 선장 그림 바꾸기 (화난·어지러운 그림이 있을 때만)
+  captainArt(state) {
+    const name = `boss-captain-${state}`;
+    const cap = this.el.querySelector('.word-captain');
+    if (cap && hasImage(name)) cap.innerHTML = imageArt(name, Math.round(this.u * 16));
   }
 
   replay(el, cls) {
