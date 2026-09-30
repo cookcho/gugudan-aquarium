@@ -9,6 +9,8 @@ import { openDecorShop, openDex, openRequests, hearts, openCard, openKidName, op
 import { REQUESTS, LOVE_PERKS, ANNIVERSARIES, GIFT_PRIZES, josa, chatLine, callKid } from '../data/care.js';
 import confetti from 'canvas-confetti';
 import { decorSVG, SHOP_ITEMS } from '../data/shop.js';
+import { bigItemById } from '../data/bigItems.js';
+import { tankBackdrop } from '../graphics/tanks.js';
 import { Swimmer, PROFILES } from '../core/swim.js';
 import { GuestManager } from './guests.js';
 
@@ -83,9 +85,10 @@ export class HomeScene {
     store.rollGift();
     this.bar = topbar(app, { parent: true });
     this.el = h(`
-      <div class="scene home theme-${store.data.theme} time-${timeOfDay()}">
+      <div class="scene home theme-${store.data.theme} time-${timeOfDay()} tank-${store.data.tankLevel || 0}">
         <div class="aquarium">
           <div class="rays"></div>
+          <div class="backdrop">${tankBackdrop(store.data.tankLevel || 0)}</div>
           <div class="bubbles"></div>
           <div class="sand"></div>
           <div class="decor-layer"></div>
@@ -94,6 +97,7 @@ export class HomeScene {
           <div class="murk"></div>
           <div class="sky-tint"></div>
           <button class="time-badge" data-act="time" aria-label="지금 어항 시간"></button>
+          <button class="goal-bar" data-act="goal" hidden></button>
           <div class="glow-dots">${Array.from({ length: 48 }, () => `<i style="left:${Math.random() * 98}%;top:${3 + Math.random() * 82}%;--s:${(0.35 + Math.random() * 0.75).toFixed(2)};animation-duration:${(1.6 + Math.random() * 2.6).toFixed(1)}s;animation-delay:${-(Math.random() * 4).toFixed(1)}s"></i>`).join('')}</div>
           <div class="algae"></div>
           <div class="tank"></div>
@@ -141,6 +145,8 @@ export class HomeScene {
     this.say(careMessage() || this.guideLine());
     this.makeBubbles();
     this.drawTimeBadge();
+    this.renderGoal();
+    this.unsubGoal = store.subscribe(() => this.alive && this.renderGoal());
     this.renderDecor();
     this.buildAlgae();
     this.renderPoops();
@@ -927,7 +933,7 @@ export class HomeScene {
       } else {
         sound.playBoing();
         this.say(`${c.name}가 아파요… 상점에서 💊 약을 사 주세요`);
-        openDecorShop(() => this.afterShop(), 'care');
+        openDecorShop((c) => this.afterShop(c), 'care');
       }
       return;
     }
@@ -972,13 +978,14 @@ export class HomeScene {
       if (act === 'dex') openDex();
       if (act === 'decor') this.enterDecor();
       if (act === 'decor-done') this.exitDecor();
-      if (act === 'shop') openDecorShop(() => this.afterShop());
+      if (act === 'shop') openDecorShop((c) => this.afterShop(c));
       if (act === 'feed') this.toggleFeed();
       if (act === 'clean') this.startCleaning();
       if (act === 'ball') this.toggleBall();
       if (act === 'bubble') this.toggleBubbles();
       if (act === 'follow') this.toggleFollow();
       if (act === 'time') this.say(TIME_INFO[timeOfDay()].say);
+      if (act === 'goal') openDecorShop((c) => this.afterShop(c), 'big');
       if (act === 'requests') openRequests(() => {
         this.updateRequestPill();
         this.say(careMessage() || this.guideLine());
@@ -1019,7 +1026,7 @@ export class HomeScene {
         sound.playBoing();
         toast('먹이가 다 떨어졌어요. 상점에서 별로 살 수 있어요');
         this.toggleFeed();
-        openDecorShop(() => this.afterShop(), 'care');
+        openDecorShop((c) => this.afterShop(c), 'care');
         return;
       }
       sound.playPop();
@@ -1030,10 +1037,43 @@ export class HomeScene {
     });
   }
 
-  afterShop() {
+  afterShop(change) {
     this.el.className = this.el.className.replace(/theme-\w+/, `theme-${store.data.theme}`);
     this.renderTray();
     this.el.querySelector('.feed-n').textContent = store.data.food;
+    if (change?.big) this.celebrateBig(change.big);
+  }
+
+  // 어항 단계에 맞게 받침대와 뒤쪽 배경을 바꿔요
+  applyTank() {
+    const level = store.data.tankLevel || 0;
+    this.el.className = this.el.className.replace(/\btank-\d\b/, `tank-${level}`);
+    this.el.querySelector('.backdrop').innerHTML = tankBackdrop(level);
+  }
+
+  celebrateBig(item) {
+    if (item.kind === 'tank') this.applyTank();
+    sound.playFanfare();
+    confetti({ particleCount: 160, spread: 110, origin: { y: 0.5 }, zIndex: 300 });
+    setTimeout(() => this.alive && confetti({ particleCount: 90, spread: 140, origin: { y: 0.35 }, zIndex: 300 }), 500);
+    this.say(item.kind === 'tank' ? `우와! ${item.name}이 됐어요! 친구들이 신나해요 🎉` : `${item.name}을 샀어요! 🎉`);
+    for (const f of this.fishes) if (f.p >= 2) floatUp(this.tank, f.x + f.size / 2, f.y, '💖');
+    this.renderGoal();
+  }
+
+  // 저금통: 찜한 큰 선물까지 별이 얼마나 모였는지 보여줘요
+  renderGoal() {
+    const bar = this.el.querySelector('.goal-bar');
+    const it = store.data.goal && bigItemById(store.data.goal);
+    if (!it || store.ownsBig(it.id)) {
+      bar.hidden = true;
+      return;
+    }
+    const have = Math.min(store.data.stars, it.cost);
+    const ready = store.data.stars >= it.cost;
+    bar.hidden = false;
+    bar.classList.toggle('ready', ready);
+    bar.innerHTML = `<span class="goal-label">🐷 ${it.icon} ${it.name}</span><span class="goal-track"><i style="width:${(have / it.cost) * 100}%"></i></span><span class="goal-num">${ready ? '살 수 있어요! 🎉' : `⭐ ${store.data.stars} / ${it.cost}`}</span>`;
   }
 
   toggleFeed() {
@@ -1177,5 +1217,6 @@ export class HomeScene {
     window.removeEventListener('pointerup', this.endWipe);
     cancelAnimationFrame(this.raf);
     this.bar.destroy();
+    this.unsubGoal?.();
   }
 }

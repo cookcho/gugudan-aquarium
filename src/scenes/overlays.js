@@ -5,6 +5,7 @@ import { sound } from '../audio/soundManager.js';
 import { CHARACTERS, DAN_ORDER, STAGES, stageName } from '../data/characters.js';
 import { charSVG, guideSVG } from '../graphics/characters.js';
 import { SHOP_TABS, SHOP_ITEMS, THEMES, decorSVG } from '../data/shop.js';
+import { BIG_ITEMS, bigItemById } from '../data/bigItems.js';
 import { createFoodCanSVG, createMedicineSVG } from '../graphics/food.js';
 import { REQUESTS, josa } from '../data/care.js';
 import confetti from 'canvas-confetti';
@@ -61,9 +62,29 @@ export function openDecorShop(onChange, startTab = 'plant') {
       </button>`;
   };
 
+  // 큰 선물: 별을 모아서 사요. 모자라면 "찜"해서 저금통 목표로
+  const bigCard = (it) => {
+    const owned = store.ownsBig(it.id);
+    const locked = !owned && !store.bigUnlocked(it);
+    const goal = store.data.goal === it.id;
+    let tag = `<span class="shop-cost">⭐ ${it.cost}</span>`;
+    if (owned) tag = '<span class="shop-cost owned">가졌어요 ✓</span>';
+    else if (locked) tag = `<span class="shop-cost locked">🔒 ${bigItemById(it.requires).name} 먼저</span>`;
+    else if (store.data.stars >= it.cost) tag = `<span class="shop-cost using">⭐ ${it.cost} · 살 수 있어요!</span>`;
+    return `
+      <button class="shop-item big-item ${locked ? 'locked' : ''} ${owned ? 'owned' : ''} ${goal ? 'goal' : ''}" data-big="${it.id}">
+        <span class="shop-art big-icon">${it.icon}</span>
+        <span class="shop-name">${it.name}</span>
+        <small class="big-desc">${it.desc}</small>
+        ${goal ? '<span class="shop-tag">🐷 저금통 목표</span>' : ''}
+        ${tag}
+      </button>`;
+  };
+
   const render = () => {
     let grid;
     if (tab === 'theme') grid = THEMES.map(themeCard).join('');
+    else if (tab === 'big') grid = BIG_ITEMS.map(bigCard).join('');
     else if (tab === 'care') grid = `
       <button class="shop-item" data-food="10"><span class="shop-art">${createFoodCanSVG(px)}</span><span class="shop-name">먹이 10개 <small>(${store.data.food}개 있음)</small></span><span class="shop-cost">⭐ 5</span></button>
       <button class="shop-item" data-food="30"><span class="shop-art">${createFoodCanSVG(px)}${createFoodCanSVG(px)}</span><span class="shop-name">먹이 30개</span><span class="shop-cost">⭐ 12</span></button>
@@ -88,12 +109,33 @@ export function openDecorShop(onChange, startTab = 'plant') {
   };
 
   el.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-tab], [data-buy], [data-theme], [data-food], [data-medicine]');
+    const b = e.target.closest('[data-tab], [data-buy], [data-theme], [data-food], [data-medicine], [data-big]');
     if (!b) return;
     if (b.dataset.tab) {
       sound.playPop();
       tab = b.dataset.tab;
       el.querySelector('.sheet-body').innerHTML = render();
+      return;
+    }
+    if (b.dataset.big) {
+      const it = bigItemById(b.dataset.big);
+      if (store.ownsBig(it.id)) return toast('벌써 가지고 있어요! ✓');
+      if (!store.bigUnlocked(it)) {
+        sound.playBoing();
+        return toast(`${bigItemById(it.requires).name}을 먼저 가져야 해요`);
+      }
+      if (store.data.stars < it.cost) {
+        // 모자라면 저금통 목표로 찜해요
+        sound.playStar();
+        store.setGoal(it.id);
+        toast(`🐷 ${it.name}을 목표로 정했어요! 별 ${it.cost - store.data.stars}개 더 모으면 돼요`);
+        return refresh();
+      }
+      confirmBox(`별 ${it.cost}개로 ${it.name}을 살까요?`, '살래요!', '아직이요').then((ok) => {
+        if (!ok || !store.buyBig(it)) return;
+        el.remove();
+        onChange({ big: it });
+      });
       return;
     }
     if (b.classList.contains('locked')) {

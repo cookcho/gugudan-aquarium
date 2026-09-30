@@ -48,6 +48,9 @@ function freshSave() {
     stamps: 0,
     guests: {}, // 손님별 { met(처음 만난 날), visits, riddleDate }
     photos: [], // 기념사진: 찍은 순간의 어항 모습 (장식·친구 위치), 최신이 앞
+    bigItems: [], // 산 큰 선물 id
+    goal: null, // 저금통 목표로 찜한 큰 선물 id
+    tankLevel: 0, // 어항 단계 0 기본 · 1 큰 수족관 · 2 산호초 · 3 바다 왕궁
     gift: null, // { date, dan, x, opened }
     lastVisit: Date.now(),
     lastSickRoll: Date.now(),
@@ -562,6 +565,30 @@ class Store {
     if (!d) return;
     d.placed = false;
     this.save();
+  }
+
+  // ---- 큰 선물 (저금통) ----
+  ownsBig(id) {
+    return (this.data.bigItems || []).includes(id);
+  }
+
+  // 먼저 가져야 하는 선물이 있으면 그걸 사야 열려요
+  bigUnlocked(item) {
+    return !item.requires || this.ownsBig(item.requires);
+  }
+
+  setGoal(id) {
+    this.data.goal = id;
+    this.save();
+  }
+
+  buyBig(item) {
+    if (this.ownsBig(item.id) || !this.bigUnlocked(item) || !this.spendStars(item.cost)) return false;
+    this.data.bigItems = [...(this.data.bigItems || []), item.id];
+    if (item.kind === 'tank') this.data.tankLevel = Math.max(this.data.tankLevel || 0, item.level);
+    if (this.data.goal === item.id) this.data.goal = null;
+    this.save();
+    return true;
   }
 
   // 기념사진은 30장까지 (넘으면 가장 오래된 사진부터 빠져요)

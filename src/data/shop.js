@@ -10,6 +10,7 @@ export const SHOP_TABS = [
   { id: 'special', label: '✨ 특별' },
   { id: 'float', label: '🫧 물속' },
   { id: 'theme', label: '🎨 배경' },
+  { id: 'big', label: '🎁 큰 선물' },
   { id: 'care', label: '💊 돌보기' }
 ];
 
