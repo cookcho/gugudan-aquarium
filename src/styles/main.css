@@ -924,3 +924,14 @@ button.pill { cursor: pointer; }
 .legend-svg { animation: legendGlow 3s linear infinite; }
 @keyframes legendGlow { 0% { filter: drop-shadow(0 0 calc(var(--u) * 1) #FF8FB1); } 33% { filter: drop-shadow(0 0 calc(var(--u) * 1.2) #FFE066); } 66% { filter: drop-shadow(0 0 calc(var(--u) * 1.2) #6BE3B0); } 100% { filter: drop-shadow(0 0 calc(var(--u) * 1) #FF8FB1); } }
 .legend-trail { position: absolute; z-index: 4; width: calc(var(--u) * 1.4); height: calc(var(--u) * 1.4); margin: calc(var(--u) * -0.7) 0 0 calc(var(--u) * -0.7); pointer-events: none; background: conic-gradient(#FF6B8B, #FFE066, #6BE3B0, #6BA8FF, #FF6B8B); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: trailFade 1.2s ease-out forwards; }
+
+/* 움직이는 대형 장식 */
+.decor.interactive { pointer-events: auto; cursor: pointer; }
+.decor.interactive.boom > svg { animation: shipBoom .45s ease-out; transform-origin: 50% 100%; }
+@keyframes shipBoom { 20% { transform: rotate(-4deg) translateX(calc(var(--u) * -0.8)); } 55% { transform: rotate(2deg); } }
+.carousel-spin { transform-box: fill-box; transform-origin: center; animation: carouselSway 3s ease-in-out infinite alternate; }
+@keyframes carouselSway { from { transform: translateX(-6px); } to { transform: translateX(6px); } }
+.decor.fast .carousel-spin { animation: carouselFast .25s ease-in-out 8 alternate; }
+@keyframes carouselFast { from { transform: translateX(-12px); } to { transform: translateX(12px); } }
+.train { position: absolute; bottom: calc(var(--u) * 1.4); left: 0; z-index: 8; cursor: pointer; animation: trainRide 12s linear forwards; }
+@keyframes trainRide { from { transform: translateX(-110%); } to { transform: translateX(110vw); } }

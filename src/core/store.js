@@ -588,6 +588,7 @@ class Store {
     if (this.ownsBig(item.id) || !this.bigUnlocked(item) || !this.spendStars(item.cost)) return false;
     this.data.bigItems = [...(this.data.bigItems || []), item.id];
     if (item.kind === 'tank') this.data.tankLevel = Math.max(this.data.tankLevel || 0, item.level);
+    if (item.kind === 'decor') this.data.decorations.push({ id: `d${Date.now()}`, type: item.id, x: 50, b: 0, placed: false });
     if (this.data.goal === item.id) this.data.goal = null;
     this.save();
     return true;

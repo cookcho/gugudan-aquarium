@@ -12,6 +12,7 @@ import { decorSVG, SHOP_ITEMS } from '../data/shop.js';
 import { bigItemById } from '../data/bigItems.js';
 import { tankBackdrop } from '../graphics/tanks.js';
 import { legendArt } from '../graphics/legend.js';
+import { createTrainSVG } from '../graphics/decorBig.js';
 import { Swimmer, PROFILES } from '../core/swim.js';
 import { GuestManager } from './guests.js';
 
@@ -613,8 +614,14 @@ export class HomeScene {
     const layer = this.el.querySelector('.decor-layer');
     layer.innerHTML = '';
     for (const d of store.data.decorations.filter((it) => it.placed)) {
-      const item = h(`<div class="decor${isFloating(d.type) ? ' floating' : ''}" data-type="${d.type}" style="left:${d.x}%;bottom:${Math.max(MIN_B, d.b)}%">${decorSVG(d.type, this.u)}<button class="decor-back" type="button" aria-label="보관함에 넣기">↩</button></div>`);
+      const interactive = SHOP_ITEMS.find((it) => it.type === d.type)?.interactive;
+      const item = h(`<div class="decor${isFloating(d.type) ? ' floating' : ''}${interactive ? ' interactive' : ''}" data-type="${d.type}" style="left:${d.x}%;bottom:${Math.max(MIN_B, d.b)}%">${decorSVG(d.type, this.u)}<button class="decor-back" type="button" aria-label="보관함에 넣기">↩</button></div>`);
       item.addEventListener('pointerdown', (e) => {
+        if (!this.decorating && interactive && !this.cleaning) {
+          e.stopPropagation();
+          this.playDecor(d.type, item);
+          return;
+        }
         if (!this.decorating || e.button !== 0) return;
         e.stopPropagation();
         if (e.target.closest('.decor-back')) return;
@@ -1086,13 +1093,68 @@ export class HomeScene {
     }
   }
 
+  // ---- 움직이는 대형 장식 ----
+  playDecor(type, el) {
+    const t = this.tank.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    if (type === 'pirateShip') {
+      // 대포(오른쪽 끝)에서 비눗방울이 펑! 친구들이 쫓아가요
+      sound.playRumble();
+      el.classList.remove('boom');
+      void el.offsetWidth;
+      el.classList.add('boom');
+      const x = r.right - t.left - r.width * 0.05;
+      const y = r.top - t.top + r.height * 0.68;
+      for (let i = 0; i < 3; i++) setTimeout(() => this.alive && this.blowBubbles(x + i * 12, y - i * 6), i * 140);
+    } else if (type === 'fountain') {
+      // 꼭대기에서 거품이 솟고, 친구들이 몰려와요
+      sound.playWhoosh();
+      const x = r.left - t.left + r.width / 2;
+      const y = r.top - t.top + r.height * 0.1;
+      for (let i = 0; i < 4; i++) setTimeout(() => this.alive && this.blowBubbles(x, y - i * 10), i * 120);
+      this.attention = { x, y: y + r.height * 0.4, until: performance.now() + 3000, all: true };
+    } else if (type === 'carousel') {
+      sound.playStar();
+      el.classList.remove('fast');
+      void el.offsetWidth;
+      el.classList.add('fast');
+      for (let i = 0; i < 4; i++) setTimeout(() => this.alive && floatUp(this.tank, r.left - t.left + r.width * (0.2 + i * 0.2), r.top - t.top, i % 2 ? '🎵' : '🎶'), i * 150);
+    }
+  }
+
+  // 해저 기차: 가지고 있으면 40~70초마다 바닥을 칙칙폭폭 지나가요
+  stepTrain(dt) {
+    if (!store.ownsBig('train') || this.decorating) return;
+    this.trainWait = (this.trainWait ?? 8) - dt;
+    if (this.trainWait > 0 || this.el.querySelector('.train')) return;
+    this.trainWait = 40 + Math.random() * 30;
+    const train = h(`<div class="train">${createTrainSVG(Math.round(this.u * 26))}</div>`);
+    train.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      sound.playBoing();
+      const t = this.tank.getBoundingClientRect();
+      const r = train.getBoundingClientRect();
+      floatUp(this.tank, r.right - t.left - r.width * 0.2, r.top - t.top, '뿌뿌! 🚂');
+    });
+    this.aquarium.appendChild(train);
+    sound.playWhoosh();
+    setTimeout(() => train.remove(), 12500);
+  }
+
   celebrateBig(item) {
     if (item.kind === 'tank') this.applyTank();
     if (item.kind === 'friend') this.spawnLegend();
+    if (item.kind === 'decor') this.renderTray();
+    if (item.kind === 'event') this.trainWait = 2;
     sound.playFanfare();
     confetti({ particleCount: 160, spread: 110, origin: { y: 0.5 }, zIndex: 300 });
     setTimeout(() => this.alive && confetti({ particleCount: 90, spread: 140, origin: { y: 0.35 }, zIndex: 300 }), 500);
-    this.say(item.kind === 'tank' ? `우와! ${item.name}이 됐어요! 친구들이 신나해요 🎉` : `${item.name}을 샀어요! 🎉`);
+    const says = {
+      tank: `우와! ${item.name}이 됐어요! 친구들이 신나해요 🎉`,
+      decor: `${item.name}을 샀어요! 🪸 꾸미기에서 보관함에 있는 걸 어항에 놓아 봐요`,
+      event: `${item.name}가 생겼어요! 곧 어항 바닥을 지나갈 거예요 🚂`
+    };
+    this.say(says[item.kind] || `${item.name}을 샀어요! 🎉`);
     for (const f of this.fishes) if (f.p >= 2) floatUp(this.tank, f.x + f.size / 2, f.y, '💖');
     this.renderGoal();
   }
@@ -1220,6 +1282,7 @@ export class HomeScene {
     }
     this.guests?.step(dt, W, H);
     this.stepLegend(dt, W, H);
+    this.stepTrain(dt);
   }
 
   // 행동에 따라 나오는 작은 효과들
