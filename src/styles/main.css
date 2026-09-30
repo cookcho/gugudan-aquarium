@@ -948,7 +948,7 @@ button.pill { cursor: pointer; }
 .map.sea2 { background: #2E3A7A; }
 .map.sea2 .map-panel { border-left-color: #6D4FB5; box-shadow: inset calc(var(--u) * 0.4) 0 0 #9B86E0; }
 .lv-chip { display: inline-block; vertical-align: middle; color: #fff; font-size: .55em; padding: 2px 8px; border-radius: 999px; }
-.sea2-go { margin-top: auto; width: 100%; flex: none; border: 2px solid #fff; border-radius: 999px; padding: calc(var(--u) * 0.45) calc(var(--u) * 1.4); background: #A7B5BC; color: #fff; font-family: inherit; font-size: calc(var(--u) * 1.75); cursor: pointer; box-shadow: 0 calc(var(--u) * 0.3) 0 rgba(0, 0, 0, .2); }
+.sea2-go { position: absolute; right: calc(var(--u) * 1.4); top: calc(var(--u) * 1.8); z-index: 5; border: 2px solid #fff; border-radius: 999px; padding: calc(var(--u) * 0.45) calc(var(--u) * 1.4); background: #A7B5BC; color: #fff; font-family: inherit; font-size: calc(var(--u) * 1.75); cursor: pointer; box-shadow: 0 calc(var(--u) * 0.3) 0 rgba(0, 0, 0, .2); }
 .sea2-go.open { background: linear-gradient(90deg, #6D4FB5, #8E7FD8); animation: goBadge 1.4s ease-in-out infinite; }
 .sea2-art { position: relative; display: inline-grid; place-items: center; line-height: 0; }
 .sea2-art.baby > * { transform: scale(.8); }

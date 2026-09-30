@@ -165,6 +165,19 @@ export class MapScene {
     this.svg.addEventListener('click', (e) => this.onTap(e));
     this.renderPanel();
     this.buildCritters();
+    // 두 번째 바다(문장제)로 가는 배: 지도 오른쪽 위. 황금 섬이 SEA2_OPEN_AT개면 열려요
+    const gold = store.goldDans().length;
+    const sea2 = h(`<button class="sea2-go ${store.sea2Open() ? 'open' : ''}">⛵ 두 번째 바다${store.sea2Open() ? '로!' : ` 🔒 황금 섬 ${gold}/${SEA2_OPEN_AT}`}</button>`);
+    sea2.addEventListener('click', () => {
+      if (!store.sea2Open()) {
+        sound.playBoing();
+        toast(`황금 섬이 ${SEA2_OPEN_AT}개가 되면 두 번째 바다로 갈 수 있어요! (지금 ${gold}개)`);
+        return;
+      }
+      sound.playPop();
+      this.app.go('sea2');
+    });
+    this.el.querySelector('.map-sea').appendChild(sea2);
     // 뽀글이는 지도에 늘 있어요. 누르면 지금 무엇을 하면 되는지 알려줘요
     this.guide = guideBubble(this.bar.el.querySelector('.group'), { stay: true, cls: 'map-guide', onTap: () => this.hint() });
   }
@@ -444,20 +457,8 @@ export class MapScene {
             ${m.done ? '<span class="mode-done">✓</span>' : ''}
             ${m.id === rec ? '<span class="mode-tag">추천</span>' : ''}
           </button>`).join('')}
-      </div>
-      <button class="sea2-go ${store.sea2Open() ? 'open' : ''}" data-sea2>⛵ 두 번째 바다${store.sea2Open() ? '로!' : ` 🔒 황금 섬 ${store.goldDans().length}/${SEA2_OPEN_AT}`}</button>`;
+      </div>`;
     panel.onclick = (e) => {
-      // 두 번째 바다(문장제)로 가는 배: 황금 섬이 SEA2_OPEN_AT개면 열려요
-      if (e.target.closest('[data-sea2]')) {
-        if (!store.sea2Open()) {
-          sound.playBoing();
-          toast(`황금 섬이 ${SEA2_OPEN_AT}개가 되면 두 번째 바다로 갈 수 있어요! (지금 ${store.goldDans().length}개)`);
-          return;
-        }
-        sound.playPop();
-        this.app.go('sea2');
-        return;
-      }
       const b = e.target.closest('[data-mode]');
       if (!b) return;
       const m = modes.find((x) => x.id === b.dataset.mode);
