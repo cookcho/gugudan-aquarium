@@ -130,12 +130,14 @@ export class IslandScene {
 
   makeFriend(s) {
     const p = store.progress2(s.id);
-    const z = ZONE[s.home] || ZONE.sea;
+    const amphi = s.home === 'land'; // 펭귄·물범: 모래밭에서 걷다가 가끔 바다에 들어가 헤엄쳐요
+    const mode = s.home;
+    const z = ZONE[mode] || ZONE.sea;
     const size = Math.round(this.u * (p === 2 ? 9 : p === 4 ? 12 : 11));
-    const el = h(`<div class="isle-friend ${s.home} ${p === 4 ? 'gold' : ''}" style="width:${size}px;height:${size}px">
-      <div class="isle-body">${sea2Art(s.id, p, size)}</div><i class="isle-shadow"></i><span class="zz">💤</span></div>`);
+    const el = h(`<div class="isle-friend ${mode} ${p === 4 ? 'gold' : ''}" style="width:${size}px;height:${size}px">
+      <div class="isle-body"></div><i class="isle-shadow"></i><span class="zz">💤</span></div>`);
     const f = {
-      s, p, el, size, zone: z,
+      s, p, el, size, amphi, mode,
       x: rand(z.x[0], z.x[1]),
       y: rand(z.y[0], z.y[1]),
       face: Math.random() < 0.5 ? -1 : 1,
@@ -144,17 +146,31 @@ export class IslandScene {
       hop: 0,
       jump: -1,
       nextJump: rand(6, 12),
-      sleep: this.tod === 'night' && s.home === 'land'
+      act: null, // 쉬는 동안 하는 몸짓 { type, time, dur }
+      goal: null, // 'dive' 바다로 들어가기 · 'shore' 모래밭으로 나오기
+      swimLeft: 0,
+      printT: 0,
+      sleep: this.tod === 'night' && amphi
     };
     f.tx = f.x;
     f.ty = f.y;
-    el.classList.toggle('asleep', f.sleep);
+    this.setArt(f);
     el.addEventListener('pointerdown', (e) => {
       e.stopPropagation();
       this.touch(f);
     });
     this.actors.appendChild(el);
     return f;
+  }
+
+  // 지금 모습에 맞는 그림: 모래밭은 서 있는(누운) 그림, 바다는 헤엄 그림, 밤에는 자는 그림
+  setArt(f) {
+    const variant = !f.amphi ? '' : f.sleep ? 'sleep' : f.mode === 'land' ? 'land' : '';
+    const key = `${f.mode}:${variant}`;
+    if (f.artKey === key) return;
+    f.artKey = key;
+    f.el.firstElementChild.innerHTML = sea2Art(f.s.id, f.p, f.size, '', variant);
+    f.el.className = `isle-friend ${f.mode} ${f.p === 4 ? 'gold' : ''} ${f.sleep ? 'asleep' : ''}`;
   }
 
   touch(f) {
@@ -227,13 +243,15 @@ export class IslandScene {
   }
 
   step(f, dt, W, H) {
-    const { s, zone } = f;
+    const { s } = f;
+    const zone = ZONE[f.mode];
     f.t += dt;
     f.hop = Math.max(0, f.hop - dt * 2.2);
     const night = this.tod === 'night';
     let lift = 0;
     let rot = 0;
-    let squish = 1;
+    let sx = 1;
+    let sy = 1;
     // 돌고래는 가끔 물 위로 점프해요
     if (s.id === 'compare' && !night) {
       if (f.jump < 0) {
@@ -251,11 +269,13 @@ export class IslandScene {
         }
       }
     }
+    let moving = false;
     if (f.jump >= 0) {
       lift = Math.sin(Math.PI * f.jump) * H * 0.2;
       rot = (f.jump - 0.5) * 90;
       f.x = Math.min(zone.x[1], Math.max(zone.x[0], f.x + f.face * 7 * dt));
     } else if (!f.sleep && zone.speed) {
+      if (f.mode === 'sea' && f.amphi) f.swimLeft -= dt;
       if (f.wait > 0) {
         f.wait -= dt;
       } else {
@@ -263,44 +283,152 @@ export class IslandScene {
         const dy = f.ty - f.y;
         const d = Math.hypot(dx, dy);
         if (d < 0.6) {
-          f.wait = s.home === 'land' ? rand(1.5, 4) : rand(0.3, 2.5);
-          f.tx = rand(zone.x[0], zone.x[1]);
-          f.ty = rand(zone.y[0], zone.y[1]);
+          this.arrive(f);
         } else {
-          const v = zone.speed * (SLOW[s.id] || 1) * (night ? 0.5 : 1) * dt;
+          let v = zone.speed * (SLOW[s.id] || 1) * (night ? 0.5 : 1) * dt;
+          // 물범은 모래에서 몸을 늘였다 줄이며 애벌레처럼 앞으로 가요
+          if (f.mode === 'land' && s.id === 'plus') v *= 0.3 + 1.4 * Math.max(0, Math.sin(f.t * 5));
           f.x += (dx / d) * Math.min(v, d);
           f.y += (dy / d) * Math.min(v, d);
           if (Math.abs(dx) > 0.3) f.face = dx < 0 ? -1 : 1;
-          // 걷는 친구는 뒤뚱뒤뚱, 물범은 몸을 들썩들썩
-          if (s.home === 'land') {
-            if (s.id === 'plus') squish = 1 - Math.abs(Math.sin(f.t * 5)) * 0.1;
-            else rot = Math.sin(f.t * 11) * 7;
-          }
+          moving = true;
         }
       }
     }
+    // 걷는 모습
+    if (moving && f.mode === 'land') {
+      if (s.id === 'plus') {
+        const k = Math.sin(f.t * 5);
+        sx = 1 + k * 0.1;
+        sy = 1 - k * 0.07;
+      } else {
+        // 펭귄: 한 발씩 뒤뚱 + 발걸음마다 통통, 모래에 발자국
+        const k = Math.sin(f.t * 10);
+        rot = k * 9;
+        lift = Math.abs(k) * this.u * 0.8;
+        f.printT -= dt;
+        if (f.printT <= 0) {
+          f.printT = 0.32;
+          this.footprint(f, W, H, k > 0 ? 1 : -1);
+        }
+      }
+    }
+    // 쉬는 동안 몸짓: 두리번, 폴짝, 기지개, 데굴, 부르르
+    if (f.act) {
+      f.act.time += dt;
+      const k = Math.min(1, f.act.time / f.act.dur);
+      const bell = Math.sin(Math.PI * k);
+      if (f.act.type === 'stretch') {
+        sy *= 1 + bell * 0.14;
+        sx *= 1 - bell * 0.07;
+      } else if (f.act.type === 'roll') {
+        rot += 360 * k;
+        lift += bell * this.u * 1.2;
+      } else if (f.act.type === 'shake') {
+        rot += Math.sin(f.act.time * 45) * 10 * (1 - k);
+      } else if (f.act.type === 'look' && !f.act.flipped && k > 0.5) {
+        f.act.flipped = true;
+        f.face = -f.face;
+      }
+      if (k >= 1) f.act = null;
+    }
     // 물속 친구는 살랑살랑, 물 위 친구는 흔들흔들
     let bob = 0;
-    if (s.home === 'sea' && f.jump < 0) {
+    if (f.mode === 'sea' && f.jump < 0) {
       bob = Math.sin(f.t * 2.2) * this.u * 0.5;
       rot += Math.sin(f.t * 1.6) * 4;
-    } else if (s.home === 'float') {
+    } else if (f.mode === 'float') {
       bob = Math.sin(f.t * 1.8) * this.u * 0.4;
       rot += Math.sin(f.t * 1.3) * 8;
-    } else if (s.home === 'rock') {
+    } else if (f.mode === 'rock') {
       rot += Math.sin(f.t * 2.4) * 5;
-      squish = 1 + Math.sin(f.t * 3) * 0.03;
+      sy *= 1 + Math.sin(f.t * 3) * 0.03;
+    } else if (f.mode === 'land' && !moving && !f.act) {
+      sy *= 1 + Math.sin(f.t * (f.sleep ? 1.4 : 2.2)) * 0.025; // 숨 쉬기
     }
     // 멀리(위) 있을수록 작게
-    const depth = s.home === 'sea' ? 0.72 + ((f.y - 43) / 14) * 0.28 : s.home === 'land' ? 0.95 + ((f.y - 75) / 11) * 0.12 : 1;
+    const depth = f.mode === 'sea' ? 0.72 + ((f.y - 43) / 14) * 0.28 : f.mode === 'land' ? 0.95 + ((f.y - 75) / 11) * 0.12 : 1;
     const sc = depth * (1 + f.hop * 0.08);
     const hopY = Math.sin(f.hop * Math.PI) * this.u * 2.5;
     const px = (f.x / 100) * W - f.size / 2;
     const py = (f.y / 100) * H - f.size / 2 + bob - lift - hopY;
     f.el.style.transform = `translate(${px}px, ${py}px)`;
-    f.el.firstElementChild.style.transform = `scale(${sc * f.face}, ${sc * squish}) rotate(${rot}deg)`;
+    f.el.firstElementChild.style.transform = `scale(${sc * f.face * sx}, ${sc * sy}) rotate(${rot}deg)`;
     f.el.style.zIndex = String(Math.round(f.y * 10) + (f.jump >= 0 ? 500 : 0));
     f.el.classList.toggle('jumping', f.jump >= 0);
+  }
+
+  // 목표에 닿았을 때: 바다로 풍덩, 모래밭으로 올라오기, 또는 다음 갈 곳 고르기
+  arrive(f) {
+    const W = this.world.clientWidth;
+    const H = this.world.clientHeight;
+    if (f.goal === 'dive') {
+      f.goal = null;
+      this.splash(f, W, H);
+      f.mode = 'sea';
+      f.y = 57;
+      f.swimLeft = rand(10, 20);
+      f.hop = 0.6;
+      this.setArt(f);
+    } else if (f.goal === 'shore') {
+      f.goal = null;
+      this.splash(f, W, H);
+      f.mode = 'land';
+      f.y = 74;
+      f.wait = 0.8;
+      f.act = { type: 'shake', time: 0, dur: 0.8 }; // 몸을 부르르 털어요
+      this.setArt(f);
+      return this.pick(f);
+    }
+    this.pick(f);
+  }
+
+  pick(f) {
+    const z = ZONE[f.mode];
+    if (f.amphi && f.mode === 'land' && this.tod !== 'night' && Math.random() < 0.2) {
+      // 물가로 가서 풍덩!
+      f.goal = 'dive';
+      f.tx = rand(z.x[0], z.x[1]);
+      f.ty = 72;
+      f.wait = rand(0.5, 1.5);
+      return;
+    }
+    if (f.amphi && f.mode === 'sea' && f.swimLeft <= 0) {
+      f.goal = 'shore';
+      f.tx = rand(ZONE.land.x[0], ZONE.land.x[1]);
+      f.ty = 57;
+      f.wait = 0;
+      return;
+    }
+    f.tx = rand(z.x[0], z.x[1]);
+    f.ty = rand(z.y[0], z.y[1]);
+    if (f.mode === 'land') {
+      f.wait = rand(1.5, 4);
+      // 쉬면서 가끔 몸짓을 해요
+      const acts = f.s.id === 'plus' ? ['stretch', 'roll', 'look'] : ['look', 'hop', 'stretch', 'look'];
+      if (Math.random() < 0.6) {
+        const type = acts[Math.floor(Math.random() * acts.length)];
+        if (type === 'hop') f.hop = 1;
+        else f.act = { type, time: 0, dur: type === 'roll' ? 1.1 : type === 'look' ? 1.6 : 1 };
+      }
+      // 가까이 있는 모래밭 친구가 있으면 서로 마주 봐요
+      const buddy = this.friends.find((o) => o !== f && o.mode === 'land' && Math.abs(o.x - f.x) < 14 && Math.abs(o.y - f.y) < 8);
+      if (buddy) {
+        f.face = buddy.x > f.x ? 1 : -1;
+        buddy.face = -f.face;
+      }
+    } else {
+      f.wait = rand(0.3, 2.5);
+    }
+  }
+
+  // 펭귄 발자국: 모래에 콕콕 찍혔다가 천천히 사라져요
+  footprint(f, W, H, side) {
+    const x = (f.x / 100) * W + side * this.u * 0.6;
+    const y = (f.y / 100) * H + f.size * 0.4;
+    const el = h(`<i class="isle-print" style="left:${x}px;top:${y}px"></i>`);
+    this.actors.appendChild(el);
+    setTimeout(() => el.remove(), 2600);
   }
 
   splash(f, W, H) {

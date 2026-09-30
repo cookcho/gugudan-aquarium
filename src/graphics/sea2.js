@@ -18,11 +18,13 @@ function eggSVG(color, icon, size) {
     <text x="60" y="76" text-anchor="middle" font-size="34">${icon}</text></g></svg>`;
 }
 
-export function sea2Art(islandId, stage, size, icon = '') {
+// variant: 'land' 모래밭 자세 · 'sleep' 자는 모습 (그림이 없으면 땅 그림 → 기본 그림 순서로 써요)
+export function sea2Art(islandId, stage, size, icon = '', variant = '') {
   const isl = SEA2.find((s) => s.id === islandId);
   const f = isl.friend;
   if (stage <= 1) return eggSVG(f.color, stage === 1 ? icon : '?', size);
-  const name = `sea2-${islandId}`;
+  const base = `sea2-${islandId}`;
+  const name = [variant && `${base}-${variant}`, variant === 'sleep' && `${base}-land`, base].find((n) => n && hasImage(n)) || base;
   const inner = hasImage(name)
     ? imageArt(name, size)
     : `<svg class="char-svg" width="${size}" height="${size}" viewBox="0 0 120 120" aria-hidden="true">
