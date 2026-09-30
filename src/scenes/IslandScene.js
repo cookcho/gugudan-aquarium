@@ -9,13 +9,18 @@ import { WORD_ISLANDS } from '../data/wordProblems.js';
 import { sea2Art } from '../graphics/sea2.js';
 import { callKid } from '../data/care.js';
 
+// 곰치가 숨는 바위 구멍: 숨었을 때와 고개를 내밀었을 때의 가로 위치(%)
+const HOLE = { hide: 89, peek: 80, y: 77 };
 // 사는 곳마다 다니는 범위 (화면 %, 친구 몸 가운데 기준)와 빠르기(%/초)
 const ZONE = {
   sea: { x: [8, 90], y: [43, 57], speed: 5 },
-  float: { x: [12, 70], y: [57, 59], speed: 1.4 },
+  float: { x: [24, 70], y: [57, 59], speed: 1.4 },
   land: { x: [36, 74], y: [75, 86], speed: 3.5 },
-  rock: { x: [86, 86], y: [70, 70], speed: 0 }
+  rock: { x: [86, 86], y: [70, 70], speed: 0 },
+  hole: { x: [HOLE.hide, HOLE.hide], y: [HOLE.y, HOLE.y], speed: 0 }
 };
+// 친구마다 좁힌 범위 (해룡은 물풀 근처에서 느릿느릿)
+const ZONE_ID = { story: { x: [27, 42], y: [44, 53], speed: 5 } };
 const SLOW = { plus: 0.55, story: 0.6, minus: 0.8 }; // 물범·해룡·곰치는 느긋해요
 
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -43,6 +48,13 @@ function rockSVG() {
     <path d="M56 74 C70 60 92 60 102 70" stroke="#C3CBD9" stroke-width="6" fill="none" stroke-linecap="round"/>
     <g fill="#FF8FA3"><circle cx="186" cy="104" r="7"/><circle cx="46" cy="110" r="6"/></g>
     <path d="M150 112 l6 -14 l6 14 l14 2 l-11 8 l4 14 l-13 -8 l-13 8 l4 -14 l-11 -8Z" fill="#FFB347" stroke="#E0892A" stroke-width="2"/>
+  </svg>`;
+}
+
+// 얕은 물의 물풀 (해룡이가 이 근처에 살아요)
+function weedSVG() {
+  return `<svg viewBox="0 0 160 120" aria-hidden="true">
+    ${[[20, '#4FA85B'], [52, '#6CC46A'], [84, '#3E9A55'], [116, '#7AD17A'], [140, '#4FA85B']].map(([x, c], k) => `<path class="weed-blade" style="animation-delay:-${k * 0.6}s" d="M${x} 120 C${x - 14} 90 ${x + 14} 60 ${x - 6} ${24 + (k % 2) * 16}" stroke="${c}" stroke-width="10" fill="none" stroke-linecap="round"/>`).join('')}
   </svg>`;
 }
 
@@ -88,6 +100,7 @@ export class IslandScene {
           <div class="isle-sand">${shells}</div>
           <div class="isle-palm">${palmSVG()}</div>
           <div class="isle-rock">${rockSVG()}</div>
+          <div class="isle-weed">${weedSVG()}</div>
           <div class="isle-sign">${hutSign(store.data.kidName ? `${store.data.kidName}의 섬` : '친구들의 섬')}</div>
           <div class="isle-nest" ${eggs.length ? '' : 'hidden'}>
             <div class="nest-eggs">${eggs.map((s) => `<button class="nest-egg" data-egg="${s.id}">${sea2Art(s.id, 1, Math.round(this.u * 5.5), WORD_ISLANDS[s.word].icon)}</button>`).join('')}</div>
@@ -132,7 +145,7 @@ export class IslandScene {
     const p = store.progress2(s.id);
     const amphi = s.home === 'land'; // 펭귄·물범: 모래밭에서 걷다가 가끔 바다에 들어가 헤엄쳐요
     const mode = s.home;
-    const z = ZONE[mode] || ZONE.sea;
+    const z = this.zoneOf({ s, mode });
     const size = Math.round(this.u * (p === 2 ? 9 : p === 4 ? 12 : 11));
     const el = h(`<div class="isle-friend ${mode} ${p === 4 ? 'gold' : ''}" style="width:${size}px;height:${size}px">
       <div class="isle-body"></div><i class="isle-shadow"></i><span class="zz">💤</span></div>`);
@@ -150,7 +163,9 @@ export class IslandScene {
       goal: null, // 'dive' 바다로 들어가기 · 'shore' 모래밭으로 나오기
       swimLeft: 0,
       printT: 0,
-      sleep: this.tod === 'night' && amphi
+      peek: 0, // 곰치: 0 숨음 ~ 1 고개 내밀기
+      peekWait: rand(1, 4),
+      sleep: this.tod === 'night' && (amphi || mode === 'float')
     };
     f.tx = f.x;
     f.ty = f.y;
@@ -165,7 +180,7 @@ export class IslandScene {
 
   // 지금 모습에 맞는 그림: 모래밭은 서 있는(누운) 그림, 바다는 헤엄 그림, 밤에는 자는 그림
   setArt(f) {
-    const variant = !f.amphi ? '' : f.sleep ? 'sleep' : f.mode === 'land' ? 'land' : '';
+    const variant = f.sleep ? 'sleep' : f.amphi && f.mode === 'land' ? 'land' : '';
     const key = `${f.mode}:${variant}`;
     if (f.artKey === key) return;
     f.artKey = key;
@@ -185,6 +200,10 @@ export class IslandScene {
     this.say(f.el, `${name}: "${Math.random() < 0.35 && kid ? `${callKid(kid)}, 섬에 와 줘서 고마워!` : line}"`);
     f.hop = 1;
     f.wait = Math.max(f.wait, 1.2);
+    if (f.mode === 'hole') {
+      f.peekOut = true;
+      f.peekWait = 4;
+    }
     const r = f.el.getBoundingClientRect();
     const w = this.world.getBoundingClientRect();
     floatUp(this.world, r.left - w.left + r.width / 2, r.top - w.top, f.p === 4 ? '✨' : '💖');
@@ -229,6 +248,18 @@ export class IslandScene {
       };
       this.shootTimer = setTimeout(tick, 1500);
     }
+    const ripple = () => {
+      if (!this.alive) return;
+      const swimmers = this.friends.filter((f) => f.mode === 'sea' && f.jump < 0);
+      if (swimmers.length) {
+        const f = swimmers[Math.floor(Math.random() * swimmers.length)];
+        const ring = h(`<div class="isle-ripple small" style="left:${f.x}%;top:${f.y - 3}%"></div>`);
+        this.world.appendChild(ring);
+        setTimeout(() => ring.remove(), 900);
+      }
+      this.rippleTimer = setTimeout(ripple, 1500 + Math.random() * 2500);
+    };
+    this.rippleTimer = setTimeout(ripple, 1200);
     let last = performance.now();
     const loop = (now) => {
       if (!this.alive) return;
@@ -244,7 +275,7 @@ export class IslandScene {
 
   step(f, dt, W, H) {
     const { s } = f;
-    const zone = ZONE[f.mode];
+    const zone = this.zoneOf(f);
     f.t += dt;
     f.hop = Math.max(0, f.hop - dt * 2.2);
     const night = this.tod === 'night';
@@ -270,7 +301,19 @@ export class IslandScene {
       }
     }
     let moving = false;
-    if (f.jump >= 0) {
+    if (f.mode === 'hole') {
+      // 곰치: 바위 구멍에서 쏙 나왔다가 두리번, 다시 쏙 들어가요
+      f.peekWait -= dt;
+      const want = f.peekOut ? 1 : 0;
+      f.peek += Math.sign(want - f.peek) * Math.min(Math.abs(want - f.peek), dt * 1.6);
+      if (f.peekWait <= 0) {
+        f.peekOut = !f.peekOut;
+        f.peekWait = f.peekOut ? rand(3, 7) : rand(2, 5) * (night ? 2 : 1);
+      }
+      f.x = HOLE.hide + (HOLE.peek - HOLE.hide) * f.peek;
+      f.face = -1;
+      rot = f.peek > 0.9 ? Math.sin(f.t * 2) * 8 : 0;
+    } else if (f.jump >= 0) {
       lift = Math.sin(Math.PI * f.jump) * H * 0.2;
       rot = (f.jump - 0.5) * 90;
       f.x = Math.min(zone.x[1], Math.max(zone.x[0], f.x + f.face * 7 * dt));
@@ -326,6 +369,22 @@ export class IslandScene {
         lift += bell * this.u * 1.2;
       } else if (f.act.type === 'shake') {
         rot += Math.sin(f.act.time * 45) * 10 * (1 - k);
+      } else if (f.act.type === 'dive') {
+        // 해달 잠수: 쏙 가라앉았다가 다른 곳에서 뿅
+        const sink = k < 0.3 ? k / 0.3 : k > 0.7 ? (1 - k) / 0.3 : 1;
+        lift -= sink * this.u * 3;
+        f.el.style.opacity = String(1 - sink);
+        if (!f.act.moved && k > 0.5) {
+          f.act.moved = true;
+          const z = this.zoneOf(f);
+          f.x = rand(z.x[0], z.x[1]);
+          f.tx = f.x;
+        }
+        if (!f.act.popped && k > 0.72) {
+          f.act.popped = true;
+          this.splash(f, W, H);
+        }
+        if (k >= 1) f.el.style.opacity = '';
       } else if (f.act.type === 'look' && !f.act.flipped && k > 0.5) {
         f.act.flipped = true;
         f.face = -f.face;
@@ -354,7 +413,7 @@ export class IslandScene {
     const py = (f.y / 100) * H - f.size / 2 + bob - lift - hopY;
     f.el.style.transform = `translate(${px}px, ${py}px)`;
     f.el.firstElementChild.style.transform = `scale(${sc * f.face * sx}, ${sc * sy}) rotate(${rot}deg)`;
-    f.el.style.zIndex = String(Math.round(f.y * 10) + (f.jump >= 0 ? 500 : 0));
+    f.el.style.zIndex = f.mode === 'hole' ? '680' : String(Math.round(f.y * 10) + (f.jump >= 0 ? 500 : 0));
     f.el.classList.toggle('jumping', f.jump >= 0);
   }
 
@@ -384,7 +443,7 @@ export class IslandScene {
   }
 
   pick(f) {
-    const z = ZONE[f.mode];
+    const z = this.zoneOf(f);
     if (f.amphi && f.mode === 'land' && this.tod !== 'night' && Math.random() < 0.2) {
       // 물가로 가서 풍덩!
       f.goal = 'dive';
@@ -419,7 +478,17 @@ export class IslandScene {
       }
     } else {
       f.wait = rand(0.3, 2.5);
+      if (f.mode === 'float' && !f.sleep && Math.random() < 0.45) {
+        const type = Math.random() < 0.55 ? 'roll' : 'dive';
+        f.act = { type, time: 0, dur: type === 'dive' ? 3.2 : 1.4 };
+        f.wait = f.act.dur;
+        if (type === 'dive') floatUp(this.world, (f.x / 100) * this.world.clientWidth, (f.y / 100) * this.world.clientHeight, '🫧');
+      }
     }
+  }
+
+  zoneOf(f) {
+    return (f.mode === 'sea' && ZONE_ID[f.s.id]) || ZONE[f.mode] || ZONE.sea;
   }
 
   // 펭귄 발자국: 모래에 콕콕 찍혔다가 천천히 사라져요
@@ -441,6 +510,7 @@ export class IslandScene {
     cancelAnimationFrame(this.raf);
     clearTimeout(this.sayTimer);
     clearTimeout(this.shootTimer);
+    clearTimeout(this.rippleTimer);
     this.bar.destroy();
   }
 }

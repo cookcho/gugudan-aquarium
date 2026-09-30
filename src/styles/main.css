@@ -1144,3 +1144,11 @@ button.pill { cursor: pointer; }
 .isle-sail { position: absolute; right: calc(var(--u) * 1.6); top: calc(var(--u) * 8.5); z-index: 2100; border: 3px solid #fff; border-radius: 999px; padding: calc(var(--u) * 0.5) calc(var(--u) * 1.4); background: #4B3A99; color: #fff; font-family: inherit; font-size: calc(var(--u) * 1.8); cursor: pointer; }
 .isle-print { position: absolute; z-index: 1; width: calc(var(--u) * 0.9); height: calc(var(--u) * 0.6); border-radius: 50%; background: rgba(150, 105, 50, .35); translate: -50% -50%; pointer-events: none; animation: printFade 2.6s ease-in forwards; }
 @keyframes printFade { to { opacity: 0; } }
+/* 물속 친구는 물빛이 살짝 비치게 */
+.isle-friend.sea .isle-body { filter: drop-shadow(0 calc(var(--u) * 0.3) calc(var(--u) * 0.4) rgba(10, 50, 90, .25)) saturate(.9) brightness(.96); opacity: .94; }
+.isle-friend.sea.jumping .isle-body { opacity: 1; filter: drop-shadow(0 0 calc(var(--u) * 0.8) rgba(255, 255, 255, .7)); }
+.isle-ripple.small { width: calc(var(--u) * 5); height: calc(var(--u) * 1.4); border-width: 2px; }
+.isle-weed { position: absolute; left: 27%; top: 45%; width: calc(var(--u) * 14); z-index: 450; pointer-events: none; opacity: .85; }
+.isle-weed svg { display: block; width: 100%; height: auto; }
+.weed-blade { transform-box: fill-box; transform-origin: 50% 100%; animation: weedSway 3.5s ease-in-out infinite alternate; }
+@keyframes weedSway { from { rotate: -6deg; } to { rotate: 6deg; } }
