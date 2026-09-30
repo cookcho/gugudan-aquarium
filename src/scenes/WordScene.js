@@ -1,4 +1,4 @@
-// 두 번째 바다의 문장제 게임. 문제를 읽어 주고, 숫자와 핵심 낱말을 색으로 표시해요.
+// 두 번째 바다의 문장제 게임. 아이가 직접 읽고 풀어요 (🔊를 누를 때만 읽어 줘요). 숫자와 핵심 낱말은 색으로 표시해요.
 // 단계: 알 찾기·부화는 보기 고르기, 성장·황금(해적 선장 보스)은 숫자판에 직접 써요.
 // 틀리면 1번째: 묶음 그림 + 첫 계산 힌트, 2번째: 풀이 전체. 틀린 이유를 "문장 이해"와 "계산"으로 나눠 기록해요.
 import confetti from 'canvas-confetti';
@@ -58,7 +58,7 @@ export class WordScene {
         <div class="word-side">
           <div class="word-art bob">${art}</div>
           ${this.cfg.boss ? '<div class="boss-hp"><span>해적 선장 체력</span><div class="boss-hp-bar"><b></b><i></i></div></div>' : ''}
-          <button class="btn btn-foam word-listen" data-act="listen">🔊 다시 듣기</button>
+          <button class="btn btn-foam word-listen" data-act="listen">🔊 읽어 주기</button>
         </div>
         <div class="word-main">
           <div class="mode-label">${this.word.icon} ${esc(this.word.name)} · ${this.cfg.icon} ${esc(this.cfg.label)}</div>
@@ -97,7 +97,7 @@ export class WordScene {
     this.locked = false;
     this.el.querySelector('.word-q').innerHTML = highlight(this.p.text);
     this.el.querySelector('.word-hint').innerHTML = '';
-    this.setFeedback(this.idx === 0 ? '문제를 잘 듣고, 색칠된 숫자를 봐요!' : '');
+    this.setFeedback(this.idx === 0 ? '문제를 천천히 읽고, 색칠된 숫자를 봐요!' : '');
     const box = this.el.querySelector('.word-answer');
     if (this.cfg.input === 'choice') {
       box.className = 'word-answer answers four-row';
@@ -129,7 +129,6 @@ export class WordScene {
         box.querySelector('.kp-typed').textContent = this.typed;
       };
     }
-    speak(this.p.text);
   }
 
   setFeedback(text, tone = '') {
