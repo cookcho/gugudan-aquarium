@@ -64,7 +64,8 @@ export class IslandScene {
     const eggs = SEA2.filter((s) => store.progress2(s.id) === 1);
     this.bar = topbar(app, { back: from, backLabel: from === 'sea2' ? '← 두 번째 바다' : '← 어항', center: `🏝️ 친구들의 섬 <small class="isle-count">친구 ${hatched.length} / 9</small>` });
     const shells = Array.from({ length: 9 }, (_, k) => `<i class="shell s${k % 3}" style="left:${(k * 37 + 6) % 94}%;top:${22 + ((k * 23) % 70)}%;rotate:${k * 40}deg"></i>`).join('');
-    const stars = Array.from({ length: 30 }, (_, k) => `<i style="left:${(k * 67) % 100}%;top:${(k * 29) % 90}%;animation-delay:-${((k * 0.37) % 3).toFixed(2)}s"></i>`).join('');
+    // 밤하늘 별: 작은 별 여러 크기 + 가끔 반짝이는 십자 별
+    const stars = Array.from({ length: 120 }, (_, k) => `<i class="${k % 9 === 0 ? 'big' : `s${k % 3}`}" style="left:${(k * 67 + (k % 5) * 7) % 100}%;top:${(k * 29 + (k % 4) * 11) % 92}%;animation-delay:-${((k * 0.37) % 3).toFixed(2)}s"></i>`).join('');
     this.el = h(`
       <div class="scene island">
         <div class="isle-world ${this.tod}">
@@ -196,6 +197,22 @@ export class IslandScene {
         ? '두 번째 바다에서 친구를 깨우면 이 섬에 와서 살아요! ⛵'
         : `첫 번째 바다에서 황금 섬을 모으면 두 번째 바다로 갈 수 있어요. 거기 친구들이 이 섬에 와서 살아요!`), 600);
     }
+    // 밤·노을에는 가끔 별똥별이 떨어져요 (가끔 두 개 연달아)
+    if (this.tod !== 'day') {
+      const sky = this.el.querySelector('.isle-sky');
+      const shoot = () => {
+        const el = h(`<i class="isle-shoot" style="left:${10 + Math.random() * 60}%;top:${5 + Math.random() * 35}%"></i>`);
+        sky.appendChild(el);
+        setTimeout(() => el.remove(), 1300);
+      };
+      const tick = () => {
+        if (!this.alive) return;
+        shoot();
+        if (Math.random() < 0.3) setTimeout(() => this.alive && shoot(), 450);
+        this.shootTimer = setTimeout(tick, this.tod === 'night' ? 3000 + Math.random() * 4000 : 6000 + Math.random() * 6000);
+      };
+      this.shootTimer = setTimeout(tick, 1500);
+    }
     let last = performance.now();
     const loop = (now) => {
       if (!this.alive) return;
@@ -295,6 +312,7 @@ export class IslandScene {
     this.alive = false;
     cancelAnimationFrame(this.raf);
     clearTimeout(this.sayTimer);
+    clearTimeout(this.shootTimer);
     this.bar.destroy();
   }
 }

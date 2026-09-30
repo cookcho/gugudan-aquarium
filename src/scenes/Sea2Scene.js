@@ -1,7 +1,7 @@
-// 두 번째 바다 지도: "별빛 밤바다". 달과 달빛 길, 오로라, 별똥별, 빛나는 해파리 사이로 문장제 섬 9개가 굽이굽이.
+// 두 번째 바다 지도: 문장제 섬 9개가 굽이굽이. 하늘은 실제 시각을 따라요 (밤: 별빛 밤바다·초승달·별똥별, 노을, 낮: 해·구름·비행기).
 // 오른쪽은 고른 섬의 네 단계. 오늘의 도전 섬(별 2배)과 문장제 복습도 여기서 시작해요.
 import { store } from '../core/store.js';
-import { h, topbar, toast, unit } from '../core/ui.js';
+import { h, topbar, toast, unit, timeOfDay } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
 import { SEA2, SEA2_STAGES } from '../data/sea2.js';
 import { WORD_ISLANDS } from '../data/wordProblems.js';
@@ -52,43 +52,83 @@ function islandSVG(i, selected) {
     </g>`;
 }
 
-// 밤하늘 배경: 달과 달빛 길, 오로라, 별, 빛나는 물결과 해파리
-function skySVG() {
-  const stars = Array.from({ length: 46 }, (_, k) => {
-    const x = (k * 157 + 40) % (W + 400) - 200;
-    const y = (k * 97) % 520 - 60;
-    return `<circle cx="${x}" cy="${y}" r="${1 + (k % 3) * 0.8}" fill="${k % 5 ? '#FFFFFF' : '#FFE9A8'}" class="twinkle" style="animation-delay:-${((k * 0.37) % 3).toFixed(2)}s"/>`;
+// 하늘 배경: 실제 시각을 따라 바뀌어요 (어항과 같아요)
+//  밤: 별이 가득, 초승달, 오로라, 빛나는 해파리, 가끔 별똥별
+//  노을: 주황·보라 하늘, 지는 해, 첫 별, 가끔 별똥별
+//  낮: 파란 하늘, 해와 구름, 가끔 비행기
+function starsSVG(n, maxY) {
+  return Array.from({ length: n }, (_, k) => {
+    const x = ((k * 157 + 40) % (W + 200)) - 100;
+    const y = ((k * 97 + (k % 7) * 13) % (maxY + 40)) - 40;
+    const big = k % 9 === 0;
+    const r = 1.3 + (k % 3) * 0.8;
+    const d = `animation-delay:-${((k * 0.37) % 3).toFixed(2)}s`;
+    // 큰 별은 반짝이는 십자 모양
+    return big
+      ? `<path class="twinkle" style="${d}" transform="translate(${x} ${y})" d="M0 -10 L2.2 -2.2 L10 0 L2.2 2.2 L0 10 L-2.2 2.2 L-10 0 L-2.2 -2.2Z" fill="#FFF3C4"/>`
+      : `<circle cx="${x}" cy="${y}" r="${r.toFixed(1)}" fill="${k % 5 ? '#FFFFFF' : '#FFE9A8'}" class="twinkle" style="${d}"/>`;
   }).join('');
+}
+
+function cloudSVG(x, y, s, cls) {
+  return `<g class="sky-cloud ${cls}" transform="translate(${x} ${y}) scale(${s})">
+    <g fill="#FFFFFF"><ellipse cx="0" cy="0" rx="60" ry="22"/><circle cx="-22" cy="-14" r="22"/><circle cx="12" cy="-22" r="28"/><circle cx="40" cy="-8" r="18"/></g>
+    <ellipse cx="0" cy="12" rx="54" ry="8" fill="#DDEFFF" opacity=".8"/></g>`;
+}
+
+function skySVG(tod) {
+  const night = tod === 'night';
+  const evening = tod === 'evening';
   const jelly = (x, y, c, d) => `
     <g class="glow-jelly" style="animation-delay:-${d}s" transform="translate(${x} ${y})">
       <path d="M-16 0 Q-16 -20 0 -20 Q16 -20 16 0 Q8 4 0 0 Q-8 4 -16 0Z" fill="${c}" opacity=".75"/>
       <g stroke="${c}" stroke-width="2.5" opacity=".55" fill="none" stroke-linecap="round"><path d="M-9 2 q-4 10 0 20"/><path d="M0 2 q4 12 0 24"/><path d="M9 2 q-4 10 0 20"/></g>
     </g>`;
+  const sky = night
+    ? '<stop offset="0" stop-color="#070B26"/><stop offset=".45" stop-color="#1B1F5E"/><stop offset="1" stop-color="#3A2A78"/>'
+    : evening
+      ? '<stop offset=".2" stop-color="#3B2F7A"/><stop offset=".3" stop-color="#B0578A"/><stop offset=".42" stop-color="#F08A66"/><stop offset=".55" stop-color="#9A5C9E"/><stop offset=".8" stop-color="#3A3380"/>'
+      : '<stop offset=".22" stop-color="#A8E6FF"/><stop offset=".42" stop-color="#5DC8EE"/><stop offset=".78" stop-color="#1E88C0"/>';
+  // 해·달 자리 (지도 오른쪽 위)
+  const orb = night
+    ? `<circle cx="690" cy="40" r="120" fill="url(#moonGlow)"/>
+       <g transform="translate(690 40) rotate(-20)"><circle r="40" fill="#FFF6D6" mask="url(#crescentCut)"/></g>`
+    : evening
+      ? `<circle cx="680" cy="40" r="170" fill="url(#sunGlowEve)"/><circle cx="680" cy="40" r="58" fill="#FF9F5A"/><circle cx="680" cy="40" r="44" fill="#FFD08A"/>`
+      : `<circle cx="680" cy="30" r="140" fill="url(#sunGlow)"/>
+         <g class="sun-rays" transform="translate(680 30)">${Array.from({ length: 12 }, (_, k) => `<rect x="-5" y="-92" width="10" height="26" rx="5" fill="#FFE27A" transform="rotate(${k * 30})"/>`).join('')}</g>
+         <circle cx="680" cy="30" r="52" fill="#FFD84A" stroke="#FFB930" stroke-width="5"/>`;
+  // 물 위 반짝임 (밤: 달빛 길, 낮·노을: 햇빛)
+  const pathX = 690;
+  const glitter = `<g class="moonpath" fill="${night ? '#FFF6D6' : evening ? '#FFD39A' : '#FFFFFF'}">${Array.from({ length: 9 }, (_, k) => `<rect x="${pathX - 10 - (k % 3) * 8}" y="${110 + k * 70}" width="${30 + (k % 3) * 14}" height="4" rx="2" class="twinkle" style="animation-delay:-${(k * 0.3).toFixed(1)}s" opacity=".5"/>`).join('')}</g>`;
   return `
     <defs>
-      <linearGradient id="nightSky" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#070B26"/><stop offset=".45" stop-color="#1B1F5E"/><stop offset="1" stop-color="#3A2A78"/>
-      </linearGradient>
-      <radialGradient id="moonGlow"><stop offset="0" stop-color="#FFF6D6" stop-opacity=".55"/><stop offset="1" stop-color="#FFF6D6" stop-opacity="0"/></radialGradient>
+      <linearGradient id="nightSky" x1="0" y1="0" x2="0" y2="1">${sky}</linearGradient>
+      <radialGradient id="moonGlow"><stop offset="0" stop-color="#FFF6D6" stop-opacity=".45"/><stop offset="1" stop-color="#FFF6D6" stop-opacity="0"/></radialGradient>
+      <radialGradient id="sunGlow"><stop offset="0" stop-color="#FFF3B0" stop-opacity=".9"/><stop offset="1" stop-color="#FFF3B0" stop-opacity="0"/></radialGradient>
+      <radialGradient id="sunGlowEve"><stop offset="0" stop-color="#FFB36B" stop-opacity=".8"/><stop offset="1" stop-color="#FF8A5B" stop-opacity="0"/></radialGradient>
+      <linearGradient id="shootTail" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFF6D6" stop-opacity="0"/><stop offset="1" stop-color="#FFF6D6"/></linearGradient>
+      <mask id="crescentCut"><circle r="40" fill="#fff"/><circle cx="17" cy="-9" r="35" fill="#000"/></mask>
       <linearGradient id="aurora" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0" stop-color="#5CFFB8" stop-opacity="0"/><stop offset=".3" stop-color="#5CFFB8" stop-opacity=".7"/>
         <stop offset=".65" stop-color="#7FB8FF" stop-opacity=".65"/><stop offset="1" stop-color="#C08CFF" stop-opacity="0"/>
       </linearGradient>
       <radialGradient id="ch2Glow"><stop offset="0%" stop-color="#FFF3A8" stop-opacity=".95"/><stop offset="55%" stop-color="#FFC53D" stop-opacity=".45"/><stop offset="100%" stop-color="#FFC53D" stop-opacity="0"/></radialGradient>
       <pattern id="glowWaves" width="120" height="44" patternUnits="userSpaceOnUse">
-        <path d="M0 22 Q30 10 60 22 T120 22" stroke="#7FE8FF" stroke-width="2" fill="none" opacity=".22"/>
+        <path d="M0 22 Q30 10 60 22 T120 22" stroke="${night ? '#7FE8FF' : '#FFFFFF'}" stroke-width="2" fill="none" opacity="${night ? 0.22 : 0.35}"/>
       </pattern>
     </defs>
     <rect x="-400" y="-400" width="${W + 800}" height="${H + 800}" fill="url(#nightSky)"/>
     <rect class="wave-layer" x="-400" y="-400" width="${W + 800}" height="${H + 800}" fill="url(#glowWaves)"/>
-    <g class="aurora-band"><path d="M-300 90 Q-100 10 120 80 T540 60 T980 90 L980 150 Q760 110 540 130 T120 140 T-300 150Z" fill="url(#aurora)"/></g>
-    <g class="aurora-band b2"><path d="M-300 170 Q0 110 260 160 T760 140 T1100 170 L1100 210 Q860 190 620 200 T160 210 T-300 220Z" fill="url(#aurora)" opacity=".7"/></g>
-    <g>${stars}</g>
-    <circle cx="690" cy="40" r="110" fill="url(#moonGlow)"/>
-    <g transform="translate(690 40)"><circle r="38" fill="#FFF6D6"/><circle cx="-10" cy="-8" r="7" fill="#EFE3B8"/><circle cx="12" cy="10" r="5" fill="#EFE3B8"/><circle cx="8" cy="-16" r="3.5" fill="#EFE3B8"/></g>
-    <g class="moonpath" fill="#FFF6D6">${Array.from({ length: 9 }, (_, k) => `<rect x="${680 - (k % 3) * 8}" y="${110 + k * 70}" width="${30 + (k % 3) * 14}" height="4" rx="2" class="twinkle" style="animation-delay:-${(k * 0.3).toFixed(1)}s" opacity=".5"/>`).join('')}</g>
-    <g class="plankton">${Array.from({ length: 30 }, (_, k) => `<circle cx="${(k * 211) % W}" cy="${260 + ((k * 131) % 560)}" r="${1.5 + (k % 2)}" fill="#8FF7FF" class="twinkle" style="animation-delay:-${((k * 0.29) % 3).toFixed(2)}s"/>`).join('')}</g>
-    ${jelly(250, 300, '#FF9EDB', 0)}${jelly(520, 560, '#9FF3FF', 1.4)}${jelly(60, 560, '#C9A4FF', 2.6)}
+    ${night ? `
+      <g class="aurora-band"><path d="M-300 90 Q-100 10 120 80 T540 60 T980 90 L980 150 Q760 110 540 130 T120 140 T-300 150Z" fill="url(#aurora)"/></g>
+      <g class="aurora-band b2"><path d="M-300 170 Q0 110 260 160 T760 140 T1100 170 L1100 210 Q860 190 620 200 T160 210 T-300 220Z" fill="url(#aurora)" opacity=".7"/></g>` : ''}
+    ${night ? `<g>${starsSVG(150, 640)}</g>` : evening ? `<g opacity=".8">${starsSVG(30, 220)}</g>` : ''}
+    ${orb}
+    ${glitter}
+    ${night ? '' : `<g class="cloud-layer ${evening ? 'eve' : ''}">${cloudSVG(80, 60, 1, 'c1')}${cloudSVG(380, 120, 0.7, 'c2')}${cloudSVG(-60, 200, 0.85, 'c3')}${cloudSVG(520, 230, 0.55, 'c4')}</g>`}
+    ${night || evening ? `<g class="plankton">${Array.from({ length: 30 }, (_, k) => `<circle cx="${(k * 211) % W}" cy="${260 + ((k * 131) % 560)}" r="${1.5 + (k % 2)}" fill="#8FF7FF" class="twinkle" style="animation-delay:-${((k * 0.29) % 3).toFixed(2)}s"/>`).join('')}</g>` : ''}
+    ${night ? `${jelly(250, 300, '#FF9EDB', 0)}${jelly(520, 560, '#9FF3FF', 1.4)}${jelly(60, 560, '#C9A4FF', 2.6)}` : ''}
     <g class="shooting-layer"></g>`;
 }
 
@@ -98,6 +138,7 @@ export class Sea2Scene {
     this.u = unit();
     this.alive = true;
     const ch = store.challenge2();
+    this.tod = timeOfDay();
     this.selected = island ?? ch ?? Math.max(0, SEA2.findIndex((s, i) => store.isUnlocked2(i) && store.progress2(s.id) < 4));
     this.bar = topbar(app, { back: 'map', backLabel: '← 첫 번째 바다' });
     const route = SPOTS.slice(0, -1).map(([x1, y1], i) => {
@@ -107,10 +148,10 @@ export class Sea2Scene {
     }).join('');
     const misses = (store.data.wordMisses || []).length;
     this.el = h(`
-      <div class="scene map sea2">
+      <div class="scene map sea2 sky-${this.tod}">
         <div class="map-sea">
           <svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-            ${skySVG()}
+            ${skySVG(this.tod)}
             ${route}
             ${SEA2.map((_, i) => islandSVG(i, i === this.selected)).join('')}
           </svg>
@@ -142,20 +183,43 @@ export class Sea2Scene {
   }
 
   mounted() {
-    // 가끔 별똥별이 떨어져요
-    const shoot = () => {
-      if (!this.alive) return;
-      const x = 80 + Math.random() * 520;
-      const y = -40 + Math.random() * 120;
+    // 밤·노을에는 가끔 별똥별(가끔 두 개 연달아), 낮에는 가끔 비행기가 지나가요
+    const layer = this.svg.querySelector('.shooting-layer');
+    const star = () => {
       const el = document.createElementNS(NS, 'g');
       el.setAttribute('class', 'shooting-star');
-      el.setAttribute('transform', `translate(${x} ${y})`);
-      el.innerHTML = '<path d="M0 0 L-90 -40" stroke="#FFF6D6" stroke-width="3" stroke-linecap="round"/><circle r="4" fill="#fff"/>';
-      this.svg.querySelector('.shooting-layer').appendChild(el);
+      el.setAttribute('transform', `translate(${80 + Math.random() * 520} ${-40 + Math.random() * 140})`);
+      el.innerHTML = '<path d="M0 0 L-110 -48" stroke="url(#shootTail)" stroke-width="3.5" stroke-linecap="round"/><path d="M0 0 L-110 -48" stroke="#FFF6D6" stroke-width="1.2" stroke-linecap="round" opacity=".7"/><circle r="4.5" fill="#fff"/><circle r="9" fill="#FFF6D6" opacity=".35"/>';
+      layer.appendChild(el);
       setTimeout(() => el.remove(), 1300);
-      this.shootTimer = setTimeout(shoot, 5000 + Math.random() * 6000);
     };
-    this.shootTimer = setTimeout(shoot, 1500);
+    const plane = () => {
+      const el = document.createElementNS(NS, 'g');
+      const y = 40 + Math.random() * 160;
+      el.setAttribute('class', 'sky-plane');
+      el.setAttribute('transform', `translate(0 ${y})`);
+      el.innerHTML = `<g class="plane-body">
+        <path d="M-400 2 H-60" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="14 10" opacity=".75"/>
+        <path d="M-50 -6 C-20 -12 30 -12 46 -4 C54 0 54 6 46 8 C30 14 -20 14 -50 8Z" fill="#FFFFFF" stroke="#4A6FA5" stroke-width="3"/>
+        <path d="M-44 -6 L-58 -28 L-42 -28 L-24 -8Z" fill="#FF6B6B" stroke="#4A6FA5" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M-6 4 L-24 30 L-6 30 L18 6Z" fill="#6FC3FF" stroke="#4A6FA5" stroke-width="3" stroke-linejoin="round"/>
+        <g fill="#6FC3FF"><circle cx="6" cy="0" r="3.5"/><circle cx="18" cy="0" r="3.5"/><circle cx="30" cy="0" r="3.5"/></g>
+      </g>`;
+      layer.appendChild(el);
+      setTimeout(() => el.remove(), 11000);
+    };
+    const tick = () => {
+      if (!this.alive) return;
+      if (this.tod === 'day') {
+        plane();
+        this.shootTimer = setTimeout(tick, 14000 + Math.random() * 12000);
+        return;
+      }
+      star();
+      if (Math.random() < 0.3) setTimeout(() => this.alive && star(), 450);
+      this.shootTimer = setTimeout(tick, this.tod === 'night' ? 3000 + Math.random() * 4000 : 6000 + Math.random() * 6000);
+    };
+    this.shootTimer = setTimeout(tick, this.tod === 'day' ? 2500 : 1200);
   }
 
   renderPanel() {

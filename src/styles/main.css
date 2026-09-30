@@ -1032,6 +1032,20 @@ button.pill { cursor: pointer; }
 .glow-ring { animation: march 4s linear infinite; }
 .sea2 .crystal { animation: twinkle 2.2s ease-in-out infinite alternate; }
 .shooting-star { animation: shoot 1.2s ease-in forwards; }
+/* 두 번째 바다 하늘: 낮·노을 */
+.map.sea2.sky-day { background: #4FBBE6; }
+.map.sea2.sky-evening { background: #6A4A96; }
+.sky-cloud { animation: cloudFloat 14s ease-in-out infinite alternate; }
+.sky-cloud.c2 { animation-duration: 18s; animation-direction: alternate-reverse; }
+.sky-cloud.c3 { animation-duration: 22s; }
+.sky-cloud.c4 { animation-duration: 16s; animation-direction: alternate-reverse; }
+.cloud-layer.eve { opacity: .75; }
+.cloud-layer.eve .sky-cloud g { fill: #FFD6C8; }
+@keyframes cloudFloat { from { translate: -40px 0; } to { translate: 60px 0; } }
+.sun-rays { transform-box: fill-box; transform-origin: center; animation: sunSpin 30s linear infinite; }
+@keyframes sunSpin { to { rotate: 360deg; } }
+.sky-plane .plane-body { animation: planeFly 10s linear forwards; }
+@keyframes planeFly { from { translate: -200px 0; } 50% { translate: 480px -10px; } to { translate: 1200px 0; } }
 @keyframes shoot { from { opacity: 1; translate: 0 0; } to { opacity: 0; translate: 260px 115px; } }
 .word-review-go { position: absolute; right: calc(var(--u) * 1.4); top: calc(var(--u) * 1.8); z-index: 5; border: 2px solid #fff; border-radius: 999px; padding: calc(var(--u) * 0.45) calc(var(--u) * 1.4); background: linear-gradient(90deg, #FF7A59, #FFC53D); color: #fff; font-family: inherit; font-size: calc(var(--u) * 1.75); cursor: pointer; box-shadow: 0 calc(var(--u) * 0.3) 0 rgba(0, 0, 0, .25); }
 .word-review-go b { background: #fff; color: #D9542F; border-radius: 999px; padding: 0 calc(var(--u) * 0.6); margin-left: calc(var(--u) * 0.3); }
@@ -1057,13 +1071,20 @@ button.pill { cursor: pointer; }
 .isle-world.evening { --sky1: #FF8A65; --sky2: #FFD29A; --sea1: #3A6FB0; --sea2: #6A9ED0; --sea3: #E9B4A0; --sand1: #F3CE98; --sand2: #D9A56A; }
 .isle-world.night { --sky1: #0B1238; --sky2: #2A3470; --sea1: #0E2250; --sea2: #173A72; --sea3: #2B5A8A; --sand1: #B7A98A; --sand2: #8E8066; }
 .isle-sky { position: absolute; left: 0; right: 0; top: 0; height: 37%; background: linear-gradient(180deg, var(--sky1), var(--sky2)); }
-.isle-sun { position: absolute; right: 14%; top: 26%; width: calc(var(--u) * 9); height: calc(var(--u) * 9); border-radius: 50%; background: radial-gradient(circle, #FFF6B8 40%, #FFD54A 70%); box-shadow: 0 0 calc(var(--u) * 5) #FFE58A; animation: sunPulse 4s ease-in-out infinite; }
+.isle-sun { position: absolute; right: 24%; top: 26%; width: calc(var(--u) * 9); height: calc(var(--u) * 9); border-radius: 50%; background: radial-gradient(circle, #FFF6B8 40%, #FFD54A 70%); box-shadow: 0 0 calc(var(--u) * 5) #FFE58A; animation: sunPulse 4s ease-in-out infinite; }
 .evening .isle-sun { top: 62%; background: radial-gradient(circle, #FFE1A0 30%, #FF8A50 75%); box-shadow: 0 0 calc(var(--u) * 6) #FF9A60; }
-.night .isle-sun { background: radial-gradient(circle at 35% 40%, #FFF9E0 55%, #EFE3B8); box-shadow: 0 0 calc(var(--u) * 4) rgba(255, 246, 214, .6); width: calc(var(--u) * 7); height: calc(var(--u) * 7); }
+/* 밤에는 초승달: 안쪽 그림자로 달의 오른쪽만 밝게 */
+.night .isle-sun { background: transparent; width: calc(var(--u) * 7); height: calc(var(--u) * 7); rotate: -20deg; box-shadow: inset calc(var(--u) * -1.9) calc(var(--u) * 0.2) 0 0 #FFF6D6; filter: drop-shadow(0 0 calc(var(--u) * 1.2) rgba(255, 246, 214, .7)); animation: none; }
 @keyframes sunPulse { 50% { scale: 1.05; } }
 .isle-stars { position: absolute; inset: 0; display: none; }
 .night .isle-stars { display: block; }
 .isle-stars i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; animation: isleTwinkle 2.4s ease-in-out infinite; }
+.isle-stars i.s1 { width: 4px; height: 4px; background: #FFF3C4; }
+.isle-stars i.s2 { width: 2px; height: 2px; }
+.isle-stars i.big { width: calc(var(--u) * 1.6); height: calc(var(--u) * 1.6); border-radius: 0; background: #FFF3C4; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
+.evening .isle-stars { display: block; opacity: .5; }
+.isle-shoot { position: absolute; width: calc(var(--u) * 11); height: 3px; border-radius: 3px; background: linear-gradient(90deg, rgba(255, 246, 214, 0), #FFF6D6 85%, #fff); rotate: 24deg; transform-origin: right center; box-shadow: 0 0 6px #FFF6D6; animation: isleShoot 1.2s ease-in forwards; pointer-events: none; }
+@keyframes isleShoot { from { opacity: 1; translate: 0 0; } to { opacity: 0; translate: calc(var(--u) * 22) calc(var(--u) * 10); } }
 @keyframes isleTwinkle { 50% { opacity: .2; } }
 .isle-cloud { position: absolute; width: calc(var(--u) * 14); height: calc(var(--u) * 4); border-radius: 999px; background: #fff; opacity: .9; animation: cloudDrift 60s linear infinite; }
 .isle-cloud::before, .isle-cloud::after { content: ""; position: absolute; border-radius: 50%; background: inherit; }
