@@ -918,3 +918,9 @@ button.pill { cursor: pointer; }
 .big-desc { color: var(--muted); font-size: calc(var(--u) * 1.4); line-height: 1.35; word-break: keep-all; }
 .shop-item.big-item.goal { outline: calc(var(--u) * 0.35) solid #FFC53D; }
 .shop-item.big-item.owned { opacity: .7; }
+
+/* 전설의 무지개 잉어 */
+.legend-fish { position: absolute; left: 0; top: 0; z-index: 5; cursor: pointer; pointer-events: auto; will-change: transform; }
+.legend-svg { animation: legendGlow 3s linear infinite; }
+@keyframes legendGlow { 0% { filter: drop-shadow(0 0 calc(var(--u) * 1) #FF8FB1); } 33% { filter: drop-shadow(0 0 calc(var(--u) * 1.2) #FFE066); } 66% { filter: drop-shadow(0 0 calc(var(--u) * 1.2) #6BE3B0); } 100% { filter: drop-shadow(0 0 calc(var(--u) * 1) #FF8FB1); } }
+.legend-trail { position: absolute; z-index: 4; width: calc(var(--u) * 1.4); height: calc(var(--u) * 1.4); margin: calc(var(--u) * -0.7) 0 0 calc(var(--u) * -0.7); pointer-events: none; background: conic-gradient(#FF6B8B, #FFE066, #6BE3B0, #6BA8FF, #FF6B8B); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: trailFade 1.2s ease-out forwards; }

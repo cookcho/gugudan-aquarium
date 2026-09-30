@@ -11,6 +11,7 @@ import confetti from 'canvas-confetti';
 import { decorSVG, SHOP_ITEMS } from '../data/shop.js';
 import { bigItemById } from '../data/bigItems.js';
 import { tankBackdrop } from '../graphics/tanks.js';
+import { legendArt } from '../graphics/legend.js';
 import { Swimmer, PROFILES } from '../core/swim.js';
 import { GuestManager } from './guests.js';
 
@@ -156,6 +157,7 @@ export class HomeScene {
 
   mounted() {
     this.spawnFishes();
+    this.spawnLegend();
     this.guests = new GuestManager(this);
     // 한 프레임에서 오류가 나도 다음 프레임은 계속 그려요 (어항이 통째로 멈추지 않게)
     const loop = () => {
@@ -1051,8 +1053,42 @@ export class HomeScene {
     this.el.querySelector('.backdrop').innerHTML = tankBackdrop(level);
   }
 
+  // ---- 전설의 무지개 잉어: 큰 선물로 데려오면 어항에서 가장 크고 화려하게 헤엄쳐요 ----
+  spawnLegend() {
+    if (this.legend || !store.ownsBig('legend')) return;
+    const size = Math.round(this.u * 17);
+    const el = h(`<div class="legend-fish">${legendArt(size)}</div>`);
+    const sw = new Swimmer({ speed: 0.9, zone: 'any', bob: 0.6, rest: 0.1, dash: 0.1, wag: 0.8, tilt: true, visit: 0.1 }, this.bounds.width * 0.5, this.swimH * 0.35, size);
+    el.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      sound.playStar();
+      const k = callKid(store.data.kidName);
+      this.say(`무지개 잉어: "${k ? `${k}, ` : ''}구구단 박사가 됐구나! 정말 자랑스러워 🌈"`);
+      sw.spin = 2;
+      sw.vy = -3;
+      for (let i = 0; i < 5; i++) setTimeout(() => this.alive && floatUp(this.tank, sw.x + size / 2, sw.y, i % 2 ? '🌈' : '✨'), i * 120);
+    });
+    this.tank.appendChild(el);
+    this.legend = { el, sw, size, sparkle: 0 };
+  }
+
+  stepLegend(dt, W, H) {
+    const lg = this.legend;
+    if (!lg) return;
+    lg.sw.update({ W, H, dt, food: null, attention: this.attention, friends: [], decors: [], night: false, hungry: false, sick: false });
+    lg.el.style.transform = lg.sw.transform();
+    lg.sparkle += dt;
+    if (lg.sparkle > 0.5) {
+      lg.sparkle = 0;
+      const t = h(`<i class="legend-trail" style="left:${lg.sw.x + (lg.sw.face < 0 ? lg.size * 0.85 : lg.size * 0.15)}px;top:${lg.sw.y + lg.size * 0.5}px"></i>`);
+      this.tank.appendChild(t);
+      setTimeout(() => t.remove(), 1200);
+    }
+  }
+
   celebrateBig(item) {
     if (item.kind === 'tank') this.applyTank();
+    if (item.kind === 'friend') this.spawnLegend();
     sound.playFanfare();
     confetti({ particleCount: 160, spread: 110, origin: { y: 0.5 }, zIndex: 300 });
     setTimeout(() => this.alive && confetti({ particleCount: 90, spread: 140, origin: { y: 0.35 }, zIndex: 300 }), 500);
@@ -1183,6 +1219,7 @@ export class HomeScene {
       }
     }
     this.guests?.step(dt, W, H);
+    this.stepLegend(dt, W, H);
   }
 
   // 행동에 따라 나오는 작은 효과들

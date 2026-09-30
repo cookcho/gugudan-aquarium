@@ -69,7 +69,7 @@ export function openDecorShop(onChange, startTab = 'plant') {
     const goal = store.data.goal === it.id;
     let tag = `<span class="shop-cost">⭐ ${it.cost}</span>`;
     if (owned) tag = '<span class="shop-cost owned">가졌어요 ✓</span>';
-    else if (locked) tag = `<span class="shop-cost locked">🔒 ${bigItemById(it.requires).name} 먼저</span>`;
+    else if (locked) tag = `<span class="shop-cost locked">🔒 ${it.allGold ? '모든 친구를 황금으로' : `${bigItemById(it.requires).name} 먼저`}</span>`;
     else if (store.data.stars >= it.cost) tag = `<span class="shop-cost using">⭐ ${it.cost} · 살 수 있어요!</span>`;
     return `
       <button class="shop-item big-item ${locked ? 'locked' : ''} ${owned ? 'owned' : ''} ${goal ? 'goal' : ''}" data-big="${it.id}">
@@ -122,7 +122,7 @@ export function openDecorShop(onChange, startTab = 'plant') {
       if (store.ownsBig(it.id)) return toast('벌써 가지고 있어요! ✓');
       if (!store.bigUnlocked(it)) {
         sound.playBoing();
-        return toast(`${bigItemById(it.requires).name}을 먼저 가져야 해요`);
+        return toast(it.allGold ? '2~9단 친구를 모두 황금으로 키우면 만날 수 있어요! 👑' : `${bigItemById(it.requires).name}을 먼저 가져야 해요`);
       }
       if (store.data.stars < it.cost) {
         // 모자라면 저금통 목표로 찜해요

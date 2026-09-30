@@ -144,7 +144,8 @@ class Store {
   // 오늘의 도전 섬: 열린 섬 중 가장 덜 자란 섬 (같으면 나중에 열린 어려운 섬). 여기서 받은 별은 2배
   challengeDan() {
     const d = this.day();
-    if (d.challenge !== undefined) return d.challenge;
+    // 오늘 정한 섬이 아직 황금이 아니면 그대로 (황금이 됐으면 다음 섬으로 다시 골라요)
+    if (d.challenge !== undefined && (d.challenge === null || this.data.progress[d.challenge] < 4)) return d.challenge;
     let pick = null;
     for (const x of DAN_ORDER) {
       if (!this.isUnlocked(x) || this.data.progress[x] >= 4) continue;
@@ -574,6 +575,7 @@ class Store {
 
   // 먼저 가져야 하는 선물이 있으면 그걸 사야 열려요
   bigUnlocked(item) {
+    if (item.allGold && !DAN_ORDER.every((d) => this.data.progress[d] >= 4)) return false;
     return !item.requires || this.ownsBig(item.requires);
   }
 
