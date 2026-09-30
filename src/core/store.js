@@ -55,6 +55,7 @@ function freshSave() {
     progress2: {}, // 두 번째 바다 섬별 단계 { bundle: 0~4 }
     fishTank: {}, // 친구가 사는 어항 { '2': 0, 's2:bundle': 1 } (없으면 첫 바다 친구 0번, 두 번째 바다 친구 1번)
     viewTank: 0, // 지금 보고 있는 어항
+    wordMisses: [], // 문장제 복습할 문제 유형 [{ word, template }] (최근 12개)
     words: {}, // 문장제 기록 { 섬id: { ok, miss, calc(계산 실수), read(문장 이해 실수) } }
     gift: null, // { date, dan, x, opened }
     lastVisit: Date.now(),
@@ -619,6 +620,34 @@ class Store {
       this.save();
     }
     return { from, to: Math.max(from, p) };
+  }
+
+  // 두 번째 바다의 오늘의 도전 섬: 열린 섬 중 가장 덜 자란 섬 (별 2배). 섬 순서(0~8)를 돌려줘요
+  challenge2() {
+    if (!this.sea2Open()) return null;
+    const d = this.day();
+    const cached = d.challenge2;
+    if (cached !== undefined && (cached === null || this.progress2(SEA2[cached].id) < 4)) return cached;
+    let pick = null;
+    SEA2.forEach((isl, i) => {
+      if (!this.isUnlocked2(i) || this.progress2(isl.id) >= 4) return;
+      if (pick === null || this.progress2(isl.id) <= this.progress2(SEA2[pick].id)) pick = i;
+    });
+    d.challenge2 = pick;
+    this.save();
+    return pick;
+  }
+
+  // 틀린 문제 유형을 복습 목록에 모아요 (같은 유형은 한 번만)
+  addWordMiss(word, template) {
+    const list = (this.data.wordMisses || []).filter((m) => !(m.word === word && m.template === template));
+    this.data.wordMisses = [{ word, template }, ...list].slice(0, 12);
+    this.save();
+  }
+
+  clearWordMiss(word, template) {
+    this.data.wordMisses = (this.data.wordMisses || []).filter((m) => !(m.word === word && m.template === template));
+    this.save();
   }
 
   // kind: 'ok' | 'calc'(식은 맞게 세웠는데 계산 실수) | 'read'(문장을 잘못 이해)
