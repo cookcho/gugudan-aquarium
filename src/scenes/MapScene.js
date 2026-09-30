@@ -95,8 +95,8 @@ function islandSVG(dan, i, selected) {
       ${challenge ? `
         <g class="ch-orbit">${[0, 90, 180, 270].map((a) => `<path transform="rotate(${a}) translate(0 -118)" d="M0 -12 L3.5 -3.5 L12 0 L3.5 3.5 L0 12 L-3.5 3.5 L-12 0 L-3.5 -3.5Z" fill="#FFF3A8" stroke="#E8A800" stroke-width="1.5"/>`).join('')}</g>
         <g class="ch-flag" transform="translate(0 -158)">
-          <rect x="-100" y="-28" width="200" height="54" rx="27" fill="#FF6B4A" stroke="#fff" stroke-width="5"/>
-          <text x="0" y="10" text-anchor="middle" font-family="Jua, sans-serif" font-size="31" fill="#fff">🎯 도전! 별 2배</text>
+          <rect x="-118" y="-28" width="236" height="54" rx="27" fill="#FF6B4A" stroke="#fff" stroke-width="5"/>
+          <text x="0" y="10" text-anchor="middle" font-family="Jua, sans-serif" font-size="30" fill="#fff" textLength="196" lengthAdjust="spacingAndGlyphs">🎯 도전! 별 2배</text>
           <path d="M-14 32 L14 32 L0 50Z" fill="#FF6B4A" stroke="#fff" stroke-width="3" stroke-linejoin="round" class="ch-arrow"/>
         </g>` : ''}
       ${open && store.practiceDone(dan) ? '<text x="-70" y="-50" font-size="26" class="rest-mark">💤</text>' : ''}
