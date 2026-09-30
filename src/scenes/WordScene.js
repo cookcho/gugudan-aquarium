@@ -152,9 +152,9 @@ export class WordScene {
       box.innerHTML = `
         <div class="kp-input"><span class="kp-typed"></span><span class="kp-caret"></span></div>
         <div class="word-keys">
-          ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((k) => `<button class="kp-key" data-k="${k}">${k}</button>`).join('')}
+          ${[1, 2, 3, 4, 5].map((k) => `<button class="kp-key" data-k="${k}">${k}</button>`).join('')}
           <button class="kp-key small" data-k="del">⌫</button>
-          <button class="kp-key" data-k="0">0</button>
+          ${[6, 7, 8, 9, 0].map((k) => `<button class="kp-key" data-k="${k}">${k}</button>`).join('')}
           <button class="kp-key ok" data-k="ok">확인</button>
         </div>`;
       box.onclick = (e) => {
