@@ -63,7 +63,7 @@ export function openDecorShop(onChange, startTab = 'plant') {
       </button>`;
   };
 
-  // 큰 선물: 별을 모아서 사요. 모자라면 "찜"해서 저금통 목표로
+  // 스페셜: 별을 모아서 사요. 모자라면 "찜"해서 저금통 목표로
   const bigCard = (it) => {
     const owned = store.ownsBig(it.id);
     const locked = !owned && !store.bigUnlocked(it);
