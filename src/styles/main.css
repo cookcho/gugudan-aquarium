@@ -977,3 +977,13 @@ button.pill { cursor: pointer; }
 .word-keys { display: grid; grid-template-columns: repeat(6, calc(var(--u) * 6.4)); gap: calc(var(--u) * 0.8); }
 .word-keys .kp-key { min-height: calc(var(--u) * 6); font-size: calc(var(--u) * 3); }
 .word-result-art.pop { animation: popIn .6s ease-out; }
+
+/* 보호자 화면: 문장제 기록 */
+.dash-advice { background: #F4F0FF; border-left: 4px solid #6D4FB5; border-radius: 10px; padding: 10px 14px; font-size: 15px; line-height: 1.6; }
+.word-table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+.word-table th, .word-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #E3ECEF; vertical-align: middle; }
+.word-table thead th { color: var(--muted); font-weight: 400; font-size: 13px; }
+.word-table tbody th small { color: var(--muted); font-weight: 400; }
+.word-table .num { font-variant-numeric: tabular-nums; }
+.rate-bar { height: 6px; background: #E3ECEF; border-radius: 999px; margin-top: 4px; overflow: hidden; width: 90px; }
+.rate-bar i { display: block; height: 100%; background: #6D4FB5; border-radius: 999px; }

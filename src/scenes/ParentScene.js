@@ -1,5 +1,7 @@
 // 보호자 화면: 곱셈 문제로 잠그고, 구구단표 정답률과 학습 시간을 보여줘요.
 import { store, today } from '../core/store.js';
+import { SEA2, SEA2_STAGES, SEA2_OPEN_AT } from '../data/sea2.js';
+import { WORD_ISLANDS } from '../data/wordProblems.js';
 import { h, confirmBox, toast } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
 import { music } from '../audio/music.js';
@@ -18,6 +20,49 @@ function mastered(a, b) {
 
 function minutes(ms) {
   return Math.round(ms / 60000);
+}
+
+// 문장제(두 번째 바다) 기록: 섬별 정답률과, 틀린 이유를 "문장 이해"와 "계산"으로 나눠 보여줘요
+function wordSection() {
+  const gold = store.goldDans().length;
+  if (!store.sea2Open()) {
+    return `<section class="dash-sec"><h2>문장제 (두 번째 바다)</h2><p class="dash-sub">첫 번째 바다에서 황금 섬이 ${SEA2_OPEN_AT}개가 되면 열려요. 지금 <b>${gold}개</b>예요. 두 번째 바다에서는 구구단을 이야기 문제에 써 보는 연습을 해요.</p></section>`;
+  }
+  const words = store.data.words || {};
+  const sum = { ok: 0, miss: 0, read: 0, calc: 0 };
+  const rows = SEA2.map((isl, i) => {
+    const w = WORD_ISLANDS[isl.word];
+    const r = words[isl.id] || { ok: 0, miss: 0, read: 0, calc: 0 };
+    for (const k of Object.keys(sum)) sum[k] += r[k];
+    const n = r.ok + r.miss;
+    const rate = n ? Math.round((r.ok / n) * 100) : null;
+    const p = store.progress2(isl.id);
+    const stage = p ? SEA2_STAGES[p - 1].label : store.isUnlocked2(i) ? '열림 · 시작 전' : '잠김';
+    return `<tr>
+      <th>${w.icon} ${w.name} <small>${w.level}</small></th>
+      <td>${stage}</td>
+      <td class="num">${rate === null ? '-' : `${rate}%`}<div class="rate-bar"><i style="width:${rate ?? 0}%"></i></div></td>
+      <td class="num">${r.read || '-'}</td>
+      <td class="num">${r.calc || '-'}</td>
+    </tr>`;
+  }).join('');
+  const total = sum.ok + sum.miss;
+  let advice = '아직 기록이 충분하지 않아요. 두 번째 바다에서 몇 판 풀면 보여드릴게요.';
+  if (sum.miss >= 3) {
+    advice = sum.read > sum.calc
+      ? '<b>문장 이해 실수</b>가 더 많아요. 곱하기만 하고 멈추거나, 곱해야 할 때 더하는 경우예요. 문제를 소리 내어 읽고 "무엇을 묻는지" 먼저 말해 보게 하면 도움이 돼요.'
+      : '<b>계산 실수</b>가 더 많아요. 문장은 잘 이해했는데 구구단에서 틀린 경우예요. 첫 번째 바다의 "오늘의 복습"과 자주 틀리는 문제 연습이 도움이 돼요.';
+  } else if (total >= 5) advice = '틀린 문제가 거의 없어요! 다음 섬으로 넘어가도 좋아요.';
+  return `
+    <section class="dash-sec">
+      <h2>문장제 (두 번째 바다)</h2>
+      <p class="dash-sub">전체 정답률 <b>${total ? Math.round((sum.ok / total) * 100) : 0}%</b> (${total}문제) · 문장 이해 실수 <b>${sum.read}</b> · 계산 실수 <b>${sum.calc}</b></p>
+      <p class="dash-advice">${advice}</p>
+      <div class="heat-wrap"><table class="word-table">
+        <thead><tr><th>섬</th><th>단계</th><th>정답률</th><th>문장 이해 실수</th><th>계산 실수</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </section>`;
 }
 
 export class ParentScene {
@@ -133,6 +178,8 @@ export class ParentScene {
             <ul class="isl">${DAN_ORDER.map((dan) => `<li><b style="color:${CHARACTERS[dan].color}">${dan}단</b><span>${d.progress[dan] ? stageName(dan, d.progress[dan]) : store.isUnlocked(dan) ? '열림 · 시작 전' : '잠김'}</span></li>`).join('')}</ul>
           </section>
         </div>
+
+        ${wordSection()}
 
         <section class="dash-sec">
           <h2>설정</h2>
