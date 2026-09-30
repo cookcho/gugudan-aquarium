@@ -1129,7 +1129,11 @@ button.pill { cursor: pointer; }
 .isle-body { width: 100%; height: 100%; display: grid; place-items: center; }
 .isle-friend.sea .isle-body, .isle-friend.float .isle-body { filter: drop-shadow(0 calc(var(--u) * 0.3) calc(var(--u) * 0.4) rgba(10, 50, 90, .25)); }
 .isle-shadow { position: absolute; left: 15%; right: 15%; bottom: 2%; height: 12%; border-radius: 50%; background: rgba(90, 60, 20, .22); z-index: -1; display: none; }
-.isle-friend.land .isle-shadow, .isle-friend.rock .isle-shadow { display: block; }
+.isle-friend.land .isle-shadow { display: block; }
+/* 성게: 몸 아래쪽이 물웅덩이에 잠겨 보이게 + 물 표면 둥근 물결 */
+.isle-friend.rock .isle-body { -webkit-mask-image: linear-gradient(to bottom, #000 60%, rgba(0, 0, 0, .35) 64%); mask-image: linear-gradient(to bottom, #000 60%, rgba(0, 0, 0, .35) 64%); }
+.isle-friend.rock::after { content: ""; position: absolute; left: 24%; right: 24%; top: 54%; height: 10%; border: 2px solid rgba(255, 255, 255, .75); border-radius: 50%; animation: poolRing 2.4s ease-in-out infinite; pointer-events: none; }
+@keyframes poolRing { 50% { scale: 1.12; opacity: .5; } }
 .isle-friend.jumping .isle-body { filter: drop-shadow(0 0 calc(var(--u) * 0.8) rgba(255, 255, 255, .7)); }
 .isle-friend .zz { position: absolute; right: 0; top: -6%; font-size: calc(var(--u) * 2.4); display: none; animation: zz 2s ease-in-out infinite; }
 .isle-friend.asleep .zz { display: block; }

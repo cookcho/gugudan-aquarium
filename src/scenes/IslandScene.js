@@ -16,7 +16,7 @@ const ZONE = {
   sea: { x: [8, 90], y: [43, 57], speed: 5 },
   float: { x: [24, 70], y: [57, 59], speed: 1.4 },
   land: { x: [36, 74], y: [75, 86], speed: 3.5 },
-  rock: { x: [86, 86], y: [70, 70], speed: 0 },
+  rock: { x: [81, 93], y: [79.5, 81], speed: 0.7 }, // 성게: 바위 앞 물웅덩이에서 아주 천천히 기어다녀요
   hole: { x: [HOLE.hide, HOLE.hide], y: [HOLE.y, HOLE.y], speed: 0 }
 };
 // 친구마다 좁힌 범위 (해룡은 물풀 근처에서 느릿느릿)
@@ -328,7 +328,7 @@ export class IslandScene {
         if (d < 0.6) {
           this.arrive(f);
         } else {
-          let v = zone.speed * (SLOW[s.id] || 1) * (night ? 0.5 : 1) * dt;
+          let v = zone.speed * (SLOW[s.id] || 1) * (night ? (f.mode === 'rock' ? 1.6 : 0.5) : 1) * dt; // 성게는 밤에 더 부지런해요
           // 물범은 모래에서 몸을 늘였다 줄이며 애벌레처럼 앞으로 가요
           if (f.mode === 'land' && s.id === 'plus') v *= 0.3 + 1.4 * Math.max(0, Math.sin(f.t * 5));
           f.x += (dx / d) * Math.min(v, d);
@@ -400,13 +400,14 @@ export class IslandScene {
       bob = Math.sin(f.t * 1.8) * this.u * 0.4;
       rot += Math.sin(f.t * 1.3) * 8;
     } else if (f.mode === 'rock') {
-      rot += Math.sin(f.t * 2.4) * 5;
+      // 가시가 꼼지락: 기어갈 때는 조금 더 흔들려요
+      rot += Math.sin(f.t * (moving ? 4 : 2)) * (moving ? 6 : 3);
       sy *= 1 + Math.sin(f.t * 3) * 0.03;
     } else if (f.mode === 'land' && !moving && !f.act) {
       sy *= 1 + Math.sin(f.t * (f.sleep ? 1.4 : 2.2)) * 0.025; // 숨 쉬기
     }
     // 멀리(위) 있을수록 작게
-    const depth = f.mode === 'sea' ? 0.72 + ((f.y - 43) / 14) * 0.28 : f.mode === 'land' ? 0.95 + ((f.y - 75) / 11) * 0.12 : 1;
+    const depth = f.mode === 'rock' ? 0.8 : f.mode === 'sea' ? 0.72 + ((f.y - 43) / 14) * 0.28 : f.mode === 'land' ? 0.95 + ((f.y - 75) / 11) * 0.12 : 1;
     const sc = depth * (1 + f.hop * 0.08);
     const hopY = Math.sin(f.hop * Math.PI) * this.u * 2.5;
     const px = (f.x / 100) * W - f.size / 2;
@@ -477,7 +478,7 @@ export class IslandScene {
         buddy.face = -f.face;
       }
     } else {
-      f.wait = rand(0.3, 2.5);
+      f.wait = f.mode === 'rock' ? rand(2, 6) : rand(0.3, 2.5);
       if (f.mode === 'float' && !f.sleep && Math.random() < 0.45) {
         const type = Math.random() < 0.55 ? 'roll' : 'dive';
         f.act = { type, time: 0, dur: type === 'dive' ? 3.2 : 1.4 };
