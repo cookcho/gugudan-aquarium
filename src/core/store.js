@@ -589,6 +589,7 @@ class Store {
     this.data.bigItems = [...(this.data.bigItems || []), item.id];
     if (item.kind === 'tank') this.data.tankLevel = Math.max(this.data.tankLevel || 0, item.level);
     if (item.kind === 'decor') this.data.decorations.push({ id: `d${Date.now()}`, type: item.id, x: 50, b: 0, placed: false });
+    if (item.kind === 'music') this.data.homeMusic = item.track;
     if (this.data.goal === item.id) this.data.goal = null;
     this.save();
     return true;

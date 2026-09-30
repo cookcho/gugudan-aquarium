@@ -935,3 +935,11 @@ button.pill { cursor: pointer; }
 @keyframes carouselFast { from { transform: translateX(-12px); } to { transform: translateX(12px); } }
 .train { position: absolute; bottom: calc(var(--u) * 1.4); left: 0; z-index: 8; cursor: pointer; animation: trainRide 12s linear forwards; }
 @keyframes trainRide { from { transform: translateX(-110%); } to { transform: translateX(110vw); } }
+
+/* 특별한 순간: 황금 명판, 해파리 불꽃놀이 */
+.nameplate { position: absolute; left: 50%; bottom: calc(var(--u) * 1.4); z-index: 10; translate: -50% 0; padding: calc(var(--u) * 0.4) calc(var(--u) * 2.4); border-radius: calc(var(--u) * 0.8); background: linear-gradient(180deg, #FFF1B8, #E2B53A 55%, #B8860B); border: 2px solid #8A6508; color: #5A3E00; font-size: calc(var(--u) * 2); text-shadow: 0 1px 0 rgba(255, 255, 255, .6); box-shadow: 0 calc(var(--u) * 0.3) calc(var(--u) * 0.6) rgba(0, 0, 0, .3); pointer-events: none; white-space: nowrap; }
+.fireworks-btn { position: absolute; right: calc(var(--u) * 2); top: calc(var(--u) * 14.5); z-index: 13; width: calc(var(--u) * 5); height: calc(var(--u) * 5); border-radius: 50%; border: 2px solid rgba(255, 255, 255, .7); background: rgba(40, 30, 90, .45); font-size: calc(var(--u) * 2.8); cursor: pointer; padding: 0; }
+.jelly-burst { position: absolute; z-index: 12; width: 0; height: 0; pointer-events: none; }
+.jelly-burst b { position: absolute; translate: -50% -50%; font-size: calc(var(--u) * 3.4); animation: popIn .3s ease-out; filter: drop-shadow(0 0 calc(var(--u) * 1) var(--c)); }
+.jelly-burst i { position: absolute; width: calc(var(--u) * 0.8); height: calc(var(--u) * 0.8); margin: calc(var(--u) * -0.4); border-radius: 50%; background: var(--c); box-shadow: 0 0 calc(var(--u) * 1) var(--c); animation: burstOut 1.5s ease-out forwards; }
+@keyframes burstOut { 0% { transform: rotate(var(--a)) translateY(0); opacity: 1; } 70% { opacity: 1; } 100% { transform: rotate(var(--a)) translateY(calc(var(--u) * -11)) scale(.4); opacity: 0; } }

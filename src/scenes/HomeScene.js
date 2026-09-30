@@ -100,6 +100,8 @@ export class HomeScene {
           <div class="sky-tint"></div>
           <button class="time-badge" data-act="time" aria-label="지금 어항 시간"></button>
           <button class="goal-bar" data-act="goal" hidden></button>
+          <button class="fireworks-btn" data-act="fireworks" hidden aria-label="해파리 불꽃놀이">🎆</button>
+          <div class="nameplate" hidden></div>
           <div class="glow-dots">${Array.from({ length: 48 }, () => `<i style="left:${Math.random() * 98}%;top:${3 + Math.random() * 82}%;--s:${(0.35 + Math.random() * 0.75).toFixed(2)};animation-duration:${(1.6 + Math.random() * 2.6).toFixed(1)}s;animation-delay:${-(Math.random() * 4).toFixed(1)}s"></i>`).join('')}</div>
           <div class="algae"></div>
           <div class="tank"></div>
@@ -148,6 +150,7 @@ export class HomeScene {
     this.makeBubbles();
     this.drawTimeBadge();
     this.renderGoal();
+    this.renderMoments();
     this.unsubGoal = store.subscribe(() => this.alive && this.renderGoal());
     this.renderDecor();
     this.buildAlgae();
@@ -995,6 +998,7 @@ export class HomeScene {
       if (act === 'follow') this.toggleFollow();
       if (act === 'time') this.say(TIME_INFO[timeOfDay()].say);
       if (act === 'goal') openDecorShop((c) => this.afterShop(c), 'big');
+      if (act === 'fireworks') this.fireworks();
       if (act === 'requests') openRequests(() => {
         this.updateRequestPill();
         this.say(careMessage() || this.guideLine());
@@ -1141,18 +1145,53 @@ export class HomeScene {
     setTimeout(() => train.remove(), 12500);
   }
 
+  // ---- 특별한 순간: 황금 명판, 해파리 불꽃놀이 ----
+  renderMoments() {
+    const plate = this.el.querySelector('.nameplate');
+    plate.hidden = !store.ownsBig('nameplate');
+    plate.textContent = `${store.data.kidName ? `${store.data.kidName}의` : '우리'} 바다`;
+    this.el.querySelector('.fireworks-btn').hidden = !store.ownsBig('fireworks');
+  }
+
+  fireworks() {
+    if (this.showing) return;
+    this.showing = true;
+    const colors = ['#FF6B8B', '#FFD54A', '#6BE3B0', '#6BCBFF', '#B58AFF'];
+    this.say('해파리 불꽃놀이 시작! 🎆');
+    for (let k = 0; k < 9; k++) {
+      setTimeout(() => {
+        if (!this.alive) return;
+        const x = 12 + Math.random() * 76;
+        const y = 14 + Math.random() * 44;
+        const c = colors[k % colors.length];
+        const sparks = Array.from({ length: 12 }, (_, i) => `<i style="--a:${i * 30}deg"></i>`).join('');
+        const burst = h(`<div class="jelly-burst" style="left:${x}%;top:${y}%;--c:${c}">${sparks}<b>🪼</b></div>`);
+        this.aquarium.appendChild(burst);
+        sound.playStar();
+        setTimeout(() => burst.remove(), 1600);
+      }, k * 420);
+    }
+    setTimeout(() => {
+      this.showing = false;
+      if (this.alive) sound.playFanfare();
+    }, 9 * 420 + 400);
+  }
+
   celebrateBig(item) {
     if (item.kind === 'tank') this.applyTank();
     if (item.kind === 'friend') this.spawnLegend();
     if (item.kind === 'decor') this.renderTray();
     if (item.kind === 'event') this.trainWait = 2;
+    if (item.kind === 'moment') this.renderMoments();
     sound.playFanfare();
     confetti({ particleCount: 160, spread: 110, origin: { y: 0.5 }, zIndex: 300 });
     setTimeout(() => this.alive && confetti({ particleCount: 90, spread: 140, origin: { y: 0.35 }, zIndex: 300 }), 500);
     const says = {
       tank: `우와! ${item.name}이 됐어요! 친구들이 신나해요 🎉`,
       decor: `${item.name}을 샀어요! 🪸 꾸미기에서 보관함에 있는 걸 어항에 놓아 봐요`,
-      event: `${item.name}가 생겼어요! 곧 어항 바닥을 지나갈 거예요 🚂`
+      event: `${item.name}가 생겼어요! 곧 어항 바닥을 지나갈 거예요 🚂`,
+      music: `${item.name}이 흘러나와요 🎵 상점에서 다시 누르면 원래 곡으로 돌아가요`,
+      moment: item.id === 'fireworks' ? '어항 오른쪽 위 🎆를 눌러 봐요! 불꽃놀이가 시작돼요' : '어항 앞에 황금 명판이 생겼어요 🏅'
     };
     this.say(says[item.kind] || `${item.name}을 샀어요! 🎉`);
     for (const f of this.fishes) if (f.p >= 2) floatUp(this.tank, f.x + f.size / 2, f.y, '💖');

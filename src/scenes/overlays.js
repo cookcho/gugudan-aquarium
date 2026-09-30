@@ -2,6 +2,7 @@
 import { store } from '../core/store.js';
 import { h, toast, unit, confirmBox } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
+import { music } from '../audio/music.js';
 import { CHARACTERS, DAN_ORDER, STAGES, stageName } from '../data/characters.js';
 import { charSVG, guideSVG } from '../graphics/characters.js';
 import { SHOP_TABS, SHOP_ITEMS, THEMES, decorSVG } from '../data/shop.js';
@@ -68,7 +69,9 @@ export function openDecorShop(onChange, startTab = 'plant') {
     const locked = !owned && !store.bigUnlocked(it);
     const goal = store.data.goal === it.id;
     let tag = `<span class="shop-cost">⭐ ${it.cost}</span>`;
-    if (owned) tag = '<span class="shop-cost owned">가졌어요 ✓</span>';
+    if (owned) tag = it.kind === 'music'
+      ? `<span class="shop-cost ${store.data.homeMusic === it.track ? 'using' : 'owned'}">${store.data.homeMusic === it.track ? '듣는 중 ♪' : '이 곡 듣기'}</span>`
+      : '<span class="shop-cost owned">가졌어요 ✓</span>';
     else if (locked) tag = `<span class="shop-cost locked">🔒 ${it.allGold ? '모든 친구를 황금으로' : `${bigItemById(it.requires).name} 먼저`}</span>`;
     else if (store.data.stars >= it.cost) tag = `<span class="shop-cost using">⭐ ${it.cost} · 살 수 있어요!</span>`;
     return `
@@ -119,7 +122,15 @@ export function openDecorShop(onChange, startTab = 'plant') {
     }
     if (b.dataset.big) {
       const it = bigItemById(b.dataset.big);
-      if (store.ownsBig(it.id)) return toast('벌써 가지고 있어요! ✓');
+      if (store.ownsBig(it.id)) {
+        // 가진 곡을 누르면 그 곡으로 바꾸고, 듣는 중이면 원래 어항 곡으로 돌아가요
+        if (it.kind !== 'music') return toast('벌써 가지고 있어요! ✓');
+        const on = store.data.homeMusic !== it.track;
+        store.setOption('homeMusic', on ? it.track : null);
+        music.play(store.data.homeMusic || 'aquarium');
+        toast(on ? `${it.name}으로 바꿨어요 🎵` : '잔잔한 어항 곡으로 돌아왔어요 🎵');
+        return refresh();
+      }
       if (!store.bigUnlocked(it)) {
         sound.playBoing();
         return toast(it.allGold ? '2~9단 친구를 모두 황금으로 키우면 만날 수 있어요! 👑' : `${bigItemById(it.requires).name}을 먼저 가져야 해요`);
@@ -133,6 +144,7 @@ export function openDecorShop(onChange, startTab = 'plant') {
       }
       confirmBox(`별 ${it.cost}개로 ${it.name}을 살까요?`, '살래요!', '아직이요').then((ok) => {
         if (!ok || !store.buyBig(it)) return;
+        if (it.kind === 'music') music.play(it.track);
         el.remove();
         onChange({ big: it });
       });
