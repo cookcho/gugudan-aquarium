@@ -1016,7 +1016,22 @@ button.pill { cursor: pointer; }
 .tank-arrow { position: absolute; top: 42%; pointer-events: auto; width: calc(var(--u) * 5.2); height: calc(var(--u) * 8); border: 2px solid rgba(255, 255, 255, .8); background: rgba(255, 255, 255, .35); color: #fff; font-size: calc(var(--u) * 2.6); cursor: pointer; backdrop-filter: blur(2px); }
 .tank-arrow.left { left: 0; border-radius: 0 calc(var(--u) * 2) calc(var(--u) * 2) 0; border-left: 0; }
 .tank-arrow.right { right: 0; border-radius: calc(var(--u) * 2) 0 0 calc(var(--u) * 2); border-right: 0; }
-.tank-label { position: absolute; left: 50%; top: calc(var(--u) * 8.8); translate: -50% 0; background: rgba(255, 255, 255, .8); color: var(--ink); border-radius: 999px; padding: calc(var(--u) * 0.3) calc(var(--u) * 1.4); font-size: calc(var(--u) * 1.7); }
+/* 어항 간판: 상단 가운데에 매달린 나무 간판, 살랑살랑 흔들려요 */
+.tank-sign { position: relative; border: 0; background: none; padding: calc(var(--u) * 0.9) 0 0; cursor: pointer; font-family: inherit; transform-origin: 50% 0; animation: signSway 4s ease-in-out infinite; }
+.tank-sign::before, .tank-sign::after { content: ""; position: absolute; top: calc(var(--u) * -1.2); width: 3px; height: calc(var(--u) * 2.3); background: #8A5A2B; border-radius: 2px; }
+.tank-sign::before { left: 22%; rotate: 12deg; }
+.tank-sign::after { right: 22%; rotate: -12deg; }
+.sign-board { position: relative; display: flex; flex-direction: column; align-items: center; gap: calc(var(--u) * 0.25); padding: calc(var(--u) * 0.35) calc(var(--u) * 1.5) calc(var(--u) * 0.4); border-radius: calc(var(--u) * 1); border: 3px solid #8A5A2B; color: #5A3616; font-size: calc(var(--u) * 1.7); line-height: 1.1; white-space: nowrap;
+  background: repeating-linear-gradient(180deg, #E8B679 0 calc(var(--u) * 1.3), #DDA566 calc(var(--u) * 1.3) calc(var(--u) * 1.4)); box-shadow: inset 0 0 0 2px rgba(255, 240, 210, .55), 0 calc(var(--u) * 0.35) 0 #8A5A2B; }
+.sign-board::before, .sign-board::after { content: ""; position: absolute; top: calc(var(--u) * 0.35); width: calc(var(--u) * 0.5); height: calc(var(--u) * 0.5); border-radius: 50%; background: #8A5A2B; }
+.sign-board::before { left: calc(var(--u) * 0.45); }
+.sign-board::after { right: calc(var(--u) * 0.45); }
+.sign-board b { font-weight: 400; text-shadow: 0 1px 0 rgba(255, 240, 210, .8); }
+.sign-dots { display: flex; gap: calc(var(--u) * 0.5); }
+.sign-dots i { width: calc(var(--u) * 0.7); height: calc(var(--u) * 0.7); border-radius: 50%; background: rgba(90, 54, 22, .3); }
+.sign-dots i.on { background: #FF7A59; box-shadow: 0 0 0 2px #fff; }
+.tank-sign:active .sign-board { translate: 0 2px; box-shadow: inset 0 0 0 2px rgba(255, 240, 210, .55), 0 calc(var(--u) * 0.15) 0 #8A5A2B; }
+@keyframes signSway { 0%, 100% { rotate: -1.5deg; } 50% { rotate: 1.5deg; } }
 .sea2-fish .sea2-art { pointer-events: none; }
 
 .ch-arrow.up { animation-name: chArrowUp; }

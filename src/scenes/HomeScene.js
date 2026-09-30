@@ -949,12 +949,20 @@ export class HomeScene {
   renderTankNav() {
     const count = store.tankCount();
     const nav = this.el.querySelector('.tank-nav');
+    const center = this.bar.el.querySelector('.topbar-center');
     nav.hidden = count < 2;
-    if (count < 2) return;
+    if (count < 2) {
+      center.innerHTML = '';
+      return;
+    }
     nav.innerHTML = `
       <button class="tank-arrow left" data-act="tank" data-tank="${(this.view + count - 1) % count}" aria-label="이전 어항">◀</button>
-      <span class="tank-label">🐠 ${this.view + 1}번 어항</span>
       <button class="tank-arrow right" data-act="tank" data-tank="${(this.view + 1) % count}" aria-label="다음 어항">▶</button>`;
+    // 상단 가운데 나무 간판: 지금 보는 어항 (누르면 다음 어항으로)
+    center.innerHTML = `
+      <button class="tank-sign" data-act="tank" data-tank="${(this.view + 1) % count}" aria-label="${this.view + 1}번 어항, 누르면 다음 어항">
+        <span class="sign-board"><b>${this.view + 1}번 어항</b><span class="sign-dots">${Array.from({ length: count }, (_, i) => `<i class="${i === this.view ? 'on' : ''}"></i>`).join('')}</span></span>
+      </button>`;
   }
 
   touchFish(f) {
