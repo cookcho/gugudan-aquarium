@@ -14,7 +14,6 @@ import { tankBackdrop } from '../graphics/tanks.js';
 import { legendArt } from '../graphics/legend.js';
 import { createTrainSVG } from '../graphics/decorBig.js';
 import { SEA2 } from '../data/sea2.js';
-import { sea2Art } from '../graphics/sea2.js';
 import { Swimmer, PROFILES } from '../core/swim.js';
 import { GuestManager } from './guests.js';
 
@@ -104,6 +103,7 @@ export class HomeScene {
           <button class="time-badge" data-act="time" aria-label="지금 어항 시간"></button>
           <button class="goal-bar" data-act="goal" hidden></button>
           <div class="tank-nav" hidden></div>
+          ${store.sea2Open() || SEA2.some((it) => store.progress2(it.id) >= 1) ? '<button class="island-go" data-act="island">🏝️ 친구들의 섬</button>' : ''}
           <button class="fireworks-btn" data-act="fireworks" hidden aria-label="해파리 불꽃놀이">🎆</button>
           <div class="nameplate" hidden></div>
           <div class="glow-dots">${Array.from({ length: 48 }, () => `<i style="left:${Math.random() * 98}%;top:${3 + Math.random() * 82}%;--s:${(0.35 + Math.random() * 0.75).toFixed(2)};animation-duration:${(1.6 + Math.random() * 2.6).toFixed(1)}s;animation-delay:${-(Math.random() * 4).toFixed(1)}s"></i>`).join('')}</div>
@@ -930,7 +930,6 @@ export class HomeScene {
       this.tank.appendChild(f.info);
       this.fishes.push(f);
     }
-    this.spawnSea2Friends(rect);
     this.lastT = performance.now();
     this.refreshStatus();
   }
@@ -942,43 +941,8 @@ export class HomeScene {
       f.badge?.remove();
       f.info?.remove();
     }
-    for (const f of this.sea2Fish || []) f.el.remove();
     this.fishes = [];
     this.spawnFishes();
-  }
-
-  // 두 번째 바다 친구: 깨어나면 사는 어항에서 헤엄쳐요. 누르면 인사해요 (배고픔·똥은 첫 바다 친구만)
-  spawnSea2Friends(rect) {
-    this.sea2Fish = [];
-    SEA2.forEach((isl) => {
-      const p = store.progress2(isl.id);
-      if (p < 2 || store.tankOf(`s2:${isl.id}`) !== this.view) return;
-      const size = Math.round(this.u * (p === 2 ? 10 : 12.5));
-      const el = h(`<div class="fish sea2-fish">${sea2Art(isl.id, p, size)}</div>`);
-      const x = 40 + Math.random() * (rect.width - size - 80);
-      const y = 40 + Math.random() * (this.swimH - size * 2);
-      const sw = new Swimmer({ speed: 0.9, zone: 'any', bob: 0.5, rest: 0.25, dash: 0.1, wag: 0.8, tilt: true, visit: 0.1 }, x, y, size);
-      el.addEventListener('pointerdown', (e) => {
-        e.stopPropagation();
-        sound.playPop();
-        this.say(`${isl.friend.name}: "${isl.friend.line}"`);
-        sw.spin = 1;
-        sw.vy = -2;
-        floatUp(this.tank, sw.x + size / 2, sw.y, '💖');
-      });
-      this.tank.appendChild(el);
-      this.sea2Fish.push({ el, sw, size });
-    });
-  }
-
-  stepSea2(dt, W, H) {
-    for (const f of this.sea2Fish || []) {
-      const cx = f.sw.x + f.size / 2;
-      const cy = f.sw.y + f.size / 2;
-      const near = this.attention && (this.attention.all || Math.hypot(this.attention.x - cx, this.attention.y - cy) < 380);
-      f.sw.update({ W, H, dt, food: this.nearestBubble(cx, cy), attention: near ? this.attention : null, friends: [], decors: [], night: this.isNight(), hungry: false, sick: false });
-      f.el.style.transform = f.sw.transform();
-    }
   }
 
   // 어항이 여러 개면 ◀ ▶로 넘겨 봐요
@@ -1067,6 +1031,7 @@ export class HomeScene {
       if (act === 'time') this.say(TIME_INFO[timeOfDay()].say);
       if (act === 'goal') openDecorShop((c) => this.afterShop(c), 'big');
       if (act === 'fireworks') this.fireworks();
+      if (act === 'island') this.app.go('island');
       const t = e.target.closest('[data-tank]')?.dataset.tank;
       if (t !== undefined) {
         sound.playWhoosh();
@@ -1397,7 +1362,6 @@ export class HomeScene {
     }
     this.guests?.step(dt, W, H);
     this.stepLegend(dt, W, H);
-    this.stepSea2(dt, W, H);
     this.stepTrain(dt);
   }
 

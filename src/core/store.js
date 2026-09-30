@@ -53,7 +53,7 @@ function freshSave() {
     goal: null, // 저금통 목표로 찜한 스페셜 id
     tankLevel: 0, // 어항 단계 0 기본 · 1 큰 수족관 · 2 산호초 · 3 바다 왕궁
     progress2: {}, // 두 번째 바다 섬별 단계 { bundle: 0~4 }
-    fishTank: {}, // 친구가 사는 어항 { '2': 0, 's2:bundle': 1 } (없으면 첫 바다 친구 0번, 두 번째 바다 친구 1번)
+    fishTank: {}, // 첫 바다 친구가 사는 어항 { '2': 1 } (없으면 0번). 두 번째 바다 친구는 친구들의 섬에서 살아요
     viewTank: 0, // 지금 보고 있는 어항
     wordMisses: [], // 문장제 복습할 문제 유형 [{ word, template }] (최근 12개)
     words: {}, // 문장제 기록 { 섬id: { ok, miss, calc(계산 실수), read(문장 이해 실수) } }
@@ -581,7 +581,8 @@ class Store {
 
   // key: 첫 바다 친구는 단('2'), 두 번째 바다 친구는 's2:섬id'. 살 어항이 없으면 null
   tankOf(key) {
-    const t = this.data.fishTank?.[key] ?? (String(key).startsWith('s2:') ? 1 : 0);
+    if (String(key).startsWith('s2:')) return null; // 두 번째 바다 친구는 어항 대신 친구들의 섬에서 살아요
+    const t = this.data.fishTank?.[key] ?? 0;
     return t < this.tankCount() ? t : null;
   }
 

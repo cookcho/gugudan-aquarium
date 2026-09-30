@@ -183,8 +183,14 @@ export class Sea2Scene {
             ${m.done ? '<span class="mode-done">✓</span>' : ''}
             ${m.k === rec ? '<span class="mode-tag">추천</span>' : ''}
           </button>`).join('')}
-      </div>`;
+      </div>
+      <button class="island-go in-panel" data-island>🏝️ 친구들의 섬 <small>깨어난 친구 ${SEA2.filter((it) => store.progress2(it.id) >= 2).length}/9</small></button>`;
     panel.onclick = (e) => {
+      if (e.target.closest('[data-island]')) {
+        sound.playPop();
+        this.app.go('island', { from: 'sea2' });
+        return;
+      }
       const b = e.target.closest('[data-stage]');
       if (!b) return;
       const m = modes[Number(b.dataset.stage)];

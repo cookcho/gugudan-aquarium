@@ -238,7 +238,6 @@ export function openDex(startTab = 'fish', onMove = () => {}) {
         ${p >= 1 ? sea2Art(isl.id, p, 70, w.icon) : '<span class="dex-q">?</span>'}
         <b>${p >= 2 ? isl.friend.name : '???'}</b>
         <small>${w.icon} ${w.name} · ${p ? SEA2_STAGES[p - 1].label : '아직 못 만났어요'}</small>
-        ${p >= 2 ? tankBtn(`s2:${isl.id}`) : ''}
       </div>`;
   }).join('');
   const showSea2 = store.sea2Open() || sea2Count > 0;
@@ -252,7 +251,7 @@ export function openDex(startTab = 'fish', onMove = () => {}) {
     ${tab === 'fish'
       ? `<p class="sheet-sub">모은 친구 <b>${total}</b> / 32 · 하트는 친구와 친한 정도예요</p><div class="dex">${rows}</div>`
       : tab === 'sea2'
-        ? `<p class="sheet-sub">문장제 섬에서 깨어난 친구 <b>${sea2Count}</b> / 9 · ${store.tankCount() > 1 ? '깨어난 친구는 어항에서 헤엄쳐요' : '스페셜의 🐠 두 번째 어항이 있으면 어항에서 만날 수 있어요'}</p><div class="guest-grid">${sea2Cards}</div>`
+        ? `<p class="sheet-sub">문장제 섬에서 깨어난 친구 <b>${sea2Count}</b> / 9 · 깨어난 친구는 🏝️ 친구들의 섬에서 살아요</p><div class="guest-grid">${sea2Cards}</div>`
         : `<p class="sheet-sub">만난 손님 <b>${metCount}</b> / ${GUESTS.length} · 손님이 좋아하는 장식을 어항에 놓으면 가끔 놀러 와요</p><div class="guest-grid">${guestCards}</div>`}`;
   const el = sheet('📖 바다 도감', render());
   el.addEventListener('click', (e) => {
