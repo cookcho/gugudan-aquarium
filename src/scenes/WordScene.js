@@ -139,7 +139,7 @@ export class WordScene {
     this.locked = false;
     this.el.querySelector('.word-q').innerHTML = highlight(this.p.text);
     this.el.querySelector('.word-hint').innerHTML = '';
-    this.setFeedback(this.idx === 0 ? '문제를 천천히 읽고, 색칠된 숫자를 봐요!' : '');
+    this.setFeedback(this.idx === 0 ? '천천히 읽고, 빨간 숫자와 노란 힌트 말을 찾아봐요!' : '');
     const box = this.el.querySelector('.word-answer');
     if (this.cfg.input === 'choice') {
       box.className = 'word-answer answers four-row';
