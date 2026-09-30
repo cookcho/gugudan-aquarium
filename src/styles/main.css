@@ -987,3 +987,11 @@ button.pill { cursor: pointer; }
 .word-table .num { font-variant-numeric: tabular-nums; }
 .rate-bar { height: 6px; background: #E3ECEF; border-radius: 999px; margin-top: 4px; overflow: hidden; width: 90px; }
 .rate-bar i { display: block; height: 100%; background: #6D4FB5; border-radius: 999px; }
+
+/* 어항 여러 개: 양옆 화살표와 몇 번 어항인지 */
+.tank-nav { position: absolute; inset: 0; z-index: 14; pointer-events: none; }
+.tank-arrow { position: absolute; top: 42%; pointer-events: auto; width: calc(var(--u) * 5.2); height: calc(var(--u) * 8); border: 2px solid rgba(255, 255, 255, .8); background: rgba(255, 255, 255, .35); color: #fff; font-size: calc(var(--u) * 2.6); cursor: pointer; backdrop-filter: blur(2px); }
+.tank-arrow.left { left: 0; border-radius: 0 calc(var(--u) * 2) calc(var(--u) * 2) 0; border-left: 0; }
+.tank-arrow.right { right: 0; border-radius: calc(var(--u) * 2) 0 0 calc(var(--u) * 2); border-right: 0; }
+.tank-label { position: absolute; left: 50%; top: calc(var(--u) * 8.8); translate: -50% 0; background: rgba(255, 255, 255, .8); color: var(--ink); border-radius: 999px; padding: calc(var(--u) * 0.3) calc(var(--u) * 1.4); font-size: calc(var(--u) * 1.7); }
+.sea2-fish .sea2-art { pointer-events: none; }

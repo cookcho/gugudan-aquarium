@@ -53,6 +53,8 @@ function freshSave() {
     goal: null, // 저금통 목표로 찜한 스페셜 id
     tankLevel: 0, // 어항 단계 0 기본 · 1 큰 수족관 · 2 산호초 · 3 바다 왕궁
     progress2: {}, // 두 번째 바다 섬별 단계 { bundle: 0~4 }
+    fishTank: {}, // 친구가 사는 어항 { '2': 0, 's2:bundle': 1 } (없으면 첫 바다 친구 0번, 두 번째 바다 친구 1번)
+    viewTank: 0, // 지금 보고 있는 어항
     words: {}, // 문장제 기록 { 섬id: { ok, miss, calc(계산 실수), read(문장 이해 실수) } }
     gift: null, // { date, dan, x, opened }
     lastVisit: Date.now(),
@@ -393,9 +395,9 @@ class Store {
     this.save();
   }
 
-  addPoop(x) {
+  addPoop(x, tank = 0) {
     if (this.data.poops.length >= MAX_POOPS) return null;
-    const poop = { id: `p${Date.now()}${Math.floor(Math.random() * 1000)}`, x };
+    const poop = { id: `p${Date.now()}${Math.floor(Math.random() * 1000)}`, x, tank };
     this.data.poops.push(poop);
     this.save();
     return poop;
@@ -428,7 +430,7 @@ class Store {
     const intervals = Math.floor(raw / POOP_EVERY_MS);
     for (let i = 0; i < intervals * hatched.length; i++) {
       if (this.data.poops.length >= MAX_POOPS) break;
-      this.data.poops.push({ id: `p${now}${i}`, x: 8 + Math.random() * 84 });
+      this.data.poops.push({ id: `p${now}${i}`, x: 8 + Math.random() * 84, tank: this.tankOf(String(hatched[i % hatched.length])) ?? 0 });
     }
     this.data.lastVisit = raw > 3 * DAY_MS ? now : this.data.lastVisit + intervals * POOP_EVERY_MS;
 
@@ -557,10 +559,10 @@ class Store {
     this.save();
   }
 
-  placeDecoration(id, x, b) {
+  placeDecoration(id, x, b, tank = 0) {
     const d = this.data.decorations.find((it) => it.id === id);
     if (!d) return;
-    Object.assign(d, { x, b, placed: true });
+    Object.assign(d, { x, b, tank, placed: true });
     this.save();
   }
 
@@ -569,6 +571,26 @@ class Store {
     if (!d) return;
     d.placed = false;
     this.save();
+  }
+
+  // ---- 어항 여러 개 ----
+  tankCount() {
+    return this.ownsBig('aquarium2') ? 2 : 1;
+  }
+
+  // key: 첫 바다 친구는 단('2'), 두 번째 바다 친구는 's2:섬id'. 살 어항이 없으면 null
+  tankOf(key) {
+    const t = this.data.fishTank?.[key] ?? (String(key).startsWith('s2:') ? 1 : 0);
+    return t < this.tankCount() ? t : null;
+  }
+
+  setFishTank(key, t) {
+    this.data.fishTank = { ...(this.data.fishTank || {}), [key]: t };
+    this.save();
+  }
+
+  viewTank() {
+    return Math.min(this.data.viewTank || 0, this.tankCount() - 1);
   }
 
   // ---- 두 번째 바다 (문장제) ----

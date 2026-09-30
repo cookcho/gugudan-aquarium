@@ -12,6 +12,9 @@ import { REQUESTS, josa } from '../data/care.js';
 import confetti from 'canvas-confetti';
 import { GUESTS } from '../data/guests.js';
 import { guestSVG } from '../graphics/guests.js';
+import { SEA2, SEA2_STAGES } from '../data/sea2.js';
+import { WORD_ISLANDS } from '../data/wordProblems.js';
+import { sea2Art } from '../graphics/sea2.js';
 
 const guestLikes = (type) => GUESTS.some((g) => g.likes.includes(type));
 
@@ -188,7 +191,8 @@ export function openDecorShop(onChange, startTab = 'plant') {
   });
 }
 
-export function openDex(startTab = 'fish') {
+// onMove: 친구를 다른 어항으로 옮겼을 때 어항 화면이 다시 그리도록 불러요
+export function openDex(startTab = 'fish', onMove = () => {}) {
   let tab = startTab;
   const rows = DAN_ORDER.map((dan) => {
     const c = CHARACTERS[dan];
@@ -205,7 +209,7 @@ export function openDex(startTab = 'fish') {
       <div class="dex-row">
         <div class="dex-head">
           <b style="color:${c.color}">${dan}단</b><span>${p >= 2 ? store.petName(dan) : c.species}</span>
-          ${p >= 2 ? `<span class="dex-love">${hearts(store.loveLevel(dan))}</span><span class="dex-links"><button class="link-mini" data-card="${dan}">🪪 카드</button><button class="link-mini" data-rename="${dan}">✏️ 이름 짓기</button></span>` : ''}
+          ${p >= 2 ? `<span class="dex-love">${hearts(store.loveLevel(dan))}</span><span class="dex-links"><button class="link-mini" data-card="${dan}">🪪 카드</button><button class="link-mini" data-rename="${dan}">✏️ 이름 짓기</button>${tankBtn(String(dan))}</span>` : ''}
         </div>
         <div class="dex-cells">${cells}</div>
       </div>`;
@@ -224,15 +228,32 @@ export function openDex(startTab = 'fish') {
         <small>${met ? `${g.species} · ${info.visits}번 놀러 왔어요` : `좋아하는 것: ${g.likes.map(itemName).filter(Boolean).join(', ')}`}</small>
       </div>`;
   }).join('');
-  // 상점처럼 탭으로 나눠요: 바다 친구 / 손님
+  // 두 번째 바다 친구
+  const sea2Count = SEA2.filter((s) => store.progress2(s.id) >= 2).length;
+  const sea2Cards = SEA2.map((isl) => {
+    const p = store.progress2(isl.id);
+    const w = WORD_ISLANDS[isl.word];
+    return `
+      <div class="guest-card ${p >= 2 ? '' : 'unmet'}">
+        ${p >= 1 ? sea2Art(isl.id, p, 70, w.icon) : '<span class="dex-q">?</span>'}
+        <b>${p >= 2 ? isl.friend.name : '???'}</b>
+        <small>${w.icon} ${w.name} · ${p ? SEA2_STAGES[p - 1].label : '아직 못 만났어요'}</small>
+        ${p >= 2 ? tankBtn(`s2:${isl.id}`) : ''}
+      </div>`;
+  }).join('');
+  const showSea2 = store.sea2Open() || sea2Count > 0;
+  // 상점처럼 탭으로 나눠요: 바다 친구 / 두 번째 바다 / 손님
   const render = () => `
     <div class="shop-tabs">
       <button class="shop-tab ${tab === 'fish' ? 'on' : ''}" data-tab="fish">🐠 바다 친구 <small>${total}/32</small></button>
+      ${showSea2 ? `<button class="shop-tab ${tab === 'sea2' ? 'on' : ''}" data-tab="sea2">⛵ 두 번째 바다 <small>${sea2Count}/9</small></button>` : ''}
       <button class="shop-tab ${tab === 'guests' ? 'on' : ''}" data-tab="guests">🦀 손님 <small>${metCount}/${GUESTS.length}</small></button>
     </div>
     ${tab === 'fish'
       ? `<p class="sheet-sub">모은 친구 <b>${total}</b> / 32 · 하트는 친구와 친한 정도예요</p><div class="dex">${rows}</div>`
-      : `<p class="sheet-sub">만난 손님 <b>${metCount}</b> / ${GUESTS.length} · 손님이 좋아하는 장식을 어항에 놓으면 가끔 놀러 와요</p><div class="guest-grid">${guestCards}</div>`}`;
+      : tab === 'sea2'
+        ? `<p class="sheet-sub">문장제 섬에서 깨어난 친구 <b>${sea2Count}</b> / 9 · ${store.tankCount() > 1 ? '깨어난 친구는 어항에서 헤엄쳐요' : '스페셜의 🐠 두 번째 어항이 있으면 어항에서 만날 수 있어요'}</p><div class="guest-grid">${sea2Cards}</div>`
+        : `<p class="sheet-sub">만난 손님 <b>${metCount}</b> / ${GUESTS.length} · 손님이 좋아하는 장식을 어항에 놓으면 가끔 놀러 와요</p><div class="guest-grid">${guestCards}</div>`}`;
   const el = sheet('📖 바다 도감', render());
   el.addEventListener('click', (e) => {
     const t = e.target.closest('[data-tab]');
@@ -247,14 +268,33 @@ export function openDex(startTab = 'fish') {
       openCard(Number(card.dataset.card));
       return;
     }
+    const mv = e.target.closest('[data-move]');
+    if (mv) {
+      // 1번 ↔ 2번 어항으로 옮겨요
+      const key = mv.dataset.move;
+      store.setFishTank(key, (store.tankOf(key) ?? 0) === 0 ? 1 : 0);
+      sound.playWhoosh();
+      toast(`${store.tankOf(key) + 1}번 어항으로 옮겼어요 🐠`);
+      onMove();
+      el.remove();
+      openDex(tab, onMove);
+      return;
+    }
     const b = e.target.closest('[data-rename]');
     if (!b) return;
     sound.playPop();
     openRename(Number(b.dataset.rename), () => {
       el.remove();
-      openDex(tab);
+      openDex(tab, onMove);
     });
   });
+}
+
+// 어항이 두 개 이상이면 친구를 다른 어항으로 옮기는 버튼
+function tankBtn(key) {
+  if (store.tankCount() < 2) return '';
+  const t = store.tankOf(key) ?? 0;
+  return `<button class="link-mini" data-move="${key}">🏠 ${t + 1}번 어항 → ${t === 0 ? 2 : 1}번</button>`;
 }
 
 export function hearts(level) {

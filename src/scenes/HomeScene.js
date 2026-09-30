@@ -13,6 +13,8 @@ import { bigItemById } from '../data/bigItems.js';
 import { tankBackdrop } from '../graphics/tanks.js';
 import { legendArt } from '../graphics/legend.js';
 import { createTrainSVG } from '../graphics/decorBig.js';
+import { SEA2 } from '../data/sea2.js';
+import { sea2Art } from '../graphics/sea2.js';
 import { Swimmer, PROFILES } from '../core/swim.js';
 import { GuestManager } from './guests.js';
 
@@ -49,7 +51,7 @@ function careMessage() {
   const req = store.ensureRequests();
   if (req && !req.rewarded && req.list.some((q) => !q.done)) return '친구들이 부탁이 있대요! 머리 위 그림을 봐요 📋';
   if (canReview) return '오늘의 복습 5문제 풀어 볼까? 📅';
-  if (store.data.poops.length >= 6) return '어항이 더러워졌어요. 청소해 줄까?';
+  if (store.data.poops.filter((p) => (p.tank ?? 0) === store.viewTank()).length >= 6) return '어항이 더러워졌어요. 청소해 줄까?';
   return null;
 }
 
@@ -82,6 +84,7 @@ export class HomeScene {
     this.alive = true;
     this.feeding = false;
     this.u = unit();
+    this.view = store.viewTank(); // 지금 보고 있는 어항 (어항이 여러 개일 때)
     store.careTick();
     store.ensureRequests();
     store.rollGift();
@@ -100,6 +103,7 @@ export class HomeScene {
           <div class="sky-tint"></div>
           <button class="time-badge" data-act="time" aria-label="지금 어항 시간"></button>
           <button class="goal-bar" data-act="goal" hidden></button>
+          <div class="tank-nav" hidden></div>
           <button class="fireworks-btn" data-act="fireworks" hidden aria-label="해파리 불꽃놀이">🎆</button>
           <div class="nameplate" hidden></div>
           <div class="glow-dots">${Array.from({ length: 48 }, () => `<i style="left:${Math.random() * 98}%;top:${3 + Math.random() * 82}%;--s:${(0.35 + Math.random() * 0.75).toFixed(2)};animation-duration:${(1.6 + Math.random() * 2.6).toFixed(1)}s;animation-delay:${-(Math.random() * 4).toFixed(1)}s"></i>`).join('')}</div>
@@ -151,6 +155,7 @@ export class HomeScene {
     this.drawTimeBadge();
     this.renderGoal();
     this.renderMoments();
+    this.renderTankNav();
     this.unsubGoal = store.subscribe(() => this.alive && this.renderGoal());
     this.renderDecor();
     this.buildAlgae();
@@ -616,7 +621,7 @@ export class HomeScene {
   renderDecor() {
     const layer = this.el.querySelector('.decor-layer');
     layer.innerHTML = '';
-    for (const d of store.data.decorations.filter((it) => it.placed)) {
+    for (const d of store.data.decorations.filter((it) => it.placed && (it.tank ?? 0) === this.view)) {
       const interactive = SHOP_ITEMS.find((it) => it.type === d.type)?.interactive;
       const item = h(`<div class="decor${isFloating(d.type) ? ' floating' : ''}${interactive ? ' interactive' : ''}" data-type="${d.type}" style="left:${d.x}%;bottom:${Math.max(MIN_B, d.b)}%">${decorSVG(d.type, this.u)}<button class="decor-back" type="button" aria-label="보관함에 넣기">↩</button></div>`);
       item.addEventListener('pointerdown', (e) => {
@@ -698,14 +703,14 @@ export class HomeScene {
       const overTray = isOver(ev);
       const d = store.data.decorations.find((it) => it.id === id);
       if (fromTray && !moved) {
-        store.placeDecoration(id, 50, isFloating(d.type) ? 50 : 30);
+        store.placeDecoration(id, 50, isFloating(d.type) ? 50 : 30, this.view);
         sound.playStar();
         if (isFloating(d.type)) this.requestDone(store.completeRequest('float'));
       } else if (overTray) {
         store.storeDecoration(id);
         if (!fromTray) toast('보관함에 넣었어요');
       } else {
-        store.placeDecoration(id, pos.x, pos.b);
+        store.placeDecoration(id, pos.x, pos.b, this.view);
         sound.playStar();
         if (moved) this.requestDone(store.completeRequest('decor'));
         if (isFloating(d.type)) this.requestDone(store.completeRequest('float'));
@@ -768,7 +773,7 @@ export class HomeScene {
 
   // 똥이 3개부터 이끼가 끼기 시작해서, 많을수록 진해져요. 청소하면 다시 맑아져요.
   updateDirt() {
-    const n = store.data.poops.length;
+    const n = this.poopsHere().length;
     this.el.querySelector('.algae').style.opacity = Math.max(0, Math.min(1, (n - 2) / 9));
     this.el.querySelector('.murk').style.opacity = Math.min(0.25, n * 0.02);
   }
@@ -776,7 +781,7 @@ export class HomeScene {
   // ---- 똥과 청소 ----
   renderPoops() {
     const layer = this.el.querySelector('.poop-layer');
-    layer.innerHTML = store.data.poops.map((p) => {
+    layer.innerHTML = this.poopsHere().map((p) => {
       const lift = (parseInt(p.id.slice(-2), 10) || 0) % 4;
       return `<div class="poop" data-id="${p.id}" style="left:${p.x}%;bottom:${3 + lift * 1.5}%">${createPoopSVG(Math.round(this.u * POOP_U))}</div>`;
     }).join('');
@@ -786,7 +791,7 @@ export class HomeScene {
   dropPoop(f) {
     if (!this.alive || f.p < 2) return;
     const x = Math.max(4, Math.min(96, ((f.x + f.size / 2) / this.bounds.width) * 100));
-    const poop = store.addPoop(x);
+    const poop = store.addPoop(x, this.view);
     if (!poop) return;
     const top = f.y + f.size * 0.8 + this.u * 8;
     this.el.querySelector('.poop-layer').appendChild(
@@ -797,7 +802,7 @@ export class HomeScene {
 
   startCleaning() {
     if (this.cleaning) return this.stopCleaning();
-    if (store.data.poops.length === 0) {
+    if (this.poopsHere().length === 0) {
       toast('어항이 벌써 반짝반짝해요 ✨');
       return;
     }
@@ -834,6 +839,10 @@ export class HomeScene {
   }
 
   // 손가락이 지나간 자리의 똥을 치워요
+  poopsHere() {
+    return store.data.poops.filter((p) => (p.tank ?? 0) === this.view);
+  }
+
   // 스포이드 끝 가까이 있는 똥을 쏙 빨아들여요
   wipeAt(x, y) {
     const reach = this.u * 5;
@@ -862,7 +871,7 @@ export class HomeScene {
       const rect = this.el.getBoundingClientRect();
       floatUp(this.el, x - rect.left, y - rect.top, '✨');
       this.updateDirt();
-      if (store.data.poops.length === 0 && this.cleaning) this.cleanDone();
+      if (this.poopsHere().length === 0 && this.cleaning) this.cleanDone();
     }, 380);
   }
 
@@ -899,7 +908,7 @@ export class HomeScene {
     this.swimH = aq.bottom - rect.top - aq.height * 0.05;
     for (const dan of DAN_ORDER) {
       const p = store.data.progress[dan];
-      if (p === 0) continue;
+      if (p === 0 || store.tankOf(String(dan)) !== this.view) continue;
       // 아기는 작게, 성장·황금은 크게
       const size = Math.round(this.u * [0, 11, 10, 12.5, 14][p]);
       const el = h(`<div class="fish ${p === 1 ? 'egg' : ''}" style="--wag:${PROFILES[dan].wag}s">${charSVG(dan, p, size)}</div>`);
@@ -921,8 +930,67 @@ export class HomeScene {
       this.tank.appendChild(f.info);
       this.fishes.push(f);
     }
+    this.spawnSea2Friends(rect);
     this.lastT = performance.now();
     this.refreshStatus();
+  }
+
+  // 도감에서 친구를 다른 어항으로 옮기면 친구들을 다시 불러와요
+  respawnFishes() {
+    for (const f of this.fishes) {
+      f.el.remove();
+      f.badge?.remove();
+      f.info?.remove();
+    }
+    for (const f of this.sea2Fish || []) f.el.remove();
+    this.fishes = [];
+    this.spawnFishes();
+  }
+
+  // 두 번째 바다 친구: 깨어나면 사는 어항에서 헤엄쳐요. 누르면 인사해요 (배고픔·똥은 첫 바다 친구만)
+  spawnSea2Friends(rect) {
+    this.sea2Fish = [];
+    SEA2.forEach((isl) => {
+      const p = store.progress2(isl.id);
+      if (p < 2 || store.tankOf(`s2:${isl.id}`) !== this.view) return;
+      const size = Math.round(this.u * (p === 2 ? 10 : 12.5));
+      const el = h(`<div class="fish sea2-fish">${sea2Art(isl.id, p, size)}</div>`);
+      const x = 40 + Math.random() * (rect.width - size - 80);
+      const y = 40 + Math.random() * (this.swimH - size * 2);
+      const sw = new Swimmer({ speed: 0.9, zone: 'any', bob: 0.5, rest: 0.25, dash: 0.1, wag: 0.8, tilt: true, visit: 0.1 }, x, y, size);
+      el.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        sound.playPop();
+        this.say(`${isl.friend.name}: "${isl.friend.line}"`);
+        sw.spin = 1;
+        sw.vy = -2;
+        floatUp(this.tank, sw.x + size / 2, sw.y, '💖');
+      });
+      this.tank.appendChild(el);
+      this.sea2Fish.push({ el, sw, size });
+    });
+  }
+
+  stepSea2(dt, W, H) {
+    for (const f of this.sea2Fish || []) {
+      const cx = f.sw.x + f.size / 2;
+      const cy = f.sw.y + f.size / 2;
+      const near = this.attention && (this.attention.all || Math.hypot(this.attention.x - cx, this.attention.y - cy) < 380);
+      f.sw.update({ W, H, dt, food: this.nearestBubble(cx, cy), attention: near ? this.attention : null, friends: [], decors: [], night: this.isNight(), hungry: false, sick: false });
+      f.el.style.transform = f.sw.transform();
+    }
+  }
+
+  // 어항이 여러 개면 ◀ ▶로 넘겨 봐요
+  renderTankNav() {
+    const count = store.tankCount();
+    const nav = this.el.querySelector('.tank-nav');
+    nav.hidden = count < 2;
+    if (count < 2) return;
+    nav.innerHTML = `
+      <button class="tank-arrow left" data-act="tank" data-tank="${(this.view + count - 1) % count}" aria-label="이전 어항">◀</button>
+      <span class="tank-label">🐠 ${this.view + 1}번 어항</span>
+      <button class="tank-arrow right" data-act="tank" data-tank="${(this.view + 1) % count}" aria-label="다음 어항">▶</button>`;
   }
 
   touchFish(f) {
@@ -987,7 +1055,7 @@ export class HomeScene {
       if (act === 'go') this.app.go('map', { dan: this.rec.dan });
       if (act === 'guide') this.say(careMessage() || this.guideLine());
       if (act === 'review') this.app.go('review');
-      if (act === 'dex') openDex();
+      if (act === 'dex') openDex('fish', () => this.respawnFishes());
       if (act === 'decor') this.enterDecor();
       if (act === 'decor-done') this.exitDecor();
       if (act === 'shop') openDecorShop((c) => this.afterShop(c));
@@ -999,6 +1067,12 @@ export class HomeScene {
       if (act === 'time') this.say(TIME_INFO[timeOfDay()].say);
       if (act === 'goal') openDecorShop((c) => this.afterShop(c), 'big');
       if (act === 'fireworks') this.fireworks();
+      const t = e.target.closest('[data-tank]')?.dataset.tank;
+      if (t !== undefined) {
+        sound.playWhoosh();
+        store.setOption('viewTank', Number(t));
+        this.app.go('home');
+      }
       if (act === 'requests') openRequests(() => {
         this.updateRequestPill();
         this.say(careMessage() || this.guideLine());
@@ -1066,7 +1140,7 @@ export class HomeScene {
 
   // ---- 전설의 무지개 잉어: 스페셜로 데려오면 어항에서 가장 크고 화려하게 헤엄쳐요 ----
   spawnLegend() {
-    if (this.legend || !store.ownsBig('legend')) return;
+    if (this.legend || !store.ownsBig('legend') || this.view !== 0) return;
     const size = Math.round(this.u * 17);
     const el = h(`<div class="legend-fish">${legendArt(size)}</div>`);
     const sw = new Swimmer({ speed: 0.9, zone: 'any', bob: 0.6, rest: 0.1, dash: 0.1, wag: 0.8, tilt: true, visit: 0.1 }, this.bounds.width * 0.5, this.swimH * 0.35, size);
@@ -1183,6 +1257,7 @@ export class HomeScene {
     if (item.kind === 'decor') this.renderTray();
     if (item.kind === 'event') this.trainWait = 2;
     if (item.kind === 'moment') this.renderMoments();
+    if (item.kind === 'aquarium') this.renderTankNav();
     sound.playFanfare();
     confetti({ particleCount: 160, spread: 110, origin: { y: 0.5 }, zIndex: 300 });
     setTimeout(() => this.alive && confetti({ particleCount: 90, spread: 140, origin: { y: 0.35 }, zIndex: 300 }), 500);
@@ -1191,6 +1266,7 @@ export class HomeScene {
       decor: `${item.name}을 샀어요! 🪸 꾸미기에서 보관함에 있는 걸 어항에 놓아 봐요`,
       event: `${item.name}가 생겼어요! 곧 어항 바닥을 지나갈 거예요 🚂`,
       music: `${item.name}이 흘러나와요 🎵 상점에서 다시 누르면 원래 곡으로 돌아가요`,
+      aquarium: '두 번째 어항이 생겼어요! 어항 양옆의 ◀ ▶를 눌러 봐요. 도감에서 친구를 옮겨 살게 할 수 있어요 🐠',
       moment: item.id === 'fireworks' ? '어항 오른쪽 위 🎆를 눌러 봐요! 불꽃놀이가 시작돼요' : '어항 앞에 황금 명판이 생겼어요 🏅'
     };
     this.say(says[item.kind] || `${item.name}을 샀어요! 🎉`);
@@ -1321,6 +1397,7 @@ export class HomeScene {
     }
     this.guests?.step(dt, W, H);
     this.stepLegend(dt, W, H);
+    this.stepSea2(dt, W, H);
     this.stepTrain(dt);
   }
 

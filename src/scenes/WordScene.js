@@ -226,6 +226,7 @@ export class WordScene {
           <h2 class="sheet-title">${esc(title)}</h2>
           <div class="word-result-art ${grew ? 'pop' : ''}">${art}</div>
           <p class="sheet-msg">한 번에 맞힌 문제 ${this.firstTry} / ${this.idx} · ⭐ +${this.earned + bonus}</p>
+          ${grew && to === 2 ? `<p class="sheet-msg">${store.tankCount() > 1 ? `${f.name}는 2번 어항에서 헤엄쳐요 🐠` : `스페셜의 🐠 두 번째 어항이 있으면 ${f.name}와 어항에서 함께 살 수 있어요`}</p>` : ''}
           <div class="row">
             <button class="btn btn-foam" data-go="again">🔄 다시 하기</button>
             <button class="btn btn-coral" data-go="sea2">⛵ 바다 지도로</button>
