@@ -2,6 +2,7 @@
 import { DANS, DAN_ORDER, CHARACTERS } from '../data/characters.js';
 import { LOVE_LEVELS, DAILY_LOVE_CAP, REQUESTS } from '../data/care.js';
 import { SHOP_ITEMS } from '../data/shop.js';
+import { SEA2, SEA2_OPEN_AT } from '../data/sea2.js';
 
 const FLOAT_TYPES = SHOP_ITEMS.filter((it) => it.float).map((it) => it.type);
 
@@ -51,6 +52,8 @@ function freshSave() {
     bigItems: [], // 산 스페셜 id
     goal: null, // 저금통 목표로 찜한 스페셜 id
     tankLevel: 0, // 어항 단계 0 기본 · 1 큰 수족관 · 2 산호초 · 3 바다 왕궁
+    progress2: {}, // 두 번째 바다 섬별 단계 { bundle: 0~4 }
+    words: {}, // 문장제 기록 { 섬id: { ok, miss, calc(계산 실수), read(문장 이해 실수) } }
     gift: null, // { date, dan, x, opened }
     lastVisit: Date.now(),
     lastSickRoll: Date.now(),
@@ -565,6 +568,46 @@ class Store {
     const d = this.data.decorations.find((it) => it.id === id);
     if (!d) return;
     d.placed = false;
+    this.save();
+  }
+
+  // ---- 두 번째 바다 (문장제) ----
+  goldDans() {
+    return DAN_ORDER.filter((d) => this.data.progress[d] >= 4);
+  }
+
+  sea2Open() {
+    return this.goldDans().length >= SEA2_OPEN_AT;
+  }
+
+  progress2(id) {
+    return this.data.progress2?.[id] ?? 0;
+  }
+
+  // 첫 섬은 바다가 열리면 바로, 다음 섬은 앞 섬 친구가 깨어나면 열려요
+  isUnlocked2(i) {
+    if (!this.sea2Open()) return false;
+    return i === 0 || this.progress2(SEA2[i - 1].id) >= 2;
+  }
+
+  raiseProgress2(id, p) {
+    const from = this.progress2(id);
+    if (p > from) {
+      this.data.progress2 = { ...(this.data.progress2 || {}), [id]: p };
+      this.save();
+    }
+    return { from, to: Math.max(from, p) };
+  }
+
+  // kind: 'ok' | 'calc'(식은 맞게 세웠는데 계산 실수) | 'read'(문장을 잘못 이해)
+  recordWord(id, kind) {
+    const w = this.data.words || (this.data.words = {});
+    const r = w[id] || (w[id] = { ok: 0, miss: 0, calc: 0, read: 0 });
+    if (kind === 'ok') r.ok++;
+    else {
+      r.miss++;
+      r[kind]++;
+    }
     this.save();
   }
 

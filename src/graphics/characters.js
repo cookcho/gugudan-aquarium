@@ -2,6 +2,7 @@
 // charSVG(dan, progress, size): progress 1 알 · 2 아기 · 3 성장 · 4 황금
 import { CHARACTERS } from '../data/characters.js';
 import { GUESTS } from '../data/guests.js';
+import { SEA2 } from '../data/sea2.js';
 
 const GOLD = { c: '#FFD54A', d: '#D9A400', l: '#FFF3B0' };
 
@@ -175,7 +176,7 @@ const imageUrl = (name) => `${import.meta.env.BASE_URL}characters/${name}.png`;
 
 // 앱 시작 때 한 번 어떤 그림이 있는지 확인해요
 export function preloadCharacterImages() {
-  const names = ['guide', 'legend', 'boss-shark', 'boss-shark-angry', 'boss-shark-dizzy', ...GUESTS.map((g) => `guest-${g.id}`), ...Object.keys(CHARACTERS).flatMap((d) => [1, 2, 3, 4].map((p) => `${d}-${p}`))];
+  const names = ['guide', 'legend', 'boss-shark', 'boss-shark-angry', 'boss-shark-dizzy', ...GUESTS.map((g) => `guest-${g.id}`), ...SEA2.map((s) => `sea2-${s.id}`), ...Object.keys(CHARACTERS).flatMap((d) => [1, 2, 3, 4].map((p) => `${d}-${p}`))];
   return Promise.all(names.map((name) => new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {

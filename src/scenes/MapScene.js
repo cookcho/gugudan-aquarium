@@ -6,6 +6,7 @@ import { CHARACTERS, DAN_ORDER, STAGES, stageName } from '../data/characters.js'
 import { charSVG } from '../graphics/characters.js';
 import { guideBubble, takeTip } from './tips.js';
 import { callKid } from '../data/care.js';
+import { SEA2_OPEN_AT } from '../data/sea2.js';
 import { ISLAND_PROPS, underwater, SHARK, FISH_SCHOOL, CLOUD, GULLS, DOLPHIN, LITTLE_FISH } from '../graphics/mapArt.js';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -162,6 +163,19 @@ export class MapScene {
     this.svg.addEventListener('click', (e) => this.onTap(e));
     this.renderPanel();
     this.buildCritters();
+    // 두 번째 바다(문장제)로 가는 배: 황금 섬이 SEA2_OPEN_AT개면 열려요
+    const gold = store.goldDans().length;
+    const sea2 = h(`<button class="sea2-go ${store.sea2Open() ? 'open' : ''}">⛵ 두 번째 바다${store.sea2Open() ? '로!' : ` 🔒 황금 ${gold}/${SEA2_OPEN_AT}`}</button>`);
+    sea2.addEventListener('click', () => {
+      if (!store.sea2Open()) {
+        sound.playBoing();
+        toast(`황금 섬이 ${SEA2_OPEN_AT}개가 되면 두 번째 바다로 갈 수 있어요! (지금 ${gold}개)`);
+        return;
+      }
+      sound.playPop();
+      this.app.go('sea2');
+    });
+    this.el.querySelector('.map-sea').appendChild(sea2);
     // 뽀글이는 지도에 늘 있어요. 누르면 지금 무엇을 하면 되는지 알려줘요
     this.guide = guideBubble(this.bar.el.querySelector('.group'), { stay: true, cls: 'map-guide', onTap: () => this.hint() });
   }

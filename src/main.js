@@ -14,6 +14,8 @@ import { ReviewScene } from './scenes/ReviewScene.js';
 import { ResultScene } from './scenes/ResultScene.js';
 import { ParentScene } from './scenes/ParentScene.js';
 import { firstTip } from './scenes/tips.js';
+import { Sea2Scene } from './scenes/Sea2Scene.js';
+import { WordScene } from './scenes/WordScene.js';
 
 // 화면이 바뀔 때 거품이 아래에서 위로 휙 올라가요
 function bubbleWipe() {
@@ -30,6 +32,8 @@ function bubbleWipe() {
 const SCENES = {
   home: HomeScene,
   map: MapScene,
+  sea2: Sea2Scene,
+  word: WordScene,
   song: SongScene,
   stepping: SteppingScene,
   mix: MixScene,
@@ -41,11 +45,11 @@ const SCENES = {
 };
 
 // 학습 시간으로 세는 장면 (한 장면 최대 15분까지만 셈)
-const LEARNING = new Set(['song', 'stepping', 'mix', 'keypad', 'boss', 'review']);
+const LEARNING = new Set(['song', 'stepping', 'mix', 'keypad', 'boss', 'review', 'word']);
 const MAX_SCENE_MS = 15 * 60 * 1000;
 
 // 화면별 배경음악 (문제 푸는 화면은 읽어주는 소리를 위해 조용히)
-const MUSIC_FOR = { home: 'aquarium', map: 'adventure' };
+const MUSIC_FOR = { home: 'aquarium', map: 'adventure', sea2: 'adventure' };
 
 class App {
   constructor(root) {
