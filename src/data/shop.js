@@ -50,9 +50,9 @@ export const SHOP_ITEMS = [
   { type: 'diverPink', cat: 'float', float: true, name: '꼬마 잠수부 (분홍)', cost: 20, size: 12, draw: floating.createDiverPinkSVG },
   { type: 'submarine', cat: 'float', float: true, name: '노란 잠수함', cost: 35, size: 11.2, need: 1, draw: floating.createSubmarineSVG },
   // 스페셜 장식 (상점 "🌟 스페셜" 칸에서 사요, interactive: 누르면 움직여요)
-  { type: 'pirateShip', cat: 'bigdecor', interactive: true, name: '해적선', cost: 300, size: 22, draw: big.createPirateShipSVG },
-  { type: 'fountain', cat: 'bigdecor', interactive: true, name: '거품 분수 성', cost: 250, size: 13, draw: big.createFountainCastleSVG },
-  { type: 'carousel', cat: 'bigdecor', interactive: true, name: '산호 회전목마', cost: 400, size: 15, draw: big.createCarouselSVG },
+  { type: 'pirateShip', cat: 'bigdecor', interactive: true, name: '해적선', cost: 150, size: 22, draw: big.createPirateShipSVG },
+  { type: 'fountain', cat: 'bigdecor', interactive: true, name: '거품 분수 성', cost: 140, size: 13, draw: big.createFountainCastleSVG },
+  { type: 'carousel', cat: 'bigdecor', interactive: true, name: '산호 회전목마', cost: 180, size: 15, draw: big.createCarouselSVG },
   { type: 'robot', cat: 'float', float: true, name: '탐사 로봇', cost: 40, size: 9.6, need: 2, draw: floating.createRobotSVG }
 ];
 
