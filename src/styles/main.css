@@ -302,9 +302,9 @@ button.pill { cursor: pointer; }
 .boat { transition: transform .9s cubic-bezier(.45, 0, .25, 1); }
 .boat-bob { animation: rock 2.4s ease-in-out infinite; }
 .map-panel {
-  background: var(--foam); padding: calc(var(--u) * 8) calc(var(--u) * 2.4) calc(var(--u) * 1.8);
+  background: var(--foam); padding: calc(var(--u) * 6.8) calc(var(--u) * 2.4) calc(var(--u) * 1.6);
   border-left: calc(var(--u) * 0.6) solid #C98A4B; box-shadow: inset calc(var(--u) * 0.4) 0 0 #E7B982;
-  overflow-y: auto; display: flex; flex-direction: column; gap: calc(var(--u) * 1.1);
+  overflow-y: auto; display: flex; flex-direction: column; gap: calc(var(--u) * 0.9);
 }
 .panel-head { display: flex; align-items: center; gap: calc(var(--u) * 1.4); }
 .panel-head h2 { font-size: calc(var(--u) * 2.8); font-weight: 400; }
@@ -316,7 +316,7 @@ button.pill { cursor: pointer; }
 .mode {
   position: relative; display: flex; align-items: center; gap: calc(var(--u) * 1.4); text-align: left; cursor: pointer;
   border: 2px solid #CFE6EE; background: #fff; border-radius: calc(var(--u) * 1.8);
-  padding: calc(var(--u) * 0.8) calc(var(--u) * 1.6); min-height: 60px;
+  padding: calc(var(--u) * 0.7) calc(var(--u) * 1.6); min-height: 54px;
 }
 .mode:active { transform: scale(.98); }
 .mode-icon { font-size: calc(var(--u) * 3.2); }
@@ -948,7 +948,7 @@ button.pill { cursor: pointer; }
 .map.sea2 { background: #2E3A7A; }
 .map.sea2 .map-panel { border-left-color: #6D4FB5; box-shadow: inset calc(var(--u) * 0.4) 0 0 #9B86E0; }
 .lv-chip { display: inline-block; vertical-align: middle; color: #fff; font-size: .55em; padding: 2px 8px; border-radius: 999px; }
-.sea2-go { position: absolute; right: calc(var(--u) * 1.4); bottom: calc(var(--u) * 1.4); z-index: 5; border: 3px solid #fff; border-radius: 999px; padding: calc(var(--u) * 0.8) calc(var(--u) * 1.8); background: #A7B5BC; color: #fff; font-family: inherit; font-size: calc(var(--u) * 2); cursor: pointer; box-shadow: 0 calc(var(--u) * 0.4) 0 rgba(0, 0, 0, .2); }
+.sea2-go { margin-top: auto; width: 100%; flex: none; border: 2px solid #fff; border-radius: 999px; padding: calc(var(--u) * 0.45) calc(var(--u) * 1.4); background: #A7B5BC; color: #fff; font-family: inherit; font-size: calc(var(--u) * 1.75); cursor: pointer; box-shadow: 0 calc(var(--u) * 0.3) 0 rgba(0, 0, 0, .2); }
 .sea2-go.open { background: linear-gradient(90deg, #6D4FB5, #8E7FD8); animation: goBadge 1.4s ease-in-out infinite; }
 .sea2-art { position: relative; display: inline-grid; place-items: center; line-height: 0; }
 .sea2-art.baby > * { transform: scale(.8); }
@@ -995,3 +995,6 @@ button.pill { cursor: pointer; }
 .tank-arrow.right { right: 0; border-radius: calc(var(--u) * 2) 0 0 calc(var(--u) * 2); border-right: 0; }
 .tank-label { position: absolute; left: 50%; top: calc(var(--u) * 8.8); translate: -50% 0; background: rgba(255, 255, 255, .8); color: var(--ink); border-radius: 999px; padding: calc(var(--u) * 0.3) calc(var(--u) * 1.4); font-size: calc(var(--u) * 1.7); }
 .sea2-fish .sea2-art { pointer-events: none; }
+
+.ch-arrow.up { animation-name: chArrowUp; }
+@keyframes chArrowUp { to { translate: 0 -5px; } }

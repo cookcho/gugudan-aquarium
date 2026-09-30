@@ -95,10 +95,12 @@ function islandSVG(dan, i, selected) {
       ${open ? `<g transform="translate(0 0)">${pips}</g>` : ''}
       ${challenge ? `
         <g class="ch-orbit">${[0, 90, 180, 270].map((a) => `<path transform="rotate(${a}) translate(0 -118)" d="M0 -12 L3.5 -3.5 L12 0 L3.5 3.5 L0 12 L-3.5 3.5 L-12 0 L-3.5 -3.5Z" fill="#FFF3A8" stroke="#E8A800" stroke-width="1.5"/>`).join('')}</g>
-        <g class="ch-flag" transform="translate(0 -158)">
+        <g class="ch-flag" transform="translate(0 ${y < 300 ? 140 : -158})">
           <rect x="-118" y="-28" width="236" height="54" rx="27" fill="#FF6B4A" stroke="#fff" stroke-width="5"/>
           <text x="0" y="10" text-anchor="middle" font-family="Jua, sans-serif" font-size="30" fill="#fff" textLength="196" lengthAdjust="spacingAndGlyphs">🎯 도전! 별 2배</text>
-          <path d="M-14 32 L14 32 L0 50Z" fill="#FF6B4A" stroke="#fff" stroke-width="3" stroke-linejoin="round" class="ch-arrow"/>
+          ${y < 300
+            ? '<path d="M-14 -32 L14 -32 L0 -50Z" fill="#FF6B4A" stroke="#fff" stroke-width="3" stroke-linejoin="round" class="ch-arrow up"/>'
+            : '<path d="M-14 32 L14 32 L0 50Z" fill="#FF6B4A" stroke="#fff" stroke-width="3" stroke-linejoin="round" class="ch-arrow"/>'}
         </g>` : ''}
       ${open && store.practiceDone(dan) ? '<text x="-70" y="-50" font-size="26" class="rest-mark">💤</text>' : ''}
     </g>`;
@@ -163,19 +165,6 @@ export class MapScene {
     this.svg.addEventListener('click', (e) => this.onTap(e));
     this.renderPanel();
     this.buildCritters();
-    // 두 번째 바다(문장제)로 가는 배: 황금 섬이 SEA2_OPEN_AT개면 열려요
-    const gold = store.goldDans().length;
-    const sea2 = h(`<button class="sea2-go ${store.sea2Open() ? 'open' : ''}">⛵ 두 번째 바다${store.sea2Open() ? '로!' : ` 🔒 황금 ${gold}/${SEA2_OPEN_AT}`}</button>`);
-    sea2.addEventListener('click', () => {
-      if (!store.sea2Open()) {
-        sound.playBoing();
-        toast(`황금 섬이 ${SEA2_OPEN_AT}개가 되면 두 번째 바다로 갈 수 있어요! (지금 ${gold}개)`);
-        return;
-      }
-      sound.playPop();
-      this.app.go('sea2');
-    });
-    this.el.querySelector('.map-sea').appendChild(sea2);
     // 뽀글이는 지도에 늘 있어요. 누르면 지금 무엇을 하면 되는지 알려줘요
     this.guide = guideBubble(this.bar.el.querySelector('.group'), { stay: true, cls: 'map-guide', onTap: () => this.hint() });
   }
@@ -439,7 +428,7 @@ export class MapScene {
     const panel = this.el.querySelector('.map-panel');
     panel.innerHTML = `
       <div class="panel-head">
-        <div class="panel-art">${charSVG(dan, Math.max(1, p), Math.round(this.u * 9))}</div>
+        <div class="panel-art">${charSVG(dan, Math.max(1, p), Math.round(this.u * 8))}</div>
         <div>
           <h2 style="color:${c.color}">${dan}단 ${c.island}</h2>
           <p>${p > 0 ? stageName(dan, p) : `${c.species} ${c.name}의 알을 찾아요`}</p>
@@ -455,8 +444,20 @@ export class MapScene {
             ${m.done ? '<span class="mode-done">✓</span>' : ''}
             ${m.id === rec ? '<span class="mode-tag">추천</span>' : ''}
           </button>`).join('')}
-      </div>`;
+      </div>
+      <button class="sea2-go ${store.sea2Open() ? 'open' : ''}" data-sea2>⛵ 두 번째 바다${store.sea2Open() ? '로!' : ` 🔒 황금 섬 ${store.goldDans().length}/${SEA2_OPEN_AT}`}</button>`;
     panel.onclick = (e) => {
+      // 두 번째 바다(문장제)로 가는 배: 황금 섬이 SEA2_OPEN_AT개면 열려요
+      if (e.target.closest('[data-sea2]')) {
+        if (!store.sea2Open()) {
+          sound.playBoing();
+          toast(`황금 섬이 ${SEA2_OPEN_AT}개가 되면 두 번째 바다로 갈 수 있어요! (지금 ${store.goldDans().length}개)`);
+          return;
+        }
+        sound.playPop();
+        this.app.go('sea2');
+        return;
+      }
       const b = e.target.closest('[data-mode]');
       if (!b) return;
       const m = modes.find((x) => x.id === b.dataset.mode);
