@@ -80,8 +80,10 @@ export class WordScene {
         <div class="word-main">
           <div class="mode-label">${this.label}</div>
           <div class="word-card"><p class="word-q"></p></div>
-          <div class="word-hint"></div>
-          <div class="feedback"></div>
+          <div class="word-status">
+            <div class="word-hint"></div>
+            <div class="feedback"></div>
+          </div>
           <div class="word-answer"></div>
         </div>
         <div class="boss-banner" hidden></div>

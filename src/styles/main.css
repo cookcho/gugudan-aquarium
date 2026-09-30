@@ -970,7 +970,10 @@ button.pill { cursor: pointer; }
 .word-q .wk { text-decoration: none; background: linear-gradient(transparent 55%, #FFE08A 55%); }
 .word-hint { display: grid; gap: calc(var(--u) * 0.6); justify-items: start; }
 .word-step { margin: 0; background: rgba(255, 255, 255, .9); color: var(--ink); border-radius: calc(var(--u) * 1.2); padding: calc(var(--u) * 0.5) calc(var(--u) * 1.4); font-size: calc(var(--u) * 2); }
-.word-main .feedback { justify-items: start; }
+/* 풀이와 정답 문구는 한 줄에 나란히 */
+.word-status { display: flex; align-items: center; flex-wrap: wrap; gap: calc(var(--u) * 1.6); min-height: calc(var(--u) * 4); }
+.word-status .word-hint:empty { display: none; }
+.word-main .feedback { justify-items: start; min-height: 0; }
 .word-answer.answers { position: static; justify-content: flex-start; }
 .word-keypad { display: flex; gap: calc(var(--u) * 2); align-items: center; }
 .word-keypad .kp-input { min-width: calc(var(--u) * 14); }
