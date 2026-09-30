@@ -736,7 +736,10 @@ button.pill { cursor: pointer; }
 /* ---------- 네임카드 ---------- */
 .fish-info { pointer-events: auto; cursor: pointer; }
 .info-card { margin-top: 2px; font-size: .8em; color: #fff; background: var(--sea); border-radius: 999px; padding: 1px calc(var(--u) * 1); }
-.dex-links { display: flex; gap: calc(var(--u) * 1.2); }
+.dex-links { display: flex; gap: calc(var(--u) * 1.4); align-items: flex-start; }
+/* 위: 아이콘, 아래: 글자 한 줄 */
+.dex-links .link-mini { display: inline-flex; flex-direction: column; align-items: center; gap: calc(var(--u) * 0.2); white-space: nowrap; line-height: 1.2; }
+.dex-links .link-mini i { font-style: normal; }
 .card-overlay { flex-direction: column; gap: calc(var(--u) * 1.6); background: rgba(6, 36, 54, .75); }
 .namecard {
   --edge: #7FD3E6;

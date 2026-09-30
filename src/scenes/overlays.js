@@ -209,7 +209,7 @@ export function openDex(startTab = 'fish', onMove = () => {}) {
       <div class="dex-row">
         <div class="dex-head">
           <b style="color:${c.color}">${dan}단</b><span>${p >= 2 ? store.petName(dan) : c.species}</span>
-          ${p >= 2 ? `<span class="dex-love">${hearts(store.loveLevel(dan))}</span><span class="dex-links"><button class="link-mini" data-card="${dan}">🪪 카드</button><button class="link-mini" data-rename="${dan}">✏️ 이름 짓기</button>${tankBtn(String(dan))}</span>` : ''}
+          ${p >= 2 ? `<span class="dex-love">${hearts(store.loveLevel(dan))}</span><span class="dex-links"><button class="link-mini" data-card="${dan}"><i>🪪</i>카드</button><button class="link-mini" data-rename="${dan}"><i>✏️</i>이름 짓기</button>${tankBtn(String(dan))}</span>` : ''}
         </div>
         <div class="dex-cells">${cells}</div>
       </div>`;
@@ -293,7 +293,7 @@ export function openDex(startTab = 'fish', onMove = () => {}) {
 function tankBtn(key) {
   if (store.tankCount() < 2) return '';
   const t = store.tankOf(key) ?? 0;
-  return `<button class="link-mini" data-move="${key}">🏠 ${t + 1}번 어항 → ${t === 0 ? 2 : 1}번</button>`;
+  return `<button class="link-mini" data-move="${key}" aria-label="${t + 1}번 어항에서 ${t === 0 ? 2 : 1}번 어항으로 옮기기"><i>🏠 어항</i>${t + 1} → ${t === 0 ? 2 : 1}</button>`;
 }
 
 export function hearts(level) {
