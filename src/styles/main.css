@@ -953,7 +953,7 @@ button.pill { cursor: pointer; }
 @keyframes carouselSway { from { transform: translateX(-6px); } to { transform: translateX(6px); } }
 .decor.fast .carousel-spin { animation: carouselFast .25s ease-in-out 8 alternate; }
 @keyframes carouselFast { from { transform: translateX(-12px); } to { transform: translateX(12px); } }
-.train { position: absolute; bottom: calc(var(--u) * 1.4); left: 0; z-index: 8; cursor: pointer; animation: trainRide 12s linear forwards; }
+.train { position: absolute; bottom: calc(var(--u) * 1.4); left: 0; z-index: 6; /* 밤 어둠(sky-tint 8)·흐린 물(murk 7) 아래로 */ cursor: pointer; animation: trainRide 12s linear forwards; }
 @keyframes trainRide { from { transform: translateX(-110%); } to { transform: translateX(110vw); } }
 
 /* 특별한 순간: 황금 명판, 해파리 불꽃놀이 */
