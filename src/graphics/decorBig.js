@@ -1,11 +1,15 @@
+import { hasImage, wideImage } from './characters.js';
+
 // 스페셜 장식 (w = 가로 px). 누르면 움직여요: 해적선 대포, 거품 분수, 회전목마 / 해저 기차는 저절로 지나가요
 const svg = (w, vw, vh, body, cls = '') =>
   `<svg width="${Math.round(w)}" height="${Math.round((w * vh) / vw)}" viewBox="0 0 ${vw} ${vh}" fill="none" xmlns="http://www.w3.org/2000/svg"${cls ? ` class="${cls}"` : ''}>${body}</svg>`;
 const OUT = '#0F2A3A';
+// 그림 파일(public/characters/big-이름.png)이 있으면 그림을, 없으면 아래 코드 그림을 써요
+const art = (name, w, fallback) => (hasImage(name) ? wideImage(name, w, name) : fallback());
 
 // 해적선: 오른쪽 대포(구멍 위치 약 x 196, y 118)에서 비눗방울이 나와요
 export function createPirateShipSVG(w) {
-  return svg(w, 220, 170, `
+  return art('big-pirateShip', w, () => svg(w, 220, 170, `
     <g stroke="${OUT}" stroke-width="3" stroke-linejoin="round">
       <path d="M100 20 V128" stroke-width="6"/>
       <path d="M104 26 Q150 46 104 86Z" fill="#FFF7E6"/>
@@ -18,12 +22,12 @@ export function createPirateShipSVG(w) {
       <circle cx="202" cy="117" r="5" fill="#1F1F1F"/>
     </g>
     <circle cx="121" cy="18" r="3" fill="#fff"/>
-    <path d="M60 150 q50 16 100 0" stroke="#fff" stroke-width="3" opacity=".4"/>`);
+    <path d="M60 150 q50 16 100 0" stroke="#fff" stroke-width="3" opacity=".4"/>`));
 }
 
 // 거품 분수 성: 꼭대기(약 x 60, y 18)에서 거품이 솟아요
 export function createFountainCastleSVG(w) {
-  return svg(w, 120, 130, `
+  return art('big-fountain', w, () => svg(w, 120, 130, `
     <g stroke="${OUT}" stroke-width="3" stroke-linejoin="round">
       <rect x="14" y="60" width="92" height="66" rx="6" fill="#BDE3F2"/>
       <rect x="8" y="44" width="24" height="82" rx="4" fill="#9ED3EA"/><rect x="88" y="44" width="24" height="82" rx="4" fill="#9ED3EA"/>
@@ -33,11 +37,12 @@ export function createFountainCastleSVG(w) {
       <rect x="54" y="18" width="12" height="16" rx="3" fill="#FFD54A"/>
     </g>
     <g fill="#fff" opacity=".85"><circle cx="60" cy="12" r="5"/><circle cx="52" cy="6" r="3"/><circle cx="68" cy="5" r="3.5"/></g>
-    <g fill="#FFE08A"><circle cx="28" cy="80" r="4"/><circle cx="92" cy="80" r="4"/></g>`);
+    <g fill="#FFE08A"><circle cx="28" cy="80" r="4"/><circle cx="92" cy="80" r="4"/></g>`));
 }
 
 // 산호 회전목마: 지붕 아래 해마 인형들이 빙글빙글 (가운데 부분이 돌아요)
 export function createCarouselSVG(w) {
+  if (hasImage('big-carousel')) return wideImage('big-carousel', w, 'big-carousel');
   const horses = [0, 1, 2].map((i) => `
     <g transform="translate(${30 + i * 30} 0)">
       <path d="M0 40 V92" stroke="#D4AF37" stroke-width="3"/>
@@ -60,6 +65,7 @@ export function createCarouselSVG(w) {
 
 // 해저 기차 (이벤트로 지나가요, 오른쪽으로 달려요)
 export function createTrainSVG(w) {
+  if (hasImage('big-train')) return wideImage('big-train', w, 'big-train');
   const car = (x, c) => `<g transform="translate(${x} 0)"><rect x="0" y="22" width="44" height="30" rx="6" fill="${c}" stroke="${OUT}" stroke-width="3"/><rect x="8" y="28" width="12" height="10" rx="2" fill="#E8F7FF" stroke="${OUT}" stroke-width="2"/><rect x="24" y="28" width="12" height="10" rx="2" fill="#E8F7FF" stroke="${OUT}" stroke-width="2"/><circle cx="11" cy="54" r="6" fill="#4A4A4A" stroke="${OUT}" stroke-width="2"/><circle cx="33" cy="54" r="6" fill="#4A4A4A" stroke="${OUT}" stroke-width="2"/></g>`;
   return svg(w, 200, 64, `
     ${car(0, '#6BCBFF')}${car(50, '#FFD54A')}

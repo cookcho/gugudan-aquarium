@@ -4,7 +4,7 @@ import { h, toast, unit, confirmBox } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
 import { music } from '../audio/music.js';
 import { CHARACTERS, DAN_ORDER, STAGES, stageName } from '../data/characters.js';
-import { charSVG, guideSVG } from '../graphics/characters.js';
+import { charSVG, guideSVG, hasImage, hasBackdrop, backdropUrl } from '../graphics/characters.js';
 import { SHOP_TABS, SHOP_ITEMS, THEMES, decorSVG } from '../data/shop.js';
 import { BIG_ITEMS, bigItemById } from '../data/bigItems.js';
 import { createFoodCanSVG, createMedicineSVG } from '../graphics/food.js';
@@ -67,6 +67,13 @@ export function openDecorShop(onChange, startTab = 'plant') {
   };
 
   // 스페셜: 별을 모아서 사요. 모자라면 "찜"해서 저금통 목표로
+  // 스페셜 그림 썸네일 (그림이 없으면 이모지)
+  const BIG_ART = { legend: 'legend', fountain: 'big-fountain', pirateShip: 'big-pirateShip', carousel: 'big-carousel', train: 'big-train' };
+  const bigThumb = (it) => {
+    if (BIG_ART[it.id] && hasImage(BIG_ART[it.id])) return `<img class="big-thumb" src="${import.meta.env.BASE_URL}characters/${BIG_ART[it.id]}.png" alt="">`;
+    if (it.kind === 'tank' && hasBackdrop(it.level)) return `<span class="big-thumb tank" style="background-image:url('${backdropUrl(it.level)}')"></span>`;
+    return it.icon;
+  };
   const bigCard = (it) => {
     const owned = store.ownsBig(it.id);
     const locked = !owned && !store.bigUnlocked(it);
@@ -79,7 +86,7 @@ export function openDecorShop(onChange, startTab = 'plant') {
     else if (store.data.stars >= it.cost) tag = `<span class="shop-cost using">⭐ ${it.cost} · 살 수 있어요!</span>`;
     return `
       <button class="shop-item big-item ${locked ? 'locked' : ''} ${owned ? 'owned' : ''} ${goal ? 'goal' : ''}" data-big="${it.id}">
-        <span class="shop-art big-icon">${it.icon}</span>
+        <span class="shop-art big-icon">${bigThumb(it)}</span>
         <span class="shop-name">${it.name}</span>
         <small class="big-desc">${it.desc}</small>
         ${goal ? '<span class="shop-tag">🐷 저금통 목표</span>' : ''}

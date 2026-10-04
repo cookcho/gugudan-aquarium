@@ -2,7 +2,7 @@ import { store } from './core/store.js';
 import { stopSpeaking, unlockSpeech } from './core/speech.js';
 import { sound } from './audio/soundManager.js';
 import { music } from './audio/music.js';
-import { preloadCharacterImages } from './graphics/characters.js';
+import { preloadCharacterImages, preloadBackdrops } from './graphics/characters.js';
 import { HomeScene } from './scenes/HomeScene.js';
 import { MapScene } from './scenes/MapScene.js';
 import { SongScene } from './scenes/SongScene.js';
@@ -124,6 +124,6 @@ function setupRotateHint() {
 
 window.addEventListener('DOMContentLoaded', async () => {
   setupRotateHint();
-  await Promise.race([preloadCharacterImages(), new Promise((r) => setTimeout(r, 2000))]);
+  await Promise.race([Promise.all([preloadCharacterImages(), preloadBackdrops()]), new Promise((r) => setTimeout(r, 2000))]);
   new App(document.getElementById('stage'));
 });

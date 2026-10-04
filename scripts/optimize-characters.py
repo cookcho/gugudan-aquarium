@@ -1,6 +1,7 @@
 # 캐릭터 그림을 게임용으로 다듬어요. 원본은 art-source/characters 에 보관해요.
 # 1) 배경이 투명하지 않으면(흰 배경, AI가 그려 넣은 회색 체크무늬) 가장자리와 이어진 밝은 회색을 지워요.
-# 2) 512px로 줄여요.
+# 2) 512px로 줄여요 (비율은 그대로). 스페셜 장식(big-*)은 640px, 빈 가장자리를 잘라 바닥에 딱 붙게 해요.
+# 3) 어항 배경(public/backdrops/*.png)은 가로 1600px webp로 바꿔요.
 # 사용법: 그림을 public/characters 에 넣은 뒤  python scripts/optimize-characters.py
 from collections import deque
 from pathlib import Path
@@ -12,6 +13,10 @@ ROOT = Path(__file__).resolve().parent.parent
 GAME_DIR = ROOT / 'public' / 'characters'
 SOURCE_DIR = ROOT / 'art-source' / 'characters'
 SIZE = 512
+BIG_SIZE = 640
+BACK_DIR = ROOT / 'public' / 'backdrops'
+BACK_SOURCE = ROOT / 'art-source' / 'backdrops'
+BACK_WIDTH = 1600
 
 
 def is_background(rgb):
@@ -102,7 +107,9 @@ SOURCE_DIR.mkdir(parents=True, exist_ok=True)
 for png in sorted(GAME_DIR.glob('*.png')):
     im = Image.open(png).convert('RGBA')
     opaque = im.getchannel('A').getextrema()[0] == 255
-    if max(im.size) <= SIZE and not opaque:
+    big = png.name.startswith('big-')
+    limit = BIG_SIZE if big else SIZE
+    if max(im.size) <= limit and not opaque:
         continue
     shutil.copy2(png, SOURCE_DIR / png.name)
     before = png.stat().st_size
@@ -110,8 +117,28 @@ for png in sorted(GAME_DIR.glob('*.png')):
     if opaque:
         im = remove_specks(defringe(clear_background(im)))
         notes.append('배경 지움')
-    if max(im.size) > SIZE:
-        im = im.resize((SIZE, SIZE), Image.LANCZOS)
-        notes.append('512px로 줄임')
+    if big:
+        box = im.getchannel('A').point(lambda a: 255 if a > 24 else 0).getbbox()
+        if box:
+            pad = round(max(im.size) * 0.01)
+            im = im.crop((max(0, box[0] - pad), max(0, box[1] - pad), min(im.width, box[2] + pad), min(im.height, box[3] + pad)))
+            notes.append('가장자리 자름')
+    if max(im.size) > limit:
+        k = limit / max(im.size)
+        im = im.resize((round(im.width * k), round(im.height * k)), Image.LANCZOS)
+        notes.append(f'{limit}px로 줄임')
     im.save(png, optimize=True)
     print(f'{png.name}: {", ".join(notes)} ({before // 1024}KB -> {png.stat().st_size // 1024}KB, 원본은 art-source/characters)')
+
+
+# 어항 배경: 가로 1600px webp (원본은 art-source/backdrops)
+if BACK_DIR.exists():
+    BACK_SOURCE.mkdir(parents=True, exist_ok=True)
+    for png in sorted(BACK_DIR.glob('*.png')):
+        im = Image.open(png).convert('RGB')
+        if im.width > BACK_WIDTH:
+            im = im.resize((BACK_WIDTH, round(im.height * BACK_WIDTH / im.width)), Image.LANCZOS)
+        out = png.with_suffix('.webp')
+        im.save(out, 'WEBP', quality=82, method=6)
+        shutil.move(str(png), BACK_SOURCE / png.name)
+        print(f'{png.name} -> {out.name} ({out.stat().st_size // 1024}KB, 원본은 art-source/backdrops)')

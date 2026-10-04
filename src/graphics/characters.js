@@ -172,11 +172,13 @@ function eggSVG(color, dan) {
 // ---- 그림 파일 (public/characters/단-단계.png, guide.png, guest-손님id.png) ----
 // 있는 그림은 그림으로, 없는 칸은 아래 코드 그림으로 보여줘요.
 const available = new Set();
+// 스페셜 장식 그림 (비율 그대로 쓰는 넓은 그림)
+export const BIG_IMAGES = ['big-pirateShip', 'big-fountain', 'big-carousel', 'big-train'];
 const imageUrl = (name) => `${import.meta.env.BASE_URL}characters/${name}.png`;
 
 // 앱 시작 때 한 번 어떤 그림이 있는지 확인해요
 export function preloadCharacterImages() {
-  const names = ['guide', 'legend', 'boss-captain', 'boss-captain-angry', 'boss-captain-dizzy', 'boss-shark', 'boss-shark-angry', 'boss-shark-dizzy', ...GUESTS.map((g) => `guest-${g.id}`), ...SEA2.map((s) => `sea2-${s.id}`), 'sea2-daily-land', 'sea2-daily-sleep', 'sea2-plus-land', 'sea2-plus-sleep', 'sea2-bundle-sleep', ...Object.keys(CHARACTERS).flatMap((d) => [1, 2, 3, 4].map((p) => `${d}-${p}`))];
+  const names = ['guide', 'legend', 'boss-captain', 'boss-captain-angry', 'boss-captain-dizzy', 'boss-shark', 'boss-shark-angry', 'boss-shark-dizzy', ...GUESTS.map((g) => `guest-${g.id}`), ...SEA2.map((s) => `sea2-${s.id}`), 'sea2-daily-land', 'sea2-daily-sleep', 'sea2-plus-land', 'sea2-plus-sleep', 'sea2-bundle-sleep', ...BIG_IMAGES, ...Object.keys(CHARACTERS).flatMap((d) => [1, 2, 3, 4].map((p) => `${d}-${p}`))];
   return Promise.all(names.map((name) => new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -189,6 +191,27 @@ export function preloadCharacterImages() {
 }
 
 export const hasImage = (name) => available.has(name);
+
+// 스페셜 장식처럼 가로세로 비율을 그대로 쓰는 그림 (가로 w px)
+export function wideImage(name, w, cls = '') {
+  return `<img class="big-img ${cls}" src="${imageUrl(name)}" style="width:${Math.round(w)}px" alt="" draggable="false">`;
+}
+
+// 어항 업그레이드 배경 그림 (public/backdrops/tank-1.webp ~ tank-3.webp)
+const backdrops = new Set();
+export const backdropUrl = (level) => `${import.meta.env.BASE_URL}backdrops/tank-${level}.webp`;
+export const hasBackdrop = (level) => backdrops.has(level);
+export function preloadBackdrops() {
+  return Promise.all([1, 2, 3].map((level) => new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      backdrops.add(level);
+      resolve();
+    };
+    img.onerror = resolve;
+    img.src = backdropUrl(level);
+  })));
+}
 
 // HTML 안에서도, 지도 같은 SVG 안에서도 쓸 수 있게 svg로 감싸요
 export function imageArt(name, size, wobble = false) {

@@ -39,7 +39,10 @@ const PALACE = `
   <path d="M0 105 Q125 155 250 105 T500 105 T750 105 T1000 105" stroke="#D4AF37" stroke-width="4" fill="none"/>
   <g class="jewels">${[60, 185, 310, 435, 560, 685, 810, 935].map((x, i) => `<circle cx="${x}" cy="${i % 2 ? 123 : 131}" r="12" fill="${['#FF6B8B', '#6BCBFF', '#FFD54A', '#9B8CFF'][i % 4]}" stroke="#fff" stroke-width="3" class="twinkle" style="animation-delay:-${(i * 0.3).toFixed(1)}s"/>`).join('')}</g>`;
 
+import { hasBackdrop, backdropUrl } from './characters.js';
+
 export function tankBackdrop(level) {
   if (level <= 0) return '';
+  if (hasBackdrop(level)) return `<div class="backdrop-img" style="background-image:url('${backdropUrl(level)}')"></div>`;
   return svg(`${ROCKS}${level >= 2 ? CORALS : ''}${level >= 3 ? PALACE : ''}`);
 }
