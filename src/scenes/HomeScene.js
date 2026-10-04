@@ -1148,6 +1148,7 @@ export class HomeScene {
   playDecor(type, el) {
     const t = this.tank.getBoundingClientRect();
     const r = el.getBoundingClientRect();
+    const img = !!el.querySelector('.big-img'); // 그림 파일일 때는 대포·분수 꼭지 위치가 조금 달라요
     if (type === 'pirateShip') {
       // 대포(오른쪽 끝)에서 비눗방울이 펑! 친구들이 쫓아가요
       sound.playRumble();
@@ -1155,13 +1156,13 @@ export class HomeScene {
       void el.offsetWidth;
       el.classList.add('boom');
       const x = r.right - t.left - r.width * 0.05;
-      const y = r.top - t.top + r.height * 0.68;
+      const y = r.top - t.top + r.height * (img ? 0.75 : 0.68);
       for (let i = 0; i < 3; i++) setTimeout(() => this.alive && this.blowBubbles(x + i * 12, y - i * 6), i * 140);
     } else if (type === 'fountain') {
       // 꼭대기에서 거품이 솟고, 친구들이 몰려와요
       sound.playWhoosh();
       const x = r.left - t.left + r.width / 2;
-      const y = r.top - t.top + r.height * 0.1;
+      const y = r.top - t.top + r.height * (img ? 0.25 : 0.1);
       for (let i = 0; i < 4; i++) setTimeout(() => this.alive && this.blowBubbles(x, y - i * 10), i * 120);
       this.attention = { x, y: y + r.height * 0.4, until: performance.now() + 3000, all: true };
     } else if (type === 'carousel') {

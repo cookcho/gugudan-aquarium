@@ -71,7 +71,7 @@ export function openDecorShop(onChange, startTab = 'plant') {
   const BIG_ART = { legend: 'legend', fountain: 'big-fountain', pirateShip: 'big-pirateShip', carousel: 'big-carousel', train: 'big-train' };
   const bigThumb = (it) => {
     if (BIG_ART[it.id] && hasImage(BIG_ART[it.id])) return `<img class="big-thumb" src="${import.meta.env.BASE_URL}characters/${BIG_ART[it.id]}.png" alt="">`;
-    if (it.kind === 'tank' && hasBackdrop(it.level)) return `<span class="big-thumb tank" style="background-image:url('${backdropUrl(it.level)}')"></span>`;
+    if (it.kind === 'tank' && hasBackdrop(it.level)) return `<span class="big-thumb backdrop-thumb" style="background-image:url('${backdropUrl(it.level)}')"></span>`;
     return it.icon;
   };
   const bigCard = (it) => {

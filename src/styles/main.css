@@ -940,7 +940,7 @@ button.pill { cursor: pointer; }
 .shop-item.big-item.owned { opacity: .7; }
 
 /* 전설의 무지개 잉어 */
-.legend-fish { position: absolute; left: 0; top: 0; z-index: 5; cursor: pointer; pointer-events: auto; will-change: transform; }
+.legend-fish { position: absolute; left: 0; top: 0; z-index: 9; /* 전설의 잉어는 밤 어둠(sky-tint) 위에서도 빛나요 */ cursor: pointer; pointer-events: auto; will-change: transform; }
 .legend-svg { animation: legendGlow 3s linear infinite; }
 @keyframes legendGlow { 0% { filter: drop-shadow(0 0 calc(var(--u) * 1) #FF8FB1); } 33% { filter: drop-shadow(0 0 calc(var(--u) * 1.2) #FFE066); } 66% { filter: drop-shadow(0 0 calc(var(--u) * 1.2) #6BE3B0); } 100% { filter: drop-shadow(0 0 calc(var(--u) * 1) #FF8FB1); } }
 .legend-trail { position: absolute; z-index: 4; width: calc(var(--u) * 1.4); height: calc(var(--u) * 1.4); margin: calc(var(--u) * -0.7) 0 0 calc(var(--u) * -0.7); pointer-events: none; background: conic-gradient(#FF6B8B, #FFE066, #6BE3B0, #6BA8FF, #FF6B8B); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: trailFade 1.2s ease-out forwards; }
@@ -1185,4 +1185,4 @@ button.pill { cursor: pointer; }
 @keyframes trainBob { to { transform: translateY(calc(var(--u) * -0.25)); } }
 .backdrop-img { position: absolute; inset: 0; background-size: cover; background-position: center bottom; opacity: .95; }
 .big-thumb { max-height: 100%; max-width: 100%; object-fit: contain; filter: drop-shadow(0 calc(var(--u) * 0.3) calc(var(--u) * 0.5) rgba(10, 40, 60, .25)); }
-.big-thumb.tank { display: block; width: 100%; height: 100%; border-radius: calc(var(--u) * 1); background-size: cover; background-position: center; border: 2px solid rgba(255, 255, 255, .8); }
+.big-thumb.backdrop-thumb { display: block; width: calc(var(--u) * 15); height: calc(var(--u) * 9); border-radius: calc(var(--u) * 1); background-size: cover; background-position: center; border: 2px solid rgba(255, 255, 255, .8); }
