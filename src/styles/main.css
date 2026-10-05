@@ -1166,7 +1166,10 @@ button.pill { cursor: pointer; }
 .isle-print { position: absolute; z-index: 1; width: calc(var(--u) * 0.9); height: calc(var(--u) * 0.6); border-radius: 50%; background: rgba(150, 105, 50, .35); translate: -50% -50%; pointer-events: none; animation: printFade 2.6s ease-in forwards; }
 @keyframes printFade { to { opacity: 0; } }
 /* 물속 친구는 물빛이 살짝 비치게 */
-.isle-friend.sea .isle-body { filter: drop-shadow(0 calc(var(--u) * 0.3) calc(var(--u) * 0.4) rgba(10, 50, 90, .25)) saturate(.9) brightness(.96); opacity: .94; }
+.isle-friend.sea .isle-body, .isle-friend.hole .isle-body { filter: drop-shadow(0 calc(var(--u) * 0.3) calc(var(--u) * 0.5) rgba(10, 50, 90, .3)) saturate(.8) brightness(.94) hue-rotate(-10deg); opacity: .85; }
+/* 물 위에 뜬 해달: 아랫부분만 물에 잠겨요 */
+.isle-friend.float .isle-body { -webkit-mask-image: linear-gradient(to bottom, #000 58%, rgba(0, 0, 0, .55) 68%, rgba(0, 0, 0, .4) 100%); mask-image: linear-gradient(to bottom, #000 58%, rgba(0, 0, 0, .55) 68%, rgba(0, 0, 0, .4) 100%); }
+/* 물 밖으로 뛰어오를 때는 또렷하게 */
 .isle-friend.sea.jumping .isle-body { opacity: 1; filter: drop-shadow(0 0 calc(var(--u) * 0.8) rgba(255, 255, 255, .7)); }
 .isle-ripple.small { width: calc(var(--u) * 5); height: calc(var(--u) * 1.4); border-width: 2px; }
 .isle-weed { position: absolute; left: 27%; top: 45%; width: calc(var(--u) * 14); z-index: 450; pointer-events: none; opacity: .85; }
