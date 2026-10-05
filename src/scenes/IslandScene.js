@@ -9,11 +9,11 @@ import { WORD_ISLANDS } from '../data/wordProblems.js';
 import { sea2Art } from '../graphics/sea2.js';
 import { callKid } from '../data/care.js';
 
-// 곰치가 숨는 바위 구멍: 숨었을 때와 고개를 내밀었을 때의 가로 위치(%)
-const HOLE = { hide: 89, peek: 80, y: 77 };
+// 곰치가 숨는 바닷속 바위 구멍: 숨었을 때와 고개를 내밀었을 때의 가로 위치(%)
+const HOLE = { hide: 91, peek: 81, y: 55 };
 // 사는 곳마다 다니는 범위 (화면 %, 친구 몸 가운데 기준)와 빠르기(%/초)
 const ZONE = {
-  sea: { x: [8, 90], y: [43, 57], speed: 5 },
+  sea: { x: [8, 80], y: [43, 57], speed: 5 },
   float: { x: [24, 70], y: [57, 59], speed: 1.4 },
   land: { x: [36, 74], y: [75, 86], speed: 3.5 },
   rock: { x: [81, 93], y: [79.5, 81], speed: 0.7 }, // 성게: 바위 앞 물웅덩이에서 아주 천천히 기어다녀요
@@ -58,6 +58,19 @@ function weedSVG() {
   </svg>`;
 }
 
+// 바닷속 바위: 가운데 구멍에 곰치리가 살아요 (오른쪽 바다 아래)
+function seaRockSVG() {
+  return `<svg viewBox="0 0 200 150" aria-hidden="true">
+    <path d="M8 146 C0 104 24 66 62 58 C78 24 134 22 152 56 C192 62 206 102 194 146Z" fill="#6E8098" stroke="#4A5970" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M36 142 C30 108 48 82 76 78 C88 54 130 52 144 80 C174 86 182 114 174 142Z" fill="#879AB4" opacity=".7"/>
+    <ellipse cx="22" cy="100" rx="30" ry="38" fill="#24384F"/>
+    <path d="M22 62 A30 38 0 0 1 22 138" fill="none" stroke="#4A5970" stroke-width="6"/>
+    <ellipse cx="14" cy="98" rx="20" ry="27" fill="#15243A" opacity=".75"/>
+    <g fill="#FF8FA3"><circle cx="168" cy="118" r="7"/><circle cx="186" cy="100" r="5"/></g>
+    <path d="M150 142 q-6 -26 6 -42 M162 142 q8 -22 0 -36" stroke="#3FA86A" stroke-width="7" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+
 function hutSign(title) {
   return `<svg viewBox="0 0 220 150" aria-hidden="true">
     <rect x="98" y="70" width="12" height="80" rx="4" fill="#A8743F"/>
@@ -99,6 +112,7 @@ export class IslandScene {
           </svg>
           <div class="isle-sand">${shells}</div>
           <div class="isle-palm">${palmSVG()}</div>
+          <div class="isle-searock">${seaRockSVG()}</div>
           <div class="isle-rock">${rockSVG()}</div>
           <div class="isle-weed">${weedSVG()}</div>
           <div class="isle-sign">${hutSign(store.data.kidName ? `${store.data.kidName}의 섬` : '친구들의 섬')}</div>
@@ -407,14 +421,14 @@ export class IslandScene {
       sy *= 1 + Math.sin(f.t * (f.sleep ? 1.4 : 2.2)) * 0.025; // 숨 쉬기
     }
     // 멀리(위) 있을수록 작게
-    const depth = f.mode === 'rock' ? 0.8 : f.mode === 'sea' ? 0.72 + ((f.y - 43) / 14) * 0.28 : f.mode === 'land' ? 0.95 + ((f.y - 75) / 11) * 0.12 : 1;
+    const depth = f.mode === 'hole' ? 0.95 : f.mode === 'rock' ? 0.8 : f.mode === 'sea' ? 0.72 + ((f.y - 43) / 14) * 0.28 : f.mode === 'land' ? 0.95 + ((f.y - 75) / 11) * 0.12 : 1;
     const sc = depth * (1 + f.hop * 0.08);
     const hopY = Math.sin(f.hop * Math.PI) * this.u * 2.5;
     const px = (f.x / 100) * W - f.size / 2;
     const py = (f.y / 100) * H - f.size / 2 + bob - lift - hopY;
     f.el.style.transform = `translate(${px}px, ${py}px)`;
     f.el.firstElementChild.style.transform = `scale(${sc * f.face * sx}, ${sc * sy}) rotate(${rot}deg)`;
-    f.el.style.zIndex = f.mode === 'hole' ? '680' : String(Math.round(f.y * 10) + (f.jump >= 0 ? 500 : 0));
+    f.el.style.zIndex = f.mode === 'hole' ? '425' : String(Math.round(f.y * 10) + (f.jump >= 0 ? 500 : 0));
     f.el.classList.toggle('jumping', f.jump >= 0);
   }
 
