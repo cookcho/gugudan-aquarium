@@ -1132,7 +1132,7 @@ button.pill { cursor: pointer; }
 .isle-palm svg, .isle-rock svg, .isle-sign svg { display: block; width: 100%; height: auto; }
 .palm-leaves { transform-origin: 108px 72px; animation: palmSway 5s ease-in-out infinite; }
 @keyframes palmSway { 50% { rotate: 4deg; } }
-.isle-searock { position: absolute; right: 1%; top: 36%; filter: saturate(.85) brightness(.95); opacity: .97; width: calc(var(--u) * 17); z-index: 430; pointer-events: none; }
+.isle-searock { position: absolute; right: 1%; top: 36%; filter: saturate(.82) brightness(.95) hue-rotate(-8deg); opacity: .94; width: calc(var(--u) * 17); z-index: 430; pointer-events: none; }
 .isle-searock svg { display: block; width: 100%; height: auto; }
 .isle-rock { position: absolute; right: 2%; top: 64%; width: calc(var(--u) * 22); z-index: 690; pointer-events: none; }
 .isle-sign { position: absolute; left: 19%; bottom: 2%; width: calc(var(--u) * 14); z-index: 700; pointer-events: none; }
