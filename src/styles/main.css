@@ -1148,7 +1148,8 @@ button.pill { cursor: pointer; }
 .isle-shadow { position: absolute; left: 15%; right: 15%; bottom: 2%; height: 12%; border-radius: 50%; background: rgba(90, 60, 20, .22); z-index: -1; display: none; }
 .isle-friend.land .isle-shadow { display: block; }
 /* 성게: 몸 아래쪽이 물웅덩이에 잠겨 보이게 + 물 표면 둥근 물결 */
-.isle-friend.rock .isle-body { -webkit-mask-image: linear-gradient(to bottom, #000 60%, rgba(0, 0, 0, .35) 64%); mask-image: linear-gradient(to bottom, #000 60%, rgba(0, 0, 0, .35) 64%); }
+/* 물에 반쯤 잠긴 느낌: 마스크는 그림 자체에만 걸어요 (왕관과 금빛 glow가 네모로 잘리지 않게) */
+.isle-friend.rock .isle-body .char-svg image { -webkit-mask-image: linear-gradient(to bottom, #000 60%, rgba(0, 0, 0, .35) 64%); mask-image: linear-gradient(to bottom, #000 60%, rgba(0, 0, 0, .35) 64%); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
 .isle-friend.rock::after { content: ""; position: absolute; left: 24%; right: 24%; top: 54%; height: 10%; border: 2px solid rgba(255, 255, 255, .75); border-radius: 50%; animation: poolRing 2.4s ease-in-out infinite; pointer-events: none; }
 @keyframes poolRing { 50% { scale: 1.12; opacity: .5; } }
 .isle-friend.jumping .isle-body { filter: drop-shadow(0 0 calc(var(--u) * 0.8) rgba(255, 255, 255, .7)); }
@@ -1168,7 +1169,7 @@ button.pill { cursor: pointer; }
 /* 물속 친구는 물빛이 살짝 비치게 */
 .isle-friend.sea .isle-body, .isle-friend.hole .isle-body { filter: drop-shadow(0 calc(var(--u) * 0.3) calc(var(--u) * 0.5) rgba(10, 50, 90, .3)) saturate(.8) brightness(.94) hue-rotate(-10deg); opacity: .85; }
 /* 물 위에 뜬 해달: 아랫부분만 물에 잠겨요 */
-.isle-friend.float .isle-body { -webkit-mask-image: linear-gradient(to bottom, #000 58%, rgba(0, 0, 0, .55) 68%, rgba(0, 0, 0, .4) 100%); mask-image: linear-gradient(to bottom, #000 58%, rgba(0, 0, 0, .55) 68%, rgba(0, 0, 0, .4) 100%); }
+.isle-friend.float .isle-body .char-svg image { -webkit-mask-image: linear-gradient(to bottom, #000 58%, rgba(0, 0, 0, .55) 68%, rgba(0, 0, 0, .4) 100%); mask-image: linear-gradient(to bottom, #000 58%, rgba(0, 0, 0, .55) 68%, rgba(0, 0, 0, .4) 100%); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
 /* 물 밖으로 뛰어오를 때는 또렷하게 */
 .isle-friend.sea.jumping .isle-body { opacity: 1; filter: drop-shadow(0 0 calc(var(--u) * 0.8) rgba(255, 255, 255, .7)); }
 .isle-ripple.small { width: calc(var(--u) * 5); height: calc(var(--u) * 1.4); border-width: 2px; }
