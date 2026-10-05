@@ -10,7 +10,7 @@ import { sea2Art } from '../graphics/sea2.js';
 import { callKid } from '../data/care.js';
 
 // 곰치가 숨는 바닷속 바위 구멍: 숨었을 때와 고개를 내밀었을 때의 가로 위치(%)
-const HOLE = { hide: 91, peek: 81, y: 55 };
+const HOLE = { hide: 91, peek: 81, y: 47 };
 // 사는 곳마다 다니는 범위 (화면 %, 친구 몸 가운데 기준)와 빠르기(%/초)
 const ZONE = {
   sea: { x: [8, 80], y: [43, 57], speed: 5 },
@@ -61,6 +61,7 @@ function weedSVG() {
 // 바닷속 바위: 가운데 구멍에 곰치리가 살아요 (오른쪽 바다 아래)
 function seaRockSVG() {
   return `<svg viewBox="0 0 200 150" aria-hidden="true">
+    <ellipse cx="104" cy="144" rx="96" ry="11" fill="#1F4260" opacity=".18"/>
     <path d="M8 146 C0 104 24 66 62 58 C78 24 134 22 152 56 C192 62 206 102 194 146Z" fill="#6E8098" stroke="#4A5970" stroke-width="5" stroke-linejoin="round"/>
     <path d="M36 142 C30 108 48 82 76 78 C88 54 130 52 144 80 C174 86 182 114 174 142Z" fill="#879AB4" opacity=".7"/>
     <ellipse cx="22" cy="100" rx="30" ry="38" fill="#24384F"/>
