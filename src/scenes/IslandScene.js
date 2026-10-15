@@ -137,6 +137,7 @@ export class IslandScene {
           <button class="btn btn-sand" data-isle="ball">🏐 비치볼</button>
           <button class="btn btn-sand" data-isle="shell">🐚 조개 줍기</button>
           <button class="btn btn-sand" data-isle="castle">🏰 모래성</button>
+          <button class="btn btn-coral" data-isle="surf">🏄 파도타기</button>
           <button class="btn btn-sand" data-isle="decor">🏖️ 꾸미기</button>
           <button class="btn btn-sand" data-isle="shop">🐚 해변 상점 <b class="shell-n">${store.shells()}</b></button>
         </div>
@@ -163,6 +164,7 @@ export class IslandScene {
       if (act === 'ball') this.toggleBall();
       if (act === 'shell') this.toggleShells();
       if (act === 'castle') this.toggleCastle();
+      if (act === 'surf') this.app.go('surf');
       if (act === 'decor') this.enterDecor();
       if (act === 'decor-done') this.exitDecor();
       if (act === 'shop') openBeachShop(() => this.afterShop());

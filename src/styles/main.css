@@ -1249,3 +1249,41 @@ button.pill { cursor: pointer; }
 .scene.island.building .isle-sand { cursor: pointer; }
 .scene.island.building .isle-sand::after { content: "여기를 톡톡 두드려요 🏰"; position: absolute; left: 50%; top: calc(var(--u) * 1.5); translate: -50% 0; background: rgba(255, 255, 255, .85); color: #6B4320; border-radius: 999px; padding: calc(var(--u) * 0.3) calc(var(--u) * 1.4); font-size: calc(var(--u) * 1.7); pointer-events: none; }
 .btn-sand.active { background: #FFD54A; --shadow: #D9A52E; }
+
+/* ===== 🏄 돌고래 파도타기 ===== */
+.scene.surf { overflow: hidden; background: #1E88C0; touch-action: none; user-select: none; }
+.surf-sky { position: absolute; left: 0; right: 0; top: 0; height: 62%; background: linear-gradient(180deg, #8FDCFF, #CFF0FF 60%, #FFE6C2); }
+.surf-sun { position: absolute; right: 12%; top: 14%; width: calc(var(--u) * 9); height: calc(var(--u) * 9); border-radius: 50%; background: radial-gradient(circle, #FFF6B8 40%, #FFD54A 72%); box-shadow: 0 0 calc(var(--u) * 5) #FFE58A; }
+.surf-cloud { position: absolute; width: calc(var(--u) * 13); height: calc(var(--u) * 3.6); border-radius: 999px; background: #fff; opacity: .9; animation: surfCloud 18s linear infinite; }
+.surf-cloud::before { content: ""; position: absolute; left: 18%; bottom: 40%; width: 48%; height: 150%; border-radius: 50%; background: inherit; }
+.surf-cloud.c1 { top: 16%; animation-delay: -2s; }
+.surf-cloud.c2 { top: 32%; scale: .7; animation-duration: 26s; animation-delay: -14s; }
+.surf-cloud.c3 { top: 8%; scale: .55; animation-duration: 32s; animation-delay: -24s; }
+@keyframes surfCloud { from { left: 105%; } to { left: -25%; } }
+.surf-sea { position: absolute; left: 0; right: 0; top: 58%; bottom: 0; background: linear-gradient(180deg, #3FA8DC, #1E6FA8 70%, #124E7C); }
+.surf-waves { position: absolute; left: 0; top: 0; width: 100%; height: calc(var(--u) * 9); }
+.surf-waves .sw { animation: surfWave 2.4s linear infinite; }
+.surf-waves .sw.b { animation-duration: 3.6s; animation-direction: reverse; }
+@keyframes surfWave { to { transform: translateX(-100px); } }
+.surf-field { position: absolute; inset: 0; pointer-events: none; }
+.surf-rider { position: absolute; left: 0; top: 0; z-index: 20; pointer-events: none; filter: drop-shadow(0 calc(var(--u) * 0.4) calc(var(--u) * 0.6) rgba(10, 50, 90, .35)); }
+.surf-item { position: absolute; left: 0; top: 0; }
+.surf-item.ring { border-radius: 50%; border: calc(var(--u) * 0.8) solid #FFE066; box-shadow: 0 0 calc(var(--u) * 1.2) #FFE066, inset 0 0 calc(var(--u) * 0.8) #FFF6C2; animation: ringSpin 1.6s linear infinite; }
+.surf-item.ring.gold { border-color: #FF9F4A; box-shadow: 0 0 calc(var(--u) * 2) #FFB347, inset 0 0 calc(var(--u) * 1) #FFE0A8; }
+@keyframes ringSpin { 50% { transform: scaleX(.55); } }
+.surf-item.jelly svg { width: 100%; height: 100%; animation: jellyBob 1.4s ease-in-out infinite alternate; }
+@keyframes jellyBob { to { transform: translateY(calc(var(--u) * -0.8)); } }
+.surf-item.got { animation: itemGot .4s ease-out forwards; }
+@keyframes itemGot { to { opacity: 0; scale: 1.8; } }
+.surf-drop { position: absolute; width: calc(var(--u) * 1); height: calc(var(--u) * 1); border-radius: 50%; background: #fff; opacity: .9; animation: surfDrop .7s ease-out forwards; }
+@keyframes surfDrop { to { translate: var(--dx) calc(var(--u) * -5); opacity: 0; } }
+.scene.surf.bump { animation: surfBump .35s ease-out; }
+@keyframes surfBump { 25% { transform: translateX(calc(var(--u) * -1.2)); } 60% { transform: translateX(calc(var(--u) * 0.8)); } }
+.surf-hud { position: absolute; left: 0; right: 0; top: calc(var(--u) * 8); z-index: 30; display: flex; justify-content: center; gap: calc(var(--u) * 1.2); pointer-events: none; }
+.surf-pill { background: rgba(255, 255, 255, .9); color: var(--ink); border-radius: 999px; padding: calc(var(--u) * 0.3) calc(var(--u) * 1.5); font-size: calc(var(--u) * 2); }
+.surf-time { width: calc(var(--u) * 20); padding: calc(var(--u) * 0.7) calc(var(--u) * 0.6); }
+.surf-time i { display: block; height: calc(var(--u) * 1.1); border-radius: 999px; background: linear-gradient(90deg, #FF7A59, #FFC53D); width: 100%; }
+.surf-ready { position: absolute; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(10, 40, 70, .45); }
+.surf-ready-card { background: #fff; border-radius: calc(var(--u) * 2.5); padding: calc(var(--u) * 3) calc(var(--u) * 4); text-align: center; max-width: 78%; }
+.surf-ready-card h2 { margin: 0 0 calc(var(--u) * 1); font-size: calc(var(--u) * 3.4); color: var(--sea); }
+.surf-ready-card p { margin: 0 0 calc(var(--u) * 2); font-size: calc(var(--u) * 2); line-height: 1.6; color: var(--ink); }
