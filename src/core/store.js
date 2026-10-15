@@ -60,6 +60,7 @@ function freshSave() {
     shells: 0, // 친구들의 섬 전용 화폐. 문장제를 풀거나 해변에서 주워 모아요
     shellPick: { date: null, n: 0 }, // 해변에서 주운 조개 (하루 한도)
     beachDecor: [],
+    islePhotos: [], // 친구들의 섬 기념사진 (최신이 앞, 30장까지)
     surfBest: 0, // 파도타기 최고 기록
     sandcastle: null, // 모래성 { x, y, taps } · 12번 두드리면 완성 // 해변 장식 [{ id, type, x, y, placed }]
     wordMisses: [], // 문장제 복습할 문제 유형 [{ word, template }] (최근 12개)
@@ -657,6 +658,17 @@ class Store {
     const d = this.beach().find((it) => it.id === id);
     if (!d) return;
     d.placed = false;
+    this.save();
+  }
+
+  // ---- 섬 기념사진 ----
+  addIslePhoto(photo) {
+    this.data.islePhotos = [photo, ...(this.data.islePhotos || [])].slice(0, 30);
+    this.save();
+  }
+
+  delIslePhoto(id) {
+    this.data.islePhotos = (this.data.islePhotos || []).filter((p) => p.id !== id);
     this.save();
   }
 

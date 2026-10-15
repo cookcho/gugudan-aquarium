@@ -11,7 +11,7 @@ import { callKid } from '../data/care.js';
 import { beachDraw, beachItem, ZONE_Y } from '../data/beach.js';
 import { sandcastle } from '../graphics/beachDecor.js';
 import { CASTLE_TAPS, SHELL_PICK_LIMIT } from '../core/store.js';
-import { openBeachShop } from './overlays.js';
+import { openBeachShop, openIsleAlbum } from './overlays.js';
 
 // 곰치가 숨는 바닷속 바위 구멍: 숨었을 때와 고개를 내밀었을 때의 가로 위치(%)
 const HOLE = { hide: 91, peek: 81, y: 50 };
@@ -148,6 +148,13 @@ export class IslandScene {
         </div>
       </div>`);
     this.el.prepend(this.bar.el);
+    // 상단 바에 사진 버튼 (어항과 같아요)
+    const cam = h('<button class="pill" aria-label="섬 앨범">📸 사진</button>');
+    cam.addEventListener('click', () => {
+      sound.playPop();
+      openIsleAlbum(() => setTimeout(() => this.alive && this.takePhoto(), 250));
+    });
+    this.bar.el.querySelectorAll('.group')[1].prepend(cam);
     this.world = this.el.querySelector('.isle-world');
     this.beachLayer = this.el.querySelector('.beach-layer');
     this.playLayer = this.el.querySelector('.play-layer');
@@ -202,6 +209,30 @@ export class IslandScene {
       this.world.appendChild(ring);
       setTimeout(() => ring.remove(), 900);
     });
+  }
+
+  // ---- 📸 섬 기념사진: 지금 섬 모습을 그대로 담아요 ----
+  takePhoto() {
+    const r = this.world.getBoundingClientRect();
+    const c = store.castle();
+    store.addIslePhoto({
+      id: `ip${Date.now()}`,
+      at: Date.now(),
+      time: this.tod,
+      ratio: +(r.height / r.width).toFixed(3),
+      wu: +(r.width / this.u).toFixed(1),
+      decor: store.beach().filter((d) => d.placed).map(({ type, x, y }) => ({ type, x: +x.toFixed(1), y: +y.toFixed(1) })),
+      castle: c ? { x: +c.x.toFixed(1), y: +c.y.toFixed(1), stage: this.castleStage(c.taps) } : null,
+      friends: this.friends.map((f) => ({
+        id: f.s.id, p: f.p, mode: f.mode, sleep: !!f.sleep, variant: f.artKey.split(':')[1] || '',
+        x: +f.x.toFixed(1), y: +f.y.toFixed(1), s: +(f.size / r.width).toFixed(3), flip: f.face < 0
+      }))
+    });
+    const flash = h('<div class="photo-flash"></div>');
+    this.el.appendChild(flash);
+    setTimeout(() => flash.remove(), 600);
+    sound.playShutter();
+    toast('찰칵! 📸 섬 앨범에 저장했어요');
   }
 
   // ---- 해변 꾸미기 ----

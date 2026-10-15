@@ -7,7 +7,8 @@ import { CHARACTERS, DAN_ORDER, STAGES, stageName } from '../data/characters.js'
 import { charSVG, guideSVG, hasImage, hasBackdrop, backdropUrl } from '../graphics/characters.js';
 import { SHOP_TABS, SHOP_ITEMS, THEMES, decorSVG } from '../data/shop.js';
 import { BIG_ITEMS, bigItemById } from '../data/bigItems.js';
-import { BEACH_TABS, BEACH_ITEMS } from '../data/beach.js';
+import { BEACH_TABS, BEACH_ITEMS, beachDraw, beachItem } from '../data/beach.js';
+import { sandcastle } from '../graphics/beachDecor.js';
 import { createFoodCanSVG, createMedicineSVG } from '../graphics/food.js';
 import { REQUESTS, josa } from '../data/care.js';
 import confetti from 'canvas-confetti';
@@ -573,6 +574,65 @@ export function openBeachShop(onChange, startTab = 'prop') {
     toast(`${it.name}을(를) 샀어요! 보관함에서 꺼내 놓아요`);
     redraw();
     onChange?.();
+  });
+  return el;
+}
+
+
+// 🏝️ 친구들의 섬 앨범: 찍을 때의 섬 모습(장식·모래성·친구 자리)을 그대로 다시 그려요
+function islePhotoCard(ph, cardW) {
+  const cardH = Math.round(cardW * ph.ratio);
+  const du = cardW / ph.wu; // 사진 속 --u 단위
+  const decor = (ph.decor || []).map((d) => {
+    const it = beachItem(d.type);
+    if (!it) return '';
+    return `<div class="ip-decor zone-${it.zone} ${it.night ? 'glow' : ''}" style="left:${d.x}%;top:${d.y}%;z-index:${it.zone === 'sky' ? 300 : Math.round(d.y * 10)}">${beachDraw(d.type, du)}</div>`;
+  }).join('');
+  const castle = ph.castle
+    ? `<div class="ip-castle" style="left:${ph.castle.x}%;top:${ph.castle.y}%;z-index:${Math.round(ph.castle.y * 10)}">${sandcastle(Math.round(du * (8 + ph.castle.stage * 3)), ph.castle.stage)}</div>`
+    : '';
+  const friends = (ph.friends || []).map((f) => {
+    const size = Math.round(f.s * cardW);
+    return `<div class="isle-friend ${f.mode} ${f.sleep ? 'asleep' : ''}" style="left:${f.x}%;top:${f.y}%;width:${size}px;height:${size}px;translate:-50% -50%;z-index:${Math.round(f.y * 10)}">
+      <div class="isle-body" style="transform:scale(${f.flip ? -1 : 1},1)">${sea2Art(f.id, f.p, size, '', f.variant || '')}</div>${f.sleep ? '<span class="zz">💤</span>' : ''}</div>`;
+  }).join('');
+  const d = new Date(ph.at);
+  const icon = { day: '☀️', evening: '🌇', night: '🌙' }[ph.time] || '';
+  return `
+    <figure class="photo" data-id="${ph.id}">
+      <div class="isle-photo isle-world ${ph.time}" style="width:${cardW}px;height:${cardH}px">
+        <div class="ip-sky"></div><div class="ip-orb"></div><div class="ip-sea"></div><div class="ip-foam"></div><div class="ip-sand"></div>
+        ${decor}${castle}${friends}
+      </div>
+      <figcaption>${d.getMonth() + 1}월 ${d.getDate()}일 ${icon}<button class="photo-del" data-del="${ph.id}" aria-label="사진 지우기">✕</button></figcaption>
+    </figure>`;
+}
+
+export function openIsleAlbum(onShoot) {
+  const cardW = Math.round(unit() * 26);
+  const render = () => {
+    const photos = store.data.islePhotos || [];
+    return `
+      <div class="album">
+        <div class="album-top">
+          <button class="btn btn-coral" data-v="shoot">📸 지금 찍기</button>
+          <span class="album-note">예쁘게 꾸민 섬을 사진으로 남겨요 (30장까지)</span>
+        </div>
+        <div class="album-grid">${photos.length ? photos.map((ph) => islePhotoCard(ph, cardW)).join('') : '<p class="album-empty">아직 사진이 없어요. 친구들과 첫 사진을 찍어 볼까?</p>'}</div>
+      </div>`;
+  };
+  const el = sheet('📸 섬 앨범', render());
+  el.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-v="shoot"]')) {
+      el.remove();
+      return onShoot?.();
+    }
+    const del = e.target.closest('[data-del]');
+    if (!del) return;
+    if (!(await confirmBox('이 사진을 지울까요?', '지우기', '그냥 둘래요'))) return;
+    store.delIslePhoto(del.dataset.del);
+    sound.playPop();
+    el.querySelector('.sheet-body').innerHTML = render();
   });
   return el;
 }
