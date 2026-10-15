@@ -1223,8 +1223,9 @@ button.pill { cursor: pointer; }
 @keyframes bulbGlow { from { opacity: .7; } to { opacity: 1; } }
 
 /* 아래 버튼과 꾸미기 보관함 */
-.isle-dock, .isle-tray { flex: none; display: flex; align-items: center; gap: calc(var(--u) * 1.2); padding: calc(var(--u) * 0.8) calc(var(--u) * 2); background: linear-gradient(180deg, #E8C98A, #D4AC68); border-top: 3px solid #B8905A; }
+.isle-dock, .isle-tray { flex: none; display: flex; align-items: center; flex-wrap: wrap; gap: calc(var(--u) * 0.8); padding: calc(var(--u) * 0.7) calc(var(--u) * 1.2); background: linear-gradient(180deg, #E8C98A, #D4AC68); border-top: 3px solid #B8905A; }
 .isle-dock { justify-content: center; }
+.isle-dock .btn { padding: calc(var(--u) * 0.7) calc(var(--u) * 1.4); font-size: calc(var(--u) * 1.9); }
 .btn-sand { background: #FFF3DE; color: #6B4320; --shadow: #D9B98A; }
 .btn-sand b { background: #FFD54A; color: #6B4320; border-radius: 999px; padding: 0 calc(var(--u) * 0.7); margin-left: calc(var(--u) * 0.4); }
 .isle-tray .tray-items { flex: 1; display: flex; align-items: center; gap: calc(var(--u) * 1); overflow-x: auto; min-height: calc(var(--u) * 7); }
