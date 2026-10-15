@@ -8,6 +8,8 @@ import { SEA2 } from '../data/sea2.js';
 import { WORD_ISLANDS } from '../data/wordProblems.js';
 import { sea2Art } from '../graphics/sea2.js';
 import { callKid } from '../data/care.js';
+import { beachDraw, beachItem, ZONE_Y } from '../data/beach.js';
+import { openBeachShop } from './overlays.js';
 
 // 곰치가 숨는 바닷속 바위 구멍: 숨었을 때와 고개를 내밀었을 때의 가로 위치(%)
 const HOLE = { hide: 91, peek: 81, y: 50 };
@@ -122,17 +124,37 @@ export class IslandScene {
           <div class="isle-nest" ${eggs.length ? '' : 'hidden'}>
             <div class="nest-eggs">${eggs.map((s) => `<button class="nest-egg" data-egg="${s.id}">${sea2Art(s.id, 1, Math.round(this.u * 5.5), WORD_ISLANDS[s.word].icon)}</button>`).join('')}</div>
           </div>
+          <div class="beach-layer"></div>
           <div class="isle-actors"></div>
           <div class="isle-say" hidden></div>
           ${store.sea2Open() ? '<button class="isle-sail" data-sail>⛵ 두 번째 바다</button>' : ''}
         </div>
+        <div class="isle-dock">
+          <button class="btn btn-sand" data-isle="decor">🏖️ 꾸미기</button>
+          <button class="btn btn-sand" data-isle="shop">🐚 해변 상점 <b class="shell-n">${store.shells()}</b></button>
+        </div>
+        <div class="isle-tray" hidden>
+          <button class="btn btn-star" data-isle="shop">🐚 상점</button>
+          <div class="tray-items"></div>
+          <button class="btn btn-coral" data-isle="decor-done">✓ 다 꾸몄어요</button>
+        </div>
       </div>`);
     this.el.prepend(this.bar.el);
     this.world = this.el.querySelector('.isle-world');
+    this.beachLayer = this.el.querySelector('.beach-layer');
     this.actors = this.el.querySelector('.isle-actors');
     this.sayEl = this.el.querySelector('.isle-say');
     this.friends = hatched.map((s) => this.makeFriend(s));
+    this.renderBeach();
 
+    this.el.addEventListener('click', (e) => {
+      const act = e.target.closest('[data-isle]')?.dataset.isle;
+      if (!act) return;
+      sound.playPop();
+      if (act === 'decor') this.enterDecor();
+      if (act === 'decor-done') this.exitDecor();
+      if (act === 'shop') openBeachShop(() => this.afterShop());
+    });
     this.el.querySelector('[data-sail]')?.addEventListener('click', () => {
       sound.playPop();
       this.app.go('sea2');
@@ -156,6 +178,121 @@ export class IslandScene {
       this.world.appendChild(ring);
       setTimeout(() => ring.remove(), 900);
     });
+  }
+
+  // ---- 해변 꾸미기 ----
+  renderBeach() {
+    this.beachLayer.innerHTML = '';
+    for (const d of store.beach().filter((it) => it.placed)) {
+      const it = beachItem(d.type);
+      if (!it) continue;
+      const el = h(`<div class="beach-decor zone-${it.zone} ${it.night ? 'glow' : ''}" data-type="${d.type}" style="left:${d.x}%;top:${d.y}%;z-index:${it.zone === 'sky' ? 300 : Math.round(d.y * 10)}">${beachDraw(d.type, this.u)}<button class="decor-back" type="button" aria-label="보관함에 넣기">↩</button></div>`);
+      el.addEventListener('pointerdown', (ev) => {
+        if (!this.decorating || ev.button !== 0) return;
+        ev.stopPropagation();
+        if (ev.target.closest('.decor-back')) return;
+        this.dragBeach(ev, el, d.id, it);
+      });
+      el.querySelector('.decor-back').addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        store.storeBeach(d.id);
+        sound.playPop();
+        this.renderBeach();
+        this.renderTray();
+      });
+      this.beachLayer.appendChild(el);
+    }
+  }
+
+  renderTray() {
+    const box = this.el.querySelector('.tray-items');
+    const stored = store.beach().filter((it) => !it.placed);
+    box.innerHTML = stored.length
+      ? stored.map((d) => `<div class="tray-item" data-id="${d.id}">${beachDraw(d.type, this.u * 0.5)}</div>`).join('')
+      : '<span class="tray-empty">보관함이 비었어요. 해변 상점에서 장식을 사 보세요</span>';
+    box.querySelectorAll('.tray-item').forEach((el) => {
+      el.addEventListener('pointerdown', (ev) => {
+        ev.stopPropagation();
+        if (ev.button !== 0) return;
+        const d = store.beach().find((x) => x.id === el.dataset.id);
+        const it = beachItem(d.type);
+        const ghost = h(`<div class="beach-decor zone-${it.zone} dragging" style="left:-999px;top:0">${beachDraw(d.type, this.u)}</div>`);
+        this.beachLayer.appendChild(ghost);
+        this.dragBeach(ev, ghost, d.id, it, true);
+      });
+    });
+  }
+
+  // 장식을 끌어다 놓아요. 자리(모래밭·얕은 물·하늘)를 벗어나면 그 자리 안으로 되돌려요
+  dragBeach(e, el, id, it, fromTray = false) {
+    const rect = this.world.getBoundingClientRect();
+    const tray = this.el.querySelector('.isle-tray');
+    const [y0, y1] = ZONE_Y[it.zone] || ZONE_Y.sand;
+    const start = { x: e.clientX, y: e.clientY };
+    let moved = false;
+    let pos = { x: 50, y: (y0 + y1) / 2 };
+    el.classList.add('dragging');
+    sound.playPop();
+
+    const place = (cx, cy) => {
+      pos = {
+        x: Math.max(5, Math.min(95, ((cx - rect.left) / rect.width) * 100)),
+        y: Math.max(y0, Math.min(y1, ((cy - rect.top) / rect.height) * 100))
+      };
+      el.style.left = `${pos.x}%`;
+      el.style.top = `${pos.y}%`;
+    };
+    if (fromTray) place(e.clientX, e.clientY);
+    const overTray = (ev) => {
+      const r = tray.getBoundingClientRect();
+      return ev.clientY >= r.top - 10;
+    };
+    const move = (ev) => {
+      if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 8) moved = true;
+      place(ev.clientX, ev.clientY);
+      tray.classList.toggle('drop-here', overTray(ev));
+    };
+    const up = (ev) => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      tray.classList.remove('drop-here');
+      if (!fromTray && overTray(ev)) {
+        store.storeBeach(id);
+        toast('보관함에 넣었어요');
+      } else {
+        store.placeBeach(id, pos.x, pos.y);
+        sound.playStar();
+      }
+      this.renderBeach();
+      this.renderTray();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  }
+
+  enterDecor() {
+    this.decorating = true;
+    this.el.classList.add('decorating');
+    this.el.querySelector('.isle-dock').hidden = true;
+    this.el.querySelector('.isle-tray').hidden = false;
+    this.renderTray();
+    this.renderBeach();
+    toast('보관함에서 꺼내 원하는 곳에 놓아요. 장식의 ↩ 를 누르면 다시 보관함에');
+  }
+
+  exitDecor() {
+    this.decorating = false;
+    this.el.classList.remove('decorating');
+    this.el.querySelector('.isle-dock').hidden = false;
+    this.el.querySelector('.isle-tray').hidden = true;
+    this.renderBeach();
+    this.say(this.el.querySelector('.isle-sign'), '섬이 예뻐졌어요! ✨');
+  }
+
+  afterShop() {
+    this.el.querySelector('.shell-n').textContent = store.shells();
+    if (this.decorating) this.renderTray();
+    else this.enterDecor();
   }
 
   makeFriend(s) {

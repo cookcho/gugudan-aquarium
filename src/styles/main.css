@@ -1192,3 +1192,43 @@ button.pill { cursor: pointer; }
 .backdrop-img { position: absolute; inset: 0; background-size: cover; background-position: center bottom; opacity: .95; }
 .big-thumb { max-height: 100%; max-width: 100%; object-fit: contain; filter: drop-shadow(0 calc(var(--u) * 0.3) calc(var(--u) * 0.5) rgba(10, 40, 60, .25)); }
 .big-thumb.backdrop-thumb { display: block; width: calc(var(--u) * 15); height: calc(var(--u) * 9); border-radius: calc(var(--u) * 1); background-size: cover; background-position: center; border: 2px solid rgba(255, 255, 255, .8); }
+
+/* ===== 친구들의 섬: 해변 꾸미기 ===== */
+.scene.island { display: flex; flex-direction: column; }
+.isle-world { flex: 1; position: relative; inset: auto; }
+.beach-layer { position: absolute; inset: 0; pointer-events: none; }
+.beach-decor { position: absolute; translate: -50% -50%; pointer-events: none; line-height: 0; }
+/* 모래 위 물건은 바닥이 놓는 자리에 닿아요 */
+.beach-decor.zone-sand { translate: -50% -100%; }
+.beach-decor svg { display: block; }
+.decorating .beach-decor { pointer-events: auto; cursor: grab; }
+.decorating .beach-decor::after { content: ""; position: absolute; inset: calc(var(--u) * -0.6); border: 2px dashed rgba(255, 255, 255, .8); border-radius: calc(var(--u) * 1); }
+.beach-decor .decor-back { display: none; position: absolute; right: calc(var(--u) * -1.2); top: calc(var(--u) * -1.2); width: calc(var(--u) * 3); height: calc(var(--u) * 3); border-radius: 50%; border: 2px solid #fff; background: #FF7A59; color: #fff; font-size: calc(var(--u) * 1.6); cursor: pointer; padding: 0; z-index: 2; }
+.decorating .beach-decor .decor-back { display: block; }
+.beach-decor.dragging { opacity: .85; scale: 1.05; z-index: 900 !important; }
+
+/* 밤에는 장식도 같이 어두워져요 (빛나는 장식만 빼고) */
+.isle-world.night .beach-decor:not(.glow) { filter: brightness(.78) saturate(.85); }
+.isle-world.evening .beach-decor:not(.glow) { filter: brightness(.9) saturate(.95); }
+/* 밤에 빛나는 장식 */
+.isle-world.night .beach-decor.glow { filter: drop-shadow(0 0 calc(var(--u) * 1.6) rgba(255, 196, 90, .85)); }
+.isle-world.evening .beach-decor.glow { filter: drop-shadow(0 0 calc(var(--u) * 1) rgba(255, 196, 90, .5)); }
+.isle-world:not(.night) .beach-decor .beacon-ray, .isle-world:not(.night) .beach-decor .lantern-bulb { opacity: .45; }
+.isle-world.night .beach-decor .beacon-ray { animation: beaconSpin 5s linear infinite; transform-origin: 65% 33%; }
+@keyframes beaconSpin { 0%, 45% { opacity: .15; } 60% { opacity: .65; } 100% { opacity: .15; } }
+.fire-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: fireFlicker 1.1s ease-in-out infinite alternate; }
+@keyframes fireFlicker { from { transform: scale(1, .94) rotate(-3deg); } to { transform: scale(1.06, 1.06) rotate(3deg); } }
+.isle-world.night .lantern-bulb { animation: bulbGlow 2.6s ease-in-out infinite alternate; }
+.lantern-bulb:nth-of-type(2n) { animation-delay: -1.1s; }
+@keyframes bulbGlow { from { opacity: .7; } to { opacity: 1; } }
+
+/* 아래 버튼과 꾸미기 보관함 */
+.isle-dock, .isle-tray { flex: none; display: flex; align-items: center; gap: calc(var(--u) * 1.2); padding: calc(var(--u) * 0.8) calc(var(--u) * 2); background: linear-gradient(180deg, #E8C98A, #D4AC68); border-top: 3px solid #B8905A; }
+.isle-dock { justify-content: center; }
+.btn-sand { background: #FFF3DE; color: #6B4320; --shadow: #D9B98A; }
+.btn-sand b { background: #FFD54A; color: #6B4320; border-radius: 999px; padding: 0 calc(var(--u) * 0.7); margin-left: calc(var(--u) * 0.4); }
+.isle-tray .tray-items { flex: 1; display: flex; align-items: center; gap: calc(var(--u) * 1); overflow-x: auto; min-height: calc(var(--u) * 7); }
+.isle-tray .tray-item { flex: none; display: grid; place-items: center; width: calc(var(--u) * 7); height: calc(var(--u) * 7); border-radius: calc(var(--u) * 1.2); background: rgba(255, 255, 255, .75); border: 2px solid #B8905A; cursor: grab; }
+.isle-tray .tray-item svg { max-width: 86%; max-height: 86%; }
+.isle-tray .tray-empty { color: #7A5B33; font-size: calc(var(--u) * 1.7); }
+.isle-tray.drop-here { background: linear-gradient(180deg, #FFE9B8, #FFD98A); box-shadow: inset 0 calc(var(--u) * 0.5) 0 #FFBF4A; }

@@ -7,6 +7,7 @@ import { CHARACTERS, DAN_ORDER, STAGES, stageName } from '../data/characters.js'
 import { charSVG, guideSVG, hasImage, hasBackdrop, backdropUrl } from '../graphics/characters.js';
 import { SHOP_TABS, SHOP_ITEMS, THEMES, decorSVG } from '../data/shop.js';
 import { BIG_ITEMS, bigItemById } from '../data/bigItems.js';
+import { BEACH_TABS, BEACH_ITEMS } from '../data/beach.js';
 import { createFoodCanSVG, createMedicineSVG } from '../graphics/food.js';
 import { REQUESTS, josa } from '../data/care.js';
 import confetti from 'canvas-confetti';
@@ -533,4 +534,45 @@ function openPhoto(ph) {
     el.remove();
   });
   document.getElementById('app').appendChild(el);
+}
+
+
+// 🐚 해변 상점: 친구들의 섬 장식을 조개로 사요
+export function openBeachShop(onChange, startTab = 'prop') {
+  let tab = startTab;
+  const px = Math.round(unit() * 7);
+  const card = (it) => `
+    <button class="shop-item" data-buy="${it.type}">
+      <span class="shop-art">${it.draw(px)}</span>
+      <span class="shop-name">${it.name}</span>
+      ${it.night ? '<span class="shop-tag">🌙 밤에 빛나요</span>' : ''}
+      <span class="shop-cost ${store.shells() >= it.cost ? 'using' : ''}">🐚 ${it.cost}</span>
+    </button>`;
+  const render = () => `
+    <p class="sheet-sub">내 조개 🐚 <b>${store.shells()}</b> · 문장제를 풀거나 해변에서 주우면 모여요. 산 장식은 보관함에 들어가요</p>
+    <div class="shop-tabs">${BEACH_TABS.map((t) => `<button class="shop-tab ${tab === t.id ? 'on' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}</div>
+    <div class="shop-grid">${BEACH_ITEMS.filter((it) => it.cat === tab).map(card).join('')}</div>`;
+  const el = sheet('🐚 해변 상점', render());
+  const redraw = () => { el.querySelector('.sheet-body').innerHTML = render(); };
+  el.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-tab]');
+    if (t) {
+      sound.playPop();
+      tab = t.dataset.tab;
+      return redraw();
+    }
+    const b = e.target.closest('[data-buy]');
+    if (!b) return;
+    const it = BEACH_ITEMS.find((x) => x.type === b.dataset.buy);
+    if (!store.spendShells(it.cost)) {
+      sound.playBoing();
+      return toast(`조개가 ${it.cost - store.shells()}개 더 필요해요 🐚`);
+    }
+    store.addBeach(it.type);
+    sound.playStar();
+    toast(`${it.name}을(를) 샀어요! 보관함에서 꺼내 놓아요`);
+    redraw();
+    onChange?.();
+  });
+  return el;
 }

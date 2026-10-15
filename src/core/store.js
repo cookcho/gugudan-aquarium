@@ -15,6 +15,7 @@ const HUNGRY_MS = 12 * HOUR_MS; // 12시간 넘게 못 먹으면 배고파요 (�
 const POOP_EVERY_MS = 12 * HOUR_MS; // 물고기 한 마리가 12시간마다 똥 하나 (하루 2개)
 const SICK_ROLL_MS = 20 * HOUR_MS; // 아플지 말지는 하루에 한 번만 정해요
 const MAX_POOPS = 12;
+export const SHELL_PICK_LIMIT = 20; // 해변에서 하루에 주울 수 있는 조개
 const FAST_MS = 5000; // 5초 안에 맞히면 "빨리 맞혔다"로 봐요
 const V1_KEY = 'gugudan_aquarium_save_v1';
 
@@ -55,6 +56,9 @@ function freshSave() {
     progress2: {}, // 두 번째 바다 섬별 단계 { bundle: 0~4 }
     fishTank: {}, // 첫 바다 친구가 사는 어항 { '2': 1 } (없으면 0번). 두 번째 바다 친구는 친구들의 섬에서 살아요
     viewTank: 0, // 지금 보고 있는 어항
+    shells: 0, // 친구들의 섬 전용 화폐. 문장제를 풀거나 해변에서 주워 모아요
+    shellPick: { date: null, n: 0 }, // 해변에서 주운 조개 (하루 한도)
+    beachDecor: [], // 해변 장식 [{ id, type, x, y, placed }]
     wordMisses: [], // 문장제 복습할 문제 유형 [{ word, template }] (최근 12개)
     words: {}, // 문장제 기록 { 섬id: { ok, miss, calc(계산 실수), read(문장 이해 실수) } }
     gift: null, // { date, dan, x, opened }
@@ -593,6 +597,64 @@ class Store {
 
   viewTank() {
     return Math.min(this.data.viewTank || 0, this.tankCount() - 1);
+  }
+
+  // ---- 조개: 친구들의 섬 화폐 ----
+  shells() {
+    return this.data.shells || 0;
+  }
+
+  addShells(n) {
+    this.data.shells = this.shells() + n;
+    this.save();
+  }
+
+  spendShells(n) {
+    if (this.shells() < n) return false;
+    this.data.shells -= n;
+    this.save();
+    return true;
+  }
+
+  // 해변에서 줍는 조개는 하루 한도가 있어요 (공부로 버는 게 주된 길)
+  pickShell(limit = SHELL_PICK_LIMIT) {
+    const t = today();
+    const p = this.data.shellPick || { date: null, n: 0 };
+    if (p.date !== t) Object.assign(p, { date: t, n: 0 });
+    if (p.n >= limit) return 0;
+    p.n += 1;
+    this.data.shellPick = p;
+    this.addShells(1);
+    return limit - p.n;
+  }
+
+  shellPickLeft(limit = SHELL_PICK_LIMIT) {
+    const p = this.data.shellPick || { date: null, n: 0 };
+    return p.date === today() ? Math.max(0, limit - p.n) : limit;
+  }
+
+  // ---- 해변 장식 ----
+  beach() {
+    return this.data.beachDecor || (this.data.beachDecor = []);
+  }
+
+  addBeach(type) {
+    this.beach().push({ id: `b${Date.now()}`, type, x: 50, y: 82, placed: false });
+    this.save();
+  }
+
+  placeBeach(id, x, y) {
+    const d = this.beach().find((it) => it.id === id);
+    if (!d) return;
+    Object.assign(d, { x, y, placed: true });
+    this.save();
+  }
+
+  storeBeach(id) {
+    const d = this.beach().find((it) => it.id === id);
+    if (!d) return;
+    d.placed = false;
+    this.save();
   }
 
   // ---- 두 번째 바다 (문장제) ----

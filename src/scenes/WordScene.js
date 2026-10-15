@@ -304,6 +304,9 @@ export class WordScene {
     // 오늘의 도전 섬이면 별 2배
     const double = wasChallenge ? this.earned + bonus : 0;
     if (double) store.addStars(double);
+    // 조개: 친구들의 섬 해변을 꾸미는 데 써요 (한 단계 올리면 더 많이)
+    const shells = passed ? (grew ? (this.cfg.boss ? 10 : 5) : 2) : 1;
+    store.addShells(shells);
     const f = this.isl.friend;
     const icon = WORD_ISLANDS[this.isl.word].icon;
     const title = !passed
@@ -322,7 +325,7 @@ export class WordScene {
         <div class="sheet small center word-result">
           <h2 class="sheet-title ${grew ? 'pending' : ''}">${esc(title)}</h2>
           ${art}
-          <p class="sheet-msg">한 번에 맞힌 문제 ${this.firstTry} / ${this.idx} · ⭐ +${this.earned + bonus}</p>
+          <p class="sheet-msg">한 번에 맞힌 문제 ${this.firstTry} / ${this.idx} · ⭐ +${this.earned + bonus} · 🐚 +${shells}</p>
           ${double ? `<p class="sheet-msg"><span class="pill new">🎯 도전 섬 보너스 ⭐ +${double}</span></p>` : ''}
           ${grew && to === 2 ? `<p class="sheet-msg">${f.name}는 🏝️ 친구들의 섬에서 살아요. 어항 화면의 섬 버튼으로 놀러 가요!</p>` : ''}
           <div class="row">
@@ -366,12 +369,13 @@ export class WordScene {
 
   finishReview() {
     const left = (store.data.wordMisses || []).length;
+    store.addShells(3);
     const el = h(`
       <div class="overlay">
         <div class="sheet small center word-result">
           <h2 class="sheet-title">문장제 복습 끝! 📅</h2>
           <div class="evolve still">${guideSVG(Math.round(this.u * 14))}</div>
-          <p class="sheet-msg">한 번에 맞힌 문제 ${this.firstTry} / ${this.idx} · ⭐ +${this.earned}</p>
+          <p class="sheet-msg">한 번에 맞힌 문제 ${this.firstTry} / ${this.idx} · ⭐ +${this.earned} · 🐚 +3</p>
           <p class="sheet-msg">${left ? `다시 볼 문제가 ${left}개 남았어요` : '틀렸던 문제를 모두 풀었어요! 🎉'}</p>
           <div class="row">
             ${left ? '<button class="btn btn-foam" data-go="again">🔄 한 번 더 복습</button>' : ''}
