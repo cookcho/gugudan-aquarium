@@ -1274,9 +1274,8 @@ button.pill { cursor: pointer; }
 .surf-shellbit { position: absolute; left: 50%; translate: -50% 0; font-size: calc(var(--u) * 3); line-height: 1; filter: drop-shadow(0 0 calc(var(--u) * 0.8) #fff); animation: shellBob 1.2s ease-in-out infinite alternate; }
 @keyframes shellBob { to { transform: translateY(calc(var(--u) * -0.7)); } }
 .surf-jelly.got, .surf-shellbit.got { animation: itemGot .4s ease-out forwards; }
-.surf-hearts span.gone { opacity: .25; filter: grayscale(1); }
-.surf-rider.safe { animation: riderBlink .22s steps(1) infinite; }
-@keyframes riderBlink { 50% { opacity: .35; } }
+.surf-rider.bonk { animation: riderBonk .7s ease-out forwards; }
+@keyframes riderBonk { 30% { rotate: -18deg; } 100% { rotate: 22deg; translate: calc(var(--u) * -1.2) calc(var(--u) * 2.2); opacity: .5; } }
 @keyframes itemGot { to { opacity: 0; scale: 1.8; } }
 .surf-drop { position: absolute; width: calc(var(--u) * 1); height: calc(var(--u) * 1); border-radius: 50%; background: #fff; opacity: .9; animation: surfDrop .7s ease-out forwards; }
 @keyframes surfDrop { to { translate: var(--dx) calc(var(--u) * -5); opacity: 0; } }

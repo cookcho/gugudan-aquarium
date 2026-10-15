@@ -1,27 +1,30 @@
 // 🏄 돌고래 파도타기: 파도를 달리며 해파리를 뛰어넘는 달리기 게임이에요.
 // 화면을 누르면 점프 — 해파리 위에 뜬 조개는 뛰어넘으면서 저절로 주워져요.
-// 하트 3개를 다 잃으면 끝. 뛰어넘은 수가 점수고, 모은 조개는 섬에서 써요.
+// 해파리에 한 번이라도 부딪히면 끝! 뛰어넘은 수가 점수고, 모은 조개는 섬에서 써요.
 import { store } from '../core/store.js';
 import { h, topbar, unit, floatUp, confirmBox } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
 import { sea2Art } from '../graphics/sea2.js';
 import confetti from 'canvas-confetti';
 
-const HEARTS = 3;
-const HIT_SAFE = 1.4; // 부딪힌 뒤 잠깐 무적 (초)
 // 점프: 높이 약 20u, 공중에 약 1.35초 — 해파리를 넉넉히(1.7배 여유) 넘어요
 const JUMP_V = -58; // × u
 const GRAVITY = 85; // × u
-const SPEED0 = 17; // × u (초당)
-const SPEED_MAX = 24;
+const SPEED0 = 16; // × u (초당). 넘을수록 점점 빨라져요
+const SPEED_MAX = 34;
+const SPEED_UP = 0.5; // 한 마리 넘을 때마다 빨라지는 양
 // 충돌 판정은 그림보다 작게 (그림 둘레의 빈 곳까지 닿으면 억울해요)
 const RIDER_W = 0.32;
 const RIDER_H = 0.3;
 const JELLY_W = 0.28;
 const JELLY_H = 0.28;
 const SHELL_UP = 14.5; // 조개가 물 위로 뜬 높이 (× u) — 점프 꼭대기(약 20u)보다 낮아요
-const GAP0 = 2.6; // 해파리 사이 간격(초)
-const GAP_MIN = 1.7;
+// 해파리 간격(초): 들쭉날쭉하게, 넘을수록 조금씩 촘촘하게.
+// 1.25초보다 좁으면 착지하고 다시 뛸 틈이 없어서 그 아래로는 안 내려가요
+const GAP_FAR = [3.4, 2.4]; // 처음 → 나중
+const GAP_NEAR = [1.9, 1.25];
+const PAIR_FROM = 15; // 이 점수부터 두 마리가 붙어서 나와요 (한 번에 뛰어넘기)
+const PAIR_GAP = 0.35;
 
 export class SurfScene {
   constructor(app) {
@@ -44,7 +47,6 @@ export class SurfScene {
         <div class="surf-field"></div>
         <div class="surf-rider"></div>
         <div class="surf-hud">
-          <span class="surf-pill surf-hearts"></span>
           <span class="surf-pill">🏄 <b class="surf-score">0</b></span>
           <span class="surf-pill">🐚 <b class="surf-shell">0</b></span>
           <span class="surf-pill best">🏅 최고 <b>${store.data.surfBest || 0}</b></span>
@@ -52,7 +54,7 @@ export class SurfScene {
         <div class="surf-ready">
           <div class="surf-ready-card">
             <h2>🏄 돌고래 파도타기</h2>
-            <p>화면을 누르면 돌돌이가 <b>높이 폴짝!</b><br>해파리를 뛰어넘고, 위에 뜬 🐚 조개도 주워요.<br>💗 세 개를 다 잃으면 끝이에요.</p>
+            <p>화면을 누르면 돌돌이가 <b>높이 폴짝!</b><br>해파리를 뛰어넘고, 위에 뜬 🐚 조개도 주워요.<br>한 번이라도 부딪히면 끝! 점점 빨라져요 💨</p>
             <button class="btn btn-coral btn-big" data-surf="go">시작!</button>
           </div>
         </div>
@@ -63,12 +65,7 @@ export class SurfScene {
     this.size = Math.round(this.u * 11);
     this.riderEl.innerHTML = sea2Art('compare', Math.max(2, store.progress2('compare')) || 2, this.size);
     this.riderEl.style.transform = `translate(${this.u * 10}px, ${this.u * 26}px)`;
-    this.drawHearts(HEARTS);
     this.el.querySelector('[data-surf="go"]').addEventListener('click', () => this.start());
-  }
-
-  drawHearts(n) {
-    this.el.querySelector('.surf-hearts').innerHTML = Array.from({ length: HEARTS }, (_, i) => `<span class="${i < n ? '' : 'gone'}">💗</span>`).join('');
   }
 
   start() {
@@ -77,13 +74,11 @@ export class SurfScene {
     this.playing = true;
     this.score = 0;
     this.shells = 0;
-    this.hearts = HEARTS;
-    this.safe = 0;
     this.items = [];
     this.spawnIn = 1.6;
+    this.pairIn = 0;
     this.waterY = this.el.clientHeight * 0.64;
     this.rider = { y: this.waterY, vy: 0, rot: 0, air: false };
-    this.drawHearts(this.hearts);
     this.el.addEventListener('pointerdown', (e) => {
       if (!this.playing || e.target.closest('.topbar')) return;
       if (this.rider.air) return;
@@ -108,14 +103,21 @@ export class SurfScene {
 
   // 지금 빠르기: 뛰어넘을수록 조금씩 빨라져요 (너무 빨라지지 않게 상한)
   speed() {
-    return this.u * Math.min(SPEED_MAX, SPEED0 + this.score * 0.35);
+    return this.u * Math.min(SPEED_MAX, SPEED0 + this.score * SPEED_UP);
+  }
+
+  // 다음 해파리까지 기다리는 시간: 가까울 때도 멀 때도 있어요
+  nextGap() {
+    const t = Math.min(1, this.score / 30); // 0 → 1 로 점점 어려워져요
+    const near = GAP_NEAR[0] + (GAP_NEAR[1] - GAP_NEAR[0]) * t;
+    const far = GAP_FAR[0] + (GAP_FAR[1] - GAP_FAR[0]) * t;
+    return near + Math.random() * (far - near);
   }
 
   step(dt) {
     const W = this.el.clientWidth;
     const r = this.rider;
     const u = this.u;
-    this.safe = Math.max(0, this.safe - dt);
 
     // 돌고래: 높이 뛰었다가 파도 위로 내려앉아요
     r.vy += GRAVITY * u * dt;
@@ -130,15 +132,26 @@ export class SurfScene {
       r.air = false;
     }
     r.rot = r.air ? Math.max(-30, Math.min(32, (r.vy / u) * 0.9)) : Math.sin(performance.now() / 320) * 5;
-    this.riderEl.classList.toggle('safe', this.safe > 0);
     this.riderEl.style.transform = `translate(${W * 0.22 - this.size / 2}px, ${r.y - this.size / 2}px) rotate(${r.rot}deg)`;
 
     // 해파리 만들기
     const sp = this.speed();
     this.spawnIn -= dt;
     if (this.spawnIn <= 0) {
-      this.spawnIn = Math.max(GAP_MIN, GAP0 - this.score * 0.02) + Math.random() * 0.5;
+      this.spawnIn = this.nextGap();
       this.spawn(W);
+      // 가끔 두 마리가 붙어서 나와요 — 한 번에 훌쩍 뛰어넘어요
+      if (this.score >= PAIR_FROM && Math.random() < 0.2) {
+        this.pairIn = PAIR_GAP;
+        this.spawnIn += PAIR_GAP;
+      }
+    }
+    if (this.pairIn > 0) {
+      this.pairIn -= dt;
+      if (this.pairIn <= 0) {
+        this.pairIn = 0;
+        this.spawn(W, true);
+      }
     }
 
     // 흘러오기 · 부딪힘 · 뛰어넘기
@@ -162,7 +175,7 @@ export class SurfScene {
         }
       }
       // 부딪힘 (네모끼리 겹치면)
-      if (!it.hit && !this.safe) {
+      if (!it.hit) {
         const ox = it.x + it.w / 2;
         const oy = it.y + it.h / 2;
         if (Math.abs(ox - rx) < rw + it.w * JELLY_W && Math.abs(oy - r.y) < rh + it.h * JELLY_H) {
@@ -184,11 +197,11 @@ export class SurfScene {
     this.items = this.items.filter((o) => !o.dead);
   }
 
-  spawn(W) {
+  spawn(W, pair = false) {
     const u = this.u;
     const w = Math.round(u * 7);
     const jh = Math.round(u * 8);
-    const withShell = Math.random() < 0.75;
+    const withShell = !pair && Math.random() < 0.75;
     const el = h(`<div class="surf-jelly" style="width:${w}px;height:${jh}px">
       <svg viewBox="0 0 60 70" aria-hidden="true">
         <path d="M6 30 Q6 6 30 6 Q54 6 54 30 Q42 38 30 30 Q18 38 6 30Z" fill="#C9A4FF" stroke="#8A6BD8" stroke-width="3"/>
@@ -201,17 +214,17 @@ export class SurfScene {
     this.items.push({ el, shellEl: el.querySelector('.surf-shellbit'), shell: withShell, x: W + w, y: this.waterY - jh * 0.55, w, h: jh });
   }
 
+  // 부딪히면 바로 끝이에요
   bump(it) {
-    this.hearts -= 1;
-    this.safe = HIT_SAFE;
-    this.drawHearts(this.hearts);
+    this.playing = false;
     sound.playBoing();
     it.el.classList.add('got');
+    this.riderEl.classList.add('bonk');
     this.el.classList.remove('bump');
     void this.el.offsetWidth;
     this.el.classList.add('bump');
     floatUp(this.el, it.x + it.w / 2, it.y, '💫');
-    if (this.hearts <= 0) this.finish();
+    setTimeout(() => this.alive && this.finish(), 700);
   }
 
   splash(x, y) {
