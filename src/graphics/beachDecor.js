@@ -207,3 +207,23 @@ export function lighthouse(w) {
     </g>
     <g class="beacon-ray"><path d="M72 37 L150 10 L150 64Z" fill="#FFE89A" opacity=".55"/></g>`);
 }
+
+// 모래성: 두드릴수록 자라요 (0 모래 둔덕 → 1 작은 성 → 2 탑 → 3 완성)
+export function sandcastle(w, stage) {
+  const body = [
+    `<path d="M10 86 Q60 56 110 86Z" fill="#E8C98A" ${S}/>`,
+    `<g ${S}><rect x="30" y="48" width="60" height="38" rx="4" fill="#E8C98A"/><path d="M30 48 h8 v-8 h8 v8 h8 v-8 h8 v8 h8 v-8 h8 v8 h8" fill="none"/><path d="M10 86 H110" stroke-width="5"/></g>`,
+    `<g ${S}><rect x="30" y="48" width="60" height="38" rx="4" fill="#E8C98A"/><rect x="48" y="20" width="24" height="30" rx="4" fill="#F2D6A8"/><path d="M48 20 h6 v-6 h6 v6 h6 v-6 h6 v6" fill="none"/><path d="M10 86 H110" stroke-width="5"/><rect x="54" y="62" width="12" height="24" rx="3" fill="#C9A77C"/></g>`,
+    `<g ${S}>
+       <rect x="26" y="50" width="68" height="36" rx="4" fill="#E8C98A"/>
+       <rect x="12" y="38" width="22" height="48" rx="4" fill="#F2D6A8"/><rect x="86" y="38" width="22" height="48" rx="4" fill="#F2D6A8"/>
+       <rect x="46" y="16" width="28" height="34" rx="4" fill="#F2D6A8"/>
+       <path d="M12 38 h5 v-6 h6 v6 h5 M86 38 h5 v-6 h6 v6 h5 M46 16 h7 v-7 h7 v7 h7" fill="none"/>
+       <path d="M60 16 V2" stroke-width="4"/><path d="M60 2 l16 5 l-16 5Z" fill="#FF6B6B"/>
+       <rect x="52" y="64" width="16" height="22" rx="4" fill="#C9A77C"/>
+       <path d="M6 86 H114" stroke-width="5"/>
+     </g>
+     <g ${S} stroke-width="3"><path d="M20 80 q4 -8 8 0Z" fill="#FFD6DE"/><circle cx="100" cy="80" r="5" fill="#CFEFFF"/></g>`
+  ][stage];
+  return svg(w, 120, 92, body);
+}

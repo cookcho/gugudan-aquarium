@@ -1232,3 +1232,20 @@ button.pill { cursor: pointer; }
 .isle-tray .tray-item svg { max-width: 86%; max-height: 86%; }
 .isle-tray .tray-empty { color: #7A5B33; font-size: calc(var(--u) * 1.7); }
 .isle-tray.drop-here { background: linear-gradient(180deg, #FFE9B8, #FFD98A); box-shadow: inset 0 calc(var(--u) * 0.5) 0 #FFBF4A; }
+/* 섬 놀이: 비치볼 · 조개 줍기 · 모래성 */
+.castle-layer { position: absolute; inset: 0; pointer-events: none; }
+.play-layer { position: absolute; inset: 0; pointer-events: none; z-index: 1000; }
+.isle-ball { position: absolute; left: 0; top: 0; z-index: 800; cursor: grab; pointer-events: auto; touch-action: none; filter: drop-shadow(0 calc(var(--u) * 0.4) calc(var(--u) * 0.5) rgba(90, 60, 20, .3)); }
+.isle-ball svg { width: 100%; height: 100%; }
+.wash-shell { position: absolute; translate: -50% -50%; z-index: 700; border: 0; background: none; padding: calc(var(--u) * 0.6); cursor: pointer; pointer-events: auto; line-height: 0; animation: washIn .5s ease-out; filter: drop-shadow(0 0 calc(var(--u) * 0.6) rgba(255, 255, 255, .9)); }
+@keyframes washIn { from { opacity: 0; translate: -50% 40%; } }
+.wash-shell::after { content: ""; position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 0 rgba(255, 255, 255, .8); animation: washPulse 1.6s ease-out infinite; }
+@keyframes washPulse { to { box-shadow: 0 0 0 calc(var(--u) * 2) rgba(255, 255, 255, 0); } }
+.sand-castle { position: absolute; translate: -50% -100%; pointer-events: auto; cursor: pointer; line-height: 0; touch-action: none; }
+.sand-castle.pat { animation: castlePat .25s ease-out; }
+@keyframes castlePat { 50% { transform: scale(1.08, .92); } }
+.castle-bar { position: absolute; left: 10%; right: 10%; bottom: calc(var(--u) * -1.4); height: calc(var(--u) * 0.9); border-radius: 999px; background: rgba(255, 255, 255, .7); border: 2px solid #B8905A; overflow: hidden; }
+.castle-bar i { display: block; height: 100%; background: linear-gradient(90deg, #FFD54A, #FF9F4A); transition: width .2s; }
+.scene.island.building .isle-sand { cursor: pointer; }
+.scene.island.building .isle-sand::after { content: "여기를 톡톡 두드려요 🏰"; position: absolute; left: 50%; top: calc(var(--u) * 1.5); translate: -50% 0; background: rgba(255, 255, 255, .85); color: #6B4320; border-radius: 999px; padding: calc(var(--u) * 0.3) calc(var(--u) * 1.4); font-size: calc(var(--u) * 1.7); pointer-events: none; }
+.btn-sand.active { background: #FFD54A; --shadow: #D9A52E; }

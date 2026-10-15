@@ -2,13 +2,15 @@
 // 바다 친구는 헤엄치고(돌고래는 가끔 점프), 해달은 물 위에 둥둥, 펭귄·물범은 모래밭을 걷고, 성게는 바위 웅덩이에 있어요.
 // 알(부화 전)은 야자수 밑 둥지에서 기다려요. 시간대(낮·노을·밤)는 어항과 같고, 밤에는 모래밭 친구가 잠을 자요.
 import { store } from '../core/store.js';
-import { h, topbar, unit, floatUp, timeOfDay } from '../core/ui.js';
+import { h, topbar, unit, floatUp, timeOfDay, toast, confirmBox } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
 import { SEA2 } from '../data/sea2.js';
 import { WORD_ISLANDS } from '../data/wordProblems.js';
 import { sea2Art } from '../graphics/sea2.js';
 import { callKid } from '../data/care.js';
 import { beachDraw, beachItem, ZONE_Y } from '../data/beach.js';
+import { sandcastle } from '../graphics/beachDecor.js';
+import { CASTLE_TAPS, SHELL_PICK_LIMIT } from '../core/store.js';
 import { openBeachShop } from './overlays.js';
 
 // 곰치가 숨는 바닷속 바위 구멍: 숨었을 때와 고개를 내밀었을 때의 가로 위치(%)
@@ -125,11 +127,16 @@ export class IslandScene {
             <div class="nest-eggs">${eggs.map((s) => `<button class="nest-egg" data-egg="${s.id}">${sea2Art(s.id, 1, Math.round(this.u * 5.5), WORD_ISLANDS[s.word].icon)}</button>`).join('')}</div>
           </div>
           <div class="beach-layer"></div>
+          <div class="castle-layer"></div>
+          <div class="play-layer"></div>
           <div class="isle-actors"></div>
           <div class="isle-say" hidden></div>
           ${store.sea2Open() ? '<button class="isle-sail" data-sail>⛵ 두 번째 바다</button>' : ''}
         </div>
         <div class="isle-dock">
+          <button class="btn btn-sand" data-isle="ball">🏐 비치볼</button>
+          <button class="btn btn-sand" data-isle="shell">🐚 조개 줍기</button>
+          <button class="btn btn-sand" data-isle="castle">🏰 모래성</button>
           <button class="btn btn-sand" data-isle="decor">🏖️ 꾸미기</button>
           <button class="btn btn-sand" data-isle="shop">🐚 해변 상점 <b class="shell-n">${store.shells()}</b></button>
         </div>
@@ -142,15 +149,20 @@ export class IslandScene {
     this.el.prepend(this.bar.el);
     this.world = this.el.querySelector('.isle-world');
     this.beachLayer = this.el.querySelector('.beach-layer');
+    this.playLayer = this.el.querySelector('.play-layer');
     this.actors = this.el.querySelector('.isle-actors');
     this.sayEl = this.el.querySelector('.isle-say');
     this.friends = hatched.map((s) => this.makeFriend(s));
     this.renderBeach();
+    this.renderCastle();
 
     this.el.addEventListener('click', (e) => {
       const act = e.target.closest('[data-isle]')?.dataset.isle;
       if (!act) return;
       sound.playPop();
+      if (act === 'ball') this.toggleBall();
+      if (act === 'shell') this.toggleShells();
+      if (act === 'castle') this.toggleCastle();
       if (act === 'decor') this.enterDecor();
       if (act === 'decor-done') this.exitDecor();
       if (act === 'shop') openBeachShop(() => this.afterShop());
@@ -168,6 +180,16 @@ export class IslandScene {
       void b.offsetWidth;
       b.classList.add('shake');
       this.say(b, `${s.friend.name}의 알이에요. 두 번째 바다 ${WORD_ISLANDS[s.word].name}에서 '부화'를 하면 깨어나요!`);
+    });
+    // 모래성 모드: 모래밭을 누르면 그 자리에 쌓아요
+    this.el.querySelector('.isle-sand').addEventListener('pointerdown', (e) => {
+      if (!this.building) return;
+      const c = store.castle();
+      if (c) return this.tapCastle(c.x, c.y);
+      const r = this.world.getBoundingClientRect();
+      const x = Math.max(12, Math.min(88, ((e.clientX - r.left) / r.width) * 100));
+      const y = Math.max(78, Math.min(93, ((e.clientY - r.top) / r.height) * 100));
+      this.tapCastle(x, y);
     });
     // 물을 누르면 물결이 퍼져요
     this.el.querySelector('.isle-sea').addEventListener('pointerdown', (e) => {
@@ -272,6 +294,9 @@ export class IslandScene {
 
   enterDecor() {
     this.decorating = true;
+    if (this.ball) this.toggleBall();
+    if (this.shelling) this.toggleShells();
+    if (this.building) this.toggleCastle();
     this.el.classList.add('decorating');
     this.el.querySelector('.isle-dock').hidden = true;
     this.el.querySelector('.isle-tray').hidden = false;
@@ -293,6 +318,227 @@ export class IslandScene {
     this.el.querySelector('.shell-n').textContent = store.shells();
     if (this.decorating) this.renderTray();
     else this.enterDecor();
+  }
+
+  // ---- 🏐 비치볼: 끌어서 던지면 모래밭을 통통 튀고, 친구들이 받아쳐요 ----
+  toggleBall() {
+    const btn = this.el.querySelector('[data-isle="ball"]');
+    if (this.ball) {
+      this.ball.el.remove();
+      this.ball = null;
+      btn.classList.remove('active');
+      return;
+    }
+    if (this.shelling) this.toggleShells();
+    if (this.building) this.toggleCastle();
+    const r = Math.round(this.u * 3);
+    const el = h(`<div class="isle-ball" style="width:${r * 2}px;height:${r * 2}px">${beachDraw('beachBall', this.u * 0.86)}</div>`);
+    this.playLayer.appendChild(el);
+    const W = this.world.clientWidth;
+    this.ball = { el, r, x: W / 2, y: this.world.clientHeight * 0.4, vx: (Math.random() - 0.5) * 4, vy: 0, idle: 0, spin: 0 };
+    btn.classList.add('active');
+    this.say(this.el.querySelector('.isle-sign'), '공을 끌어서 던져 봐요! 친구들이 받아쳐요 🏐');
+    el.addEventListener('pointerdown', (e) => this.grabBall(e));
+  }
+
+  grabBall(e) {
+    e.stopPropagation();
+    const b = this.ball;
+    if (!b) return;
+    const rect = this.world.getBoundingClientRect();
+    b.held = true;
+    let last = { x: e.clientX, y: e.clientY, t: performance.now() };
+    const move = (ev) => {
+      const now = performance.now();
+      const dt = Math.max(8, now - last.t);
+      b.x = ev.clientX - rect.left;
+      b.y = ev.clientY - rect.top;
+      b.vx = ((ev.clientX - last.x) / dt) * 14;
+      b.vy = ((ev.clientY - last.y) / dt) * 14;
+      last = { x: ev.clientX, y: ev.clientY, t: now };
+    };
+    const up = () => {
+      b.held = false;
+      b.idle = 0;
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  }
+
+  stepBall(dt, W, H) {
+    const b = this.ball;
+    if (!b) return;
+    const ground = H * 0.9;
+    if (!b.held) {
+      b.vy += 0.9; // 모래밭이라 쑥 떨어져요
+      b.vx *= 0.995;
+      b.x += b.vx;
+      b.y += b.vy;
+      if (b.x < b.r) { b.x = b.r; b.vx = Math.abs(b.vx) * 0.8; }
+      if (b.x > W - b.r) { b.x = W - b.r; b.vx = -Math.abs(b.vx) * 0.8; }
+      if (b.y < b.r) { b.y = b.r; b.vy = Math.abs(b.vy) * 0.6; }
+      if (b.y > ground - b.r) {
+        b.y = ground - b.r;
+        if (b.vy > 1.5) sound.playPop();
+        b.vy = -Math.abs(b.vy) * 0.62;
+        b.vx *= 0.9;
+        if (Math.abs(b.vy) < 1.4) b.vy = 0;
+      }
+      // 모래밭 친구가 가까이 있으면 폴짝 뛰어 받아쳐요
+      for (const f of this.friends) {
+        if (f.mode !== 'land' || f.sleep) continue;
+        const fx = (f.x / 100) * W;
+        const fy = (f.y / 100) * H;
+        if (Math.hypot(fx - b.x, fy - b.y) < f.size * 0.9 && b.vy > -2) {
+          b.vy = -14 - Math.random() * 5;
+          b.vx += (b.x - fx) * 0.12;
+          f.hop = 1;
+          sound.playBoing();
+          floatUp(this.world, fx, fy - f.size * 0.4, '🏐');
+        }
+      }
+      b.idle += dt;
+      if (b.idle > 45) return this.toggleBall();
+    }
+    b.spin += b.vx * 1.6;
+    b.el.style.transform = `translate(${b.x - b.r}px, ${b.y - b.r}px) rotate(${b.spin}deg)`;
+  }
+
+  // ---- 🐚 조개 줍기: 파도가 조개를 밀어다 줘요 (하루 한도) ----
+  toggleShells() {
+    const btn = this.el.querySelector('[data-isle="shell"]');
+    if (this.shelling) {
+      this.shelling = false;
+      clearTimeout(this.shellTimer);
+      this.playLayer.querySelectorAll('.wash-shell').forEach((el) => el.remove());
+      btn.classList.remove('active');
+      return;
+    }
+    if (this.ball) this.toggleBall();
+    if (this.building) this.toggleCastle();
+    this.shelling = true;
+    btn.classList.add('active');
+    const left = store.shellPickLeft(SHELL_PICK_LIMIT);
+    this.say(this.el.querySelector('.isle-sign'), left
+      ? `파도가 조개를 밀어다 줘요. 눌러서 주워요! (오늘 ${left}개 더) 🐚`
+      : '오늘은 조개를 다 주웠어요. 내일 또 와요! 🐚');
+    const spawn = () => {
+      if (!this.alive || !this.shelling) return;
+      if (store.shellPickLeft(SHELL_PICK_LIMIT) > 0 && this.playLayer.querySelectorAll('.wash-shell').length < 4) {
+        const x = 8 + Math.random() * 84;
+        const y = 70 + Math.random() * 8;
+        const el = h(`<button class="wash-shell" style="left:${x}%;top:${y}%">${beachDraw(Math.random() < 0.15 ? 'starfish' : 'shellPile', this.u * 0.42)}</button>`);
+        el.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const rest = store.pickShell(SHELL_PICK_LIMIT);
+          el.remove();
+          if (rest === 0 && store.shellPickLeft(SHELL_PICK_LIMIT) === 0) {
+            sound.playBoing();
+            return this.say(this.el.querySelector('.isle-sign'), '오늘 주울 조개를 다 모았어요. 내일 또 와요! 🐚');
+          }
+          sound.playStar();
+          const r = el.getBoundingClientRect();
+          const w = this.world.getBoundingClientRect();
+          floatUp(this.world, r.left - w.left, r.top - w.top, '🐚 +1');
+          this.el.querySelector('.shell-n').textContent = store.shells();
+        });
+        this.playLayer.appendChild(el);
+        setTimeout(() => el.remove(), 9000);
+      }
+      this.shellTimer = setTimeout(spawn, 1800 + Math.random() * 2600);
+    };
+    spawn();
+  }
+
+  // ---- 🏰 모래성: 모래밭을 톡톡 두드려 쌓아요 ----
+  toggleCastle() {
+    const btn = this.el.querySelector('[data-isle="castle"]');
+    if (this.building) {
+      this.building = false;
+      this.el.classList.remove('building');
+      btn.classList.remove('active');
+      return;
+    }
+    if (this.ball) this.toggleBall();
+    if (this.shelling) this.toggleShells();
+    this.building = true;
+    this.el.classList.add('building');
+    btn.classList.add('active');
+    const c = store.castle();
+    this.say(this.el.querySelector('.isle-sign'), c && c.taps >= CASTLE_TAPS
+      ? '멋진 모래성이 다 지어졌어요! 다시 지으려면 성을 꾹 눌러요 🏰'
+      : '모래밭을 톡톡 두드려서 모래성을 쌓아요! 🏰');
+  }
+
+  castleStage(taps) {
+    return taps >= CASTLE_TAPS ? 3 : taps >= 8 ? 2 : taps >= 4 ? 1 : 0;
+  }
+
+  renderCastle() {
+    const layer = this.el.querySelector('.castle-layer');
+    layer.innerHTML = '';
+    const c = store.castle();
+    if (!c) return;
+    const stage = this.castleStage(c.taps);
+    const done = c.taps >= CASTLE_TAPS;
+    const el = h(`<div class="sand-castle" style="left:${c.x}%;top:${c.y}%;z-index:${Math.round(c.y * 10)}">${sandcastle(Math.round(this.u * (8 + stage * 3)), stage)}
+      ${done ? '' : `<span class="castle-bar"><i style="width:${Math.round((c.taps / CASTLE_TAPS) * 100)}%"></i></span>`}</div>`);
+    el.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      if (done) {
+        // 다 지은 성을 누르면 친구들이 구경하러 와요. 꾹 누르면 허물고 다시
+        sound.playStar();
+        const r = el.getBoundingClientRect();
+        const w = this.world.getBoundingClientRect();
+        this.attention = { x: r.left - w.left + r.width / 2, y: r.top - w.top };
+        for (let i = 0; i < 3; i++) setTimeout(() => this.alive && floatUp(this.world, r.left - w.left + r.width * (0.2 + i * 0.3), r.top - w.top, '✨'), i * 150);
+        this.gatherAt(c.x);
+        clearTimeout(this.holdTimer);
+        this.holdTimer = setTimeout(async () => {
+          if (await confirmBox('모래성을 허물고 새로 지을까요?', '허물기', '그냥 둘래요')) {
+            store.resetCastle();
+            sound.playWhoosh();
+            this.renderCastle();
+          }
+        }, 900);
+        const cancel = () => clearTimeout(this.holdTimer);
+        window.addEventListener('pointerup', cancel, { once: true });
+        return;
+      }
+      this.tapCastle(c.x, c.y);
+    });
+    layer.appendChild(el);
+  }
+
+  tapCastle(x, y) {
+    const c = store.tapCastle(x, y);
+    const before = this.castleStage(c.taps - 1);
+    this.renderCastle();
+    const el = this.el.querySelector('.sand-castle');
+    el?.classList.add('pat');
+    sound.playPop();
+    const w = this.world.getBoundingClientRect();
+    floatUp(this.world, (x / 100) * w.width, (y / 100) * w.height - this.u * 2, '✨');
+    if (c.taps >= CASTLE_TAPS) {
+      sound.playFanfare();
+      this.say(this.el.querySelector('.isle-sign'), '모래성 완성! 친구들이 구경하러 와요 🏰');
+      this.gatherAt(x);
+    } else if (this.castleStage(c.taps) > before) {
+      sound.playStar();
+    }
+  }
+
+  // 친구들이 그 자리로 모여요
+  gatherAt(xPct) {
+    for (const f of this.friends) {
+      if (f.mode !== 'land' || f.sleep) continue;
+      f.tx = Math.max(36, Math.min(74, xPct + (Math.random() - 0.5) * 14));
+      f.ty = 80 + Math.random() * 6;
+      f.wait = 0;
+      f.goal = null;
+    }
   }
 
   makeFriend(s) {
@@ -422,6 +668,7 @@ export class IslandScene {
       const W = this.world.clientWidth;
       const H = this.world.clientHeight;
       for (const f of this.friends) this.step(f, dt, W, H);
+      this.stepBall(dt, W, H);
       this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
@@ -666,6 +913,8 @@ export class IslandScene {
     clearTimeout(this.sayTimer);
     clearTimeout(this.shootTimer);
     clearTimeout(this.rippleTimer);
+    clearTimeout(this.shellTimer);
+    clearTimeout(this.holdTimer);
     this.bar.destroy();
   }
 }

@@ -15,6 +15,7 @@ const HUNGRY_MS = 12 * HOUR_MS; // 12시간 넘게 못 먹으면 배고파요 (�
 const POOP_EVERY_MS = 12 * HOUR_MS; // 물고기 한 마리가 12시간마다 똥 하나 (하루 2개)
 const SICK_ROLL_MS = 20 * HOUR_MS; // 아플지 말지는 하루에 한 번만 정해요
 const MAX_POOPS = 12;
+export const CASTLE_TAPS = 12; // 모래성 완성까지 두드리는 횟수
 export const SHELL_PICK_LIMIT = 20; // 해변에서 하루에 주울 수 있는 조개
 const FAST_MS = 5000; // 5초 안에 맞히면 "빨리 맞혔다"로 봐요
 const V1_KEY = 'gugudan_aquarium_save_v1';
@@ -58,7 +59,8 @@ function freshSave() {
     viewTank: 0, // 지금 보고 있는 어항
     shells: 0, // 친구들의 섬 전용 화폐. 문장제를 풀거나 해변에서 주워 모아요
     shellPick: { date: null, n: 0 }, // 해변에서 주운 조개 (하루 한도)
-    beachDecor: [], // 해변 장식 [{ id, type, x, y, placed }]
+    beachDecor: [],
+    sandcastle: null, // 모래성 { x, y, taps } · 12번 두드리면 완성 // 해변 장식 [{ id, type, x, y, placed }]
     wordMisses: [], // 문장제 복습할 문제 유형 [{ word, template }] (최근 12개)
     words: {}, // 문장제 기록 { 섬id: { ok, miss, calc(계산 실수), read(문장 이해 실수) } }
     gift: null, // { date, dan, x, opened }
@@ -654,6 +656,23 @@ class Store {
     const d = this.beach().find((it) => it.id === id);
     if (!d) return;
     d.placed = false;
+    this.save();
+  }
+
+  // ---- 모래성 ----
+  castle() {
+    return this.data.sandcastle;
+  }
+
+  tapCastle(x, y) {
+    const c = this.data.sandcastle || (this.data.sandcastle = { x, y, taps: 0 });
+    if (c.taps < CASTLE_TAPS) c.taps += 1;
+    this.save();
+    return c;
+  }
+
+  resetCastle() {
+    this.data.sandcastle = null;
     this.save();
   }
 
