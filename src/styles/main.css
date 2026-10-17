@@ -1279,7 +1279,8 @@ button.pill { cursor: pointer; }
 .ob-bird .wing-dn { animation-name: flapDn; }
 @keyframes flap { to { transform: rotate(26deg); } }
 @keyframes flapDn { to { transform: rotate(-20deg); } }
-.surf-coin { position: absolute; left: 0; top: 0; display: grid; place-items: center; font-size: calc(var(--u) * 2.9); animation: shellBob 1s ease-in-out infinite alternate; filter: drop-shadow(0 0 calc(var(--u) * 0.6) rgba(255, 255, 255, .95)); }
+.surf-coin { position: absolute; left: 0; top: 0; display: grid; place-items: center; font-size: calc(var(--u) * 3.7); animation: coinGlow 1.8s ease-in-out infinite alternate; filter: drop-shadow(0 0 calc(var(--u) * 0.9) rgba(255, 255, 255, .95)); }
+@keyframes coinGlow { to { scale: 1.1; filter: drop-shadow(0 0 calc(var(--u) * 1.5) #FFF0A8); } }
 .surf-coin.got { animation: itemGot .4s ease-out forwards; }
 .surf-bubble { position: absolute; left: 0; top: 0; display: grid; place-items: center; font-size: calc(var(--u) * 4.4); animation: shellBob 1.1s ease-in-out infinite alternate; filter: drop-shadow(0 0 calc(var(--u) * 1) #BFEFFF); }
 @keyframes jellyBob { to { transform: translateY(calc(var(--u) * -0.8)); } }

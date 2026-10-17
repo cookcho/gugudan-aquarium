@@ -63,8 +63,8 @@ const ART = {
 // ── 구간(패턴) ──
 // at: 구간이 시작되고 몇 초 뒤에 나오는지 · up: 물 위로 띄운 높이(u, 조개만)
 // 한 번 점프로 넘으려면 0.4초 안쪽, 내렸다 다시 뛰려면 1.5초쯤 떨어져야 해요
-const arc = (at, ups = [8, 13, 8]) => ups.map((up, i) => ({ t: 'shell', at: +(at + i * 0.2).toFixed(2), up }));
-const line = (at, n = 3) => Array.from({ length: n }, (_, i) => ({ t: 'shell', at: +(at + i * 0.32).toFixed(2), up: 2.5 }));
+const arc = (at, ups = [8, 13, 8]) => ups.map((up, i) => ({ t: 'shell', at: +(at + i * 0.32).toFixed(2), up }));
+const line = (at, n = 3) => Array.from({ length: n }, (_, i) => ({ t: 'shell', at: +(at + i * 0.42).toFixed(2), up: 2.5 }));
 
 const PATTERNS = [
   // 1단계 — 쉬어 가는 구간
@@ -269,7 +269,13 @@ export class SurfScene {
       while (this.queue.length && this.queue[0].at <= 0) {
         const q = this.queue.shift();
         if (q.t === 'shell') this.spawnShell(W, q.up);
-        else this.spawn(W, q.t);
+        else {
+          this.spawn(W, q.t);
+          if (q.t === 'bird' && !this.sawBird) {
+            this.sawBird = true;
+            this.banner('🕊️ 갈매기는 뛰지 말고 지나가요!');
+          }
+        }
       }
     } else if (this.spawnIn <= 0) {
       this.nextPattern(W);
@@ -376,7 +382,7 @@ export class SurfScene {
 
   spawnShell(W, up) {
     const u = this.u;
-    const s = Math.round(u * 3.6);
+    const s = Math.round(u * 4.6);
     const el = h(`<div class="surf-coin" style="width:${s}px;height:${s}px">🐚</div>`);
     this.field.appendChild(el);
     this.items.push({ el, pick: 'shell', x: W + s, y: this.waterY - u * up - s / 2, w: s, h: s });
