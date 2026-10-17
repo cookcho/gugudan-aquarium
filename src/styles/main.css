@@ -1255,17 +1255,15 @@ button.pill { cursor: pointer; }
 .scene.surf { overflow: hidden; background: #1E88C0; touch-action: none; user-select: none; }
 .surf-sky { position: absolute; left: 0; right: 0; top: 0; height: 62%; background: linear-gradient(180deg, #8FDCFF, #CFF0FF 60%, #FFE6C2); }
 .surf-sun { position: absolute; right: 12%; top: 14%; width: calc(var(--u) * 9); height: calc(var(--u) * 9); border-radius: 50%; background: radial-gradient(circle, #FFF6B8 40%, #FFD54A 72%); box-shadow: 0 0 calc(var(--u) * 5) #FFE58A; }
-.surf-cloud { position: absolute; width: calc(var(--u) * 13); height: calc(var(--u) * 3.6); border-radius: 999px; background: #fff; opacity: .9; animation: surfCloud 18s linear infinite; }
-.surf-cloud::before { content: ""; position: absolute; left: 18%; bottom: 40%; width: 48%; height: 150%; border-radius: 50%; background: inherit; }
-.surf-cloud.c1 { top: 16%; animation-delay: -2s; }
-.surf-cloud.c2 { top: 32%; scale: .7; animation-duration: 26s; animation-delay: -14s; }
-.surf-cloud.c3 { top: 8%; scale: .55; animation-duration: 32s; animation-delay: -24s; }
-@keyframes surfCloud { from { left: 105%; } to { left: -25%; } }
+.px-clouds, .px-isles { position: absolute; inset: 0; pointer-events: none; }
+.px-cloud { position: absolute; left: 0; border-radius: 999px; background: #fff; opacity: .9; }
+.px-cloud::before { content: ""; position: absolute; left: 18%; bottom: 35%; width: 50%; height: 150%; border-radius: 50%; background: inherit; }
+.px-isle { position: absolute; left: 0; bottom: 0; border-radius: 50% 50% 0 0 / 100% 100% 0 0; background: #8FC4C0; opacity: .3; }
+.scene.surf.dusk .px-isle { background: #9A7FB5; }
+.scene.surf.night .px-isle { background: #3A4A72; opacity: .5; }
 .surf-sea { position: absolute; left: 0; right: 0; top: 58%; bottom: 0; background: linear-gradient(180deg, #3FA8DC, #1E6FA8 70%, #124E7C); }
 .surf-waves { position: absolute; left: 0; top: 0; width: 100%; height: calc(var(--u) * 9); }
-.surf-waves .sw { animation: surfWave 2.4s linear infinite; }
-.surf-waves .sw.b { animation-duration: 3.6s; animation-direction: reverse; }
-@keyframes surfWave { to { transform: translateX(-100px); } }
+
 .surf-field { position: absolute; inset: 0; pointer-events: none; }
 .surf-rider { position: absolute; left: 0; top: 0; z-index: 20; pointer-events: none; filter: drop-shadow(0 calc(var(--u) * 0.4) calc(var(--u) * 0.6) rgba(10, 50, 90, .35)); }
 .surf-ob { position: absolute; left: 0; top: 0; }
@@ -1338,3 +1336,18 @@ button.pill { cursor: pointer; }
 .scene.surf.night .surf-sun { background: transparent; box-shadow: inset calc(var(--u) * -2.2) calc(var(--u) * 0.2) 0 0 #FFF6D6; rotate: -20deg; }
 .scene.surf.night .surf-cloud { opacity: .18; }
 .scene.surf .surf-sky, .scene.surf .surf-sea, .scene.surf .surf-sun { transition: background 2.5s, box-shadow 2.5s; }
+
+/* 런게임 속도감: 속도선 · 물보라 · 질주 */
+.surf-lines { position: absolute; inset: 0; z-index: 18; pointer-events: none; overflow: hidden; }
+.speed-line { position: absolute; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .75); animation: lineZip .5s linear forwards; }
+@keyframes lineZip { to { translate: -140vw 0; opacity: 0; } }
+.surf-trail { position: absolute; width: calc(var(--u) * 2); height: calc(var(--u) * 1.1); border-radius: 50%; background: rgba(255, 255, 255, .85); animation: trailFade .45s ease-out forwards; pointer-events: none; }
+@keyframes trailFade { to { translate: calc(var(--u) * -7) calc(var(--u) * 0.6); scale: 1.7; opacity: 0; } }
+.surf-dashorb { position: absolute; left: 0; top: 0; display: grid; place-items: center; font-size: calc(var(--u) * 5); animation: orbSpin 1.1s ease-in-out infinite alternate; filter: drop-shadow(0 0 calc(var(--u) * 1.6) #7FE3FF); }
+@keyframes orbSpin { to { scale: 1.16; rotate: 12deg; } }
+.surf-dashorb.got { animation: itemGot .4s ease-out forwards; }
+.surf-rider.dashing { filter: drop-shadow(0 0 calc(var(--u) * 1.8) #7FE3FF) drop-shadow(0 0 calc(var(--u) * 3) #FFF6A8); }
+.scene.surf.dashing .surf-sea { filter: saturate(1.3) brightness(1.08); }
+.scene.surf.dashing .surf-lines { opacity: 1; }
+.scene.surf.dashing::after { content: ""; position: absolute; inset: 0; z-index: 17; pointer-events: none; background: radial-gradient(ellipse at 22% 60%, rgba(127, 227, 255, .28), transparent 55%); animation: dashGlow .5s ease-in-out infinite alternate; }
+@keyframes dashGlow { to { opacity: .5; } }

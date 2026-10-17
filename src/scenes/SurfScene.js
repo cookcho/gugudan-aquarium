@@ -4,7 +4,9 @@
 //  · 공중에서 한 번 더 누르면 두 번째 점프 (조금 낮게)
 //  · 🫧 거품 방패를 먹으면 한 번은 막아 줘요. 그 외엔 한 번만 부딪혀도 끝!
 //  · 길은 미리 짜 둔 '구간'을 이어 붙여 만들어요. 쉬운 구간 → 조이는 구간 → 다시 쉬는 구간이 물결처럼 반복돼요
+//  · 🌊 파도 구슬을 먹으면 몇 초 동안 '질주' — 무엇이든 부수고 달려요
 //  · 넘을수록 빨라지고, 하늘도 낮 → 노을 → 밤으로 바뀌어요
+//  · 배경(구름·섬·파도)은 달리는 속도에 맞춰 함께 흘러서 속도감을 줘요
 import { store } from '../core/store.js';
 import { h, topbar, unit, floatUp, confirmBox } from '../core/ui.js';
 import { sound } from '../audio/soundManager.js';
@@ -20,13 +22,16 @@ const HOLD_ACC = -70; // × u/초 (누르고 있는 동안 더 솟아요)
 const HOLD_MAX = 0.28; // 초
 const GRAVITY = 85; // × u
 
-const SPEED0 = 18; // × u (초당). 넘을수록 쭉쭉 빨라져요
-const SPEED_MAX = 44; // 빨라질수록 장애물이 보이고부터 닿을 때까지가 짧아져요 (반응 시간 ↓)
-const SPEED_UP = 1.1;
+const SPEED0 = 25; // × u (초당). 처음부터 시원하게 달려요
+const SPEED_MAX = 52; // 빨라질수록 장애물이 보이고부터 닿을 때까지가 짧아져요 (반응 시간 ↓)
+const SPEED_UP = 1.4;
 
 const JUMP2 = 0.78; // 두 번째 점프 세기 (첫 점프의 몇 배)
 const SHELL_UP = 14.5; // 방패가 뜬 높이 (× u)
 const SHIELD_EVERY = [20, 34]; // 방패가 나오는 간격(초)
+const DASH_EVERY = [16, 26]; // 질주 구슬이 나오는 간격(초)
+const DASH_TIME = 4.5; // 질주하는 시간(초)
+const DASH_BOOST = 1.7; // 질주 중 속도
 const MILESTONE = 10; // 이만큼 넘을 때마다 보너스
 const COMBO_STEP = 5; // 조개를 이만큼 연달아 먹으면 보너스
 
@@ -106,7 +111,8 @@ export class SurfScene {
         <div class="surf-sky">
           <div class="surf-stars">${Array.from({ length: 40 }, (_, k) => `<i style="left:${(k * 67) % 100}%;top:${(k * 31) % 80}%;animation-delay:-${((k * 0.3) % 3).toFixed(1)}s"></i>`).join('')}</div>
           <div class="surf-sun"></div>
-          <div class="surf-cloud c1"></div><div class="surf-cloud c2"></div><div class="surf-cloud c3"></div>
+          <div class="px-isles"></div>
+          <div class="px-clouds"></div>
         </div>
         <div class="surf-sea">
           <svg class="surf-waves" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true">
@@ -114,6 +120,7 @@ export class SurfScene {
             <path class="sw b" d="M-120 40 q25 -12 50 0${' t50 0'.repeat(15)} V60 H-120Z" fill="rgba(255,255,255,.14)"/>
           </svg>
         </div>
+        <div class="surf-lines"></div>
         <div class="surf-field"></div>
         <div class="surf-rider"><span class="rider-shield"></span></div>
         <div class="surf-hud">
@@ -132,6 +139,7 @@ export class SurfScene {
               <li>🪸 성게 · 🪼 해파리는 <b>뛰어넘어요</b></li>
               <li>🕊️ 갈매기가 오면 <b>뛰지 말고</b> 지나가요!</li>
               <li>🫧 거품 방패는 한 번 막아 줘요</li>
+              <li>🌊 파도 구슬을 먹으면 <b>질주!</b> 다 부숴요</li>
             </ul>
             <p class="surf-warn">한 번이라도 부딪히면 끝! 점점 빨라져요 💨</p>
             <button class="btn btn-coral btn-big" data-surf="go">시작!</button>
@@ -144,7 +152,44 @@ export class SurfScene {
     this.size = Math.round(this.u * 11);
     this.riderEl.insertAdjacentHTML('afterbegin', sea2Art('compare', Math.max(2, store.progress2('compare')) || 2, this.size));
     this.riderEl.style.transform = `translate(${this.u * 10}px, ${this.u * 26}px)`;
+    this.buildParallax();
     this.el.querySelector('[data-surf="go"]').addEventListener('click', () => this.start());
+  }
+
+  // 배경: 멀수록 천천히 흘러서 깊이가 생겨요
+  buildParallax() {
+    const u = this.u;
+    const W = this.el.clientWidth || innerWidth;
+    this.px = [];
+    const isles = this.el.querySelector('.px-isles');
+    const clouds = this.el.querySelector('.px-clouds');
+    for (let i = 0; i < 4; i++) {
+      const w = u * (13 + Math.random() * 9);
+      const el = h(`<i class="px-isle" style="width:${w}px;height:${w * 0.38}px"></i>`);
+      isles.appendChild(el);
+      this.px.push({ el, x: (W / 4) * i + Math.random() * 120, w, f: 0.22 });
+    }
+    for (let i = 0; i < 5; i++) {
+      const w = u * (10 + Math.random() * 8);
+      const el = h(`<i class="px-cloud" style="width:${w}px;height:${w * 0.3}px;top:${6 + Math.random() * 26}%"></i>`);
+      clouds.appendChild(el);
+      this.px.push({ el, x: (W / 5) * i + Math.random() * 120, w, f: 0.1 + Math.random() * 0.06 });
+    }
+    for (const o of this.px) o.el.style.transform = `translateX(${o.x}px)`;
+  }
+
+  stepParallax(dt, sp, W) {
+    for (const o of this.px) {
+      o.x -= sp * o.f * dt;
+      if (o.x < -o.w) o.x = W + Math.random() * W * 0.3;
+      o.el.style.transform = `translateX(${o.x}px)`;
+    }
+    // 파도도 같이 흘러요
+    this.waveX = ((this.waveX || 0) + sp * 0.55 * dt) % (W / 8);
+    const w0 = this.el.querySelector('.sw.a');
+    const w1 = this.el.querySelector('.sw.b');
+    if (w0) w0.style.transform = `translateX(${-this.waveX}px)`;
+    if (w1) w1.style.transform = `translateX(${-this.waveX * 1.6}px)`;
   }
 
   start() {
@@ -161,6 +206,9 @@ export class SurfScene {
     this.lastLv = 0;
     this.combo = 0;
     this.shieldIn = SHIELD_EVERY[0];
+    this.dashIn = DASH_EVERY[0];
+    this.dash = 0;
+    this.trailIn = 0;
     this.hold = -1; // 누르고 있는 시간 (안 누르면 -1)
     this.waterY = this.el.clientHeight * 0.64;
     this.rider = { y: this.waterY, vy: 0, rot: 0, air: false };
@@ -201,7 +249,8 @@ export class SurfScene {
   }
 
   speed() {
-    return this.u * Math.min(SPEED_MAX, SPEED0 + this.score * SPEED_UP);
+    const base = this.u * Math.min(SPEED_MAX, SPEED0 + this.score * SPEED_UP);
+    return this.dash > 0 ? base * DASH_BOOST : base;
   }
 
   // 점프 날카로움: 속도가 오를수록 커져요 (속도 v배 → 체공 1/k배, 높이는 그대로)
@@ -270,8 +319,30 @@ export class SurfScene {
     r.rot = r.air ? Math.max(-30, Math.min(32, (r.vy / u / k) * 0.9)) : Math.sin(performance.now() / 320) * 5;
     this.riderEl.style.transform = `translate(${W * 0.22 - this.size / 2}px, ${r.y - this.size / 2}px) rotate(${r.rot}deg)`;
 
+    // 질주 시간
+    if (this.dash > 0) {
+      this.dash -= dt;
+      if (this.dash <= 0) {
+        this.dash = 0;
+        this.el.classList.remove('dashing');
+        this.riderEl.classList.remove('dashing');
+      }
+    }
+
     // 구간 만들기: 하나씩 때맞춰 내보내요
     const sp = this.speed();
+    this.stepParallax(dt, sp, W);
+    this.speedLines(dt, sp, W);
+    // 물살 위를 달릴 때 뒤로 물보라
+    if (!r.air) {
+      this.trailIn -= dt;
+      if (this.trailIn <= 0) {
+        this.trailIn = 0.07;
+        const d = h(`<i class="surf-trail" style="left:${W * 0.22 - this.size * 0.3}px;top:${this.waterY + this.size * 0.2}px"></i>`);
+        this.field.appendChild(d);
+        setTimeout(() => d.remove(), 450);
+      }
+    }
     this.spawnIn -= dt;
     if (this.queue.length) {
       for (const q of this.queue) q.at -= dt;
@@ -288,6 +359,12 @@ export class SurfScene {
       }
     } else if (this.spawnIn <= 0) {
       this.nextPattern(W);
+    }
+    // 가끔 질주 구슬
+    this.dashIn -= dt;
+    if (this.dashIn <= 0) {
+      this.dashIn = DASH_EVERY[0] + Math.random() * (DASH_EVERY[1] - DASH_EVERY[0]);
+      if (!this.dash) this.spawnDash(W);
     }
     // 가끔 거품 방패
     this.shieldIn -= dt;
@@ -309,6 +386,7 @@ export class SurfScene {
           it.got = true;
           it.el.classList.add('got');
           if (it.pick === 'shield') this.getShield();
+          else if (it.pick === 'dash') this.getDash();
           else this.getShell(cx, it.y);
         }
       }
@@ -316,14 +394,15 @@ export class SurfScene {
       if (it.solid && !it.hit) {
         if (Math.abs(cx - rx) < rw + it.w * HIT_W && Math.abs(it.y + it.h / 2 - r.y) < rh + it.h * HIT_H) {
           it.hit = true;
-          this.bump(it);
+          if (this.dash > 0) this.smash(it, cx);
+          else this.bump(it);
           if (!this.playing) return;
         }
       }
       // 무사히 지나가면 점수
       if (it.solid && !it.passed && it.x + it.w < rx - rw) {
         it.passed = true;
-        if (!it.hit) this.addScore();
+        if (!it.hit || it.smashed) this.addScore();
       }
       if (it.x < -it.w * 2) it.dead = true;
     }
@@ -357,6 +436,36 @@ export class SurfScene {
     } else {
       floatUp(this.el, x, y, '🐚 +1');
     }
+  }
+
+  getDash() {
+    this.dash = DASH_TIME;
+    this.el.classList.add('dashing');
+    this.riderEl.classList.add('dashing');
+    sound.playFanfare();
+    this.banner('🌊 질주! 다 부수고 달려요');
+  }
+
+  smash(it, cx) {
+    it.smashed = true;
+    this.shells += 1;
+    this.el.querySelector('.surf-shell').textContent = this.shells;
+    sound.playSplash();
+    it.el.classList.add('got');
+    floatUp(this.el, cx, it.y, '💥 +1');
+  }
+
+  // 빨리 달릴수록 옆으로 선이 휙휙 지나가요
+  speedLines(dt, sp, W) {
+    const fast = sp / (this.u * SPEED_MAX);
+    if (fast < 0.55 && this.dash <= 0) return;
+    this.lineIn = (this.lineIn ?? 0) - dt;
+    if (this.lineIn > 0) return;
+    this.lineIn = this.dash > 0 ? 0.03 : 0.12 - fast * 0.08;
+    const len = this.u * (6 + Math.random() * 10);
+    const el = h(`<i class="speed-line" style="width:${len}px;left:${W}px;top:${(10 + Math.random() * 80)}%"></i>`);
+    this.el.querySelector('.surf-lines').appendChild(el);
+    setTimeout(() => el.remove(), 520);
   }
 
   getShield() {
@@ -395,6 +504,14 @@ export class SurfScene {
     const el = h(`<div class="surf-coin" style="width:${s}px;height:${s}px">🐚</div>`);
     this.field.appendChild(el);
     this.items.push({ el, pick: 'shell', x: W + s, y: this.waterY - u * up - s / 2, w: s, h: s });
+  }
+
+  spawnDash(W) {
+    const u = this.u;
+    const s = Math.round(u * 6.4);
+    const el = h(`<div class="surf-dashorb" style="width:${s}px;height:${s}px">🌊</div>`);
+    this.field.appendChild(el);
+    this.items.push({ el, pick: 'dash', x: W + s, y: this.waterY - u * (SHELL_UP - 3) - s / 2, w: s, h: s });
   }
 
   spawnShield(W) {
