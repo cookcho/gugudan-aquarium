@@ -1,7 +1,9 @@
 // 🏄 돌고래 파도타기: 파도를 달리는 런게임이에요.
 //  · 톡 누르면 작게, 꾹 누르면 높이 뛰어요
 //  · 🪸 성게는 작게, 🪼 해파리는 높이 뛰어넘고, 🕊️ 갈매기가 오면 뛰지 말고 지나가요
+//  · 공중에서 한 번 더 누르면 두 번째 점프 (조금 낮게)
 //  · 🫧 거품 방패를 먹으면 한 번은 막아 줘요. 그 외엔 한 번만 부딪혀도 끝!
+//  · 길은 미리 짜 둔 '구간'을 이어 붙여 만들어요. 쉬운 구간 → 조이는 구간 → 다시 쉬는 구간이 물결처럼 반복돼요
 //  · 넘을수록 빨라지고, 하늘도 낮 → 노을 → 밤으로 바뀌어요
 import { store } from '../core/store.js';
 import { h, topbar, unit, floatUp, confirmBox } from '../core/ui.js';
@@ -19,18 +21,11 @@ const SPEED0 = 16; // × u (초당). 넘을수록 점점 빨라져요
 const SPEED_MAX = 34;
 const SPEED_UP = 0.5;
 
-// 해파리 간격(초): 들쭉날쭉하게, 넘을수록 조금씩 촘촘하게
-const GAP_FAR = [3.4, 2.4];
-const GAP_NEAR = [1.9, 1.25];
-const BIRD_GAP_MIN = 1.9; // 갈매기 앞은 넉넉히 (앞 점프에서 내려올 시간)
-const PAIR_FROM = 15;
-const PAIR_GAP = 0.35;
-
-const BIRD_FROM = 6; // 이 점수부터 갈매기가 나와요
-const URCHIN_FROM = 3;
-const SHELL_UP = 14.5; // 조개·방패가 뜬 높이 (× u)
-const SHIELD_EVERY = [18, 30]; // 방패가 나오는 간격(초)
+const JUMP2 = 0.78; // 두 번째 점프 세기 (첫 점프의 몇 배)
+const SHELL_UP = 14.5; // 방패가 뜬 높이 (× u)
+const SHIELD_EVERY = [20, 34]; // 방패가 나오는 간격(초)
 const MILESTONE = 10; // 이만큼 넘을 때마다 보너스
+const COMBO_STEP = 5; // 조개를 이만큼 연달아 먹으면 보너스
 
 // 충돌 판정은 그림보다 작게 (그림 둘레의 빈 곳까지 닿으면 억울해요)
 const RIDER_W = 0.32;
@@ -65,6 +60,38 @@ const ART = {
   </svg>`
 };
 
+// ── 구간(패턴) ──
+// at: 구간이 시작되고 몇 초 뒤에 나오는지 · up: 물 위로 띄운 높이(u, 조개만)
+// 한 번 점프로 넘으려면 0.4초 안쪽, 내렸다 다시 뛰려면 1.5초쯤 떨어져야 해요
+const arc = (at, ups = [8, 13, 8]) => ups.map((up, i) => ({ t: 'shell', at: +(at + i * 0.2).toFixed(2), up }));
+const line = (at, n = 3) => Array.from({ length: n }, (_, i) => ({ t: 'shell', at: +(at + i * 0.32).toFixed(2), up: 2.5 }));
+
+const PATTERNS = [
+  // 1단계 — 쉬어 가는 구간
+  { lv: 1, items: line(0, 4) },
+  { lv: 1, items: [{ t: 'jelly', at: 0 }, ...arc(-0.3)] },
+  { lv: 1, items: [{ t: 'urchin', at: 0 }] },
+  // 2단계
+  { lv: 2, items: [{ t: 'urchin', at: 0 }, { t: 'urchin', at: 1.6 }, ...line(2.4, 3)] },
+  { lv: 2, items: [{ t: 'bird', at: 0 }] },
+  { lv: 2, items: [{ t: 'jelly', at: 0 }, { t: 'jelly', at: 0.35 }, ...arc(-0.2, [7, 13, 16, 13, 7])] },
+  // 3단계
+  { lv: 3, items: [{ t: 'jelly', at: 0 }, { t: 'urchin', at: 1.6 }] },
+  { lv: 3, items: [{ t: 'bird', at: 0 }, { t: 'jelly', at: 1.8 }, ...arc(1.55)] },
+  { lv: 3, items: [{ t: 'urchin', at: 0 }, { t: 'urchin', at: 0.35 }, { t: 'jelly', at: 1.9 }, ...arc(1.65)] },
+  // 4단계
+  { lv: 4, items: [{ t: 'urchin', at: 0 }, { t: 'jelly', at: 1.5 }, { t: 'urchin', at: 3 }, ...arc(1.25)] },
+  { lv: 4, items: [{ t: 'bird', at: 0 }, { t: 'bird', at: 1.7 }, ...line(0.1, 3)] },
+  { lv: 4, items: [{ t: 'jelly', at: 0 }, { t: 'jelly', at: 0.35 }, { t: 'bird', at: 2 }, ...arc(-0.2, [7, 13, 16, 13, 7])] },
+  // 5단계 — 가장 조이는 구간
+  { lv: 5, items: [{ t: 'urchin', at: 0 }, { t: 'urchin', at: 0.33 }, { t: 'jelly', at: 1.7 }, { t: 'jelly', at: 2.05 }, ...arc(1.5, [7, 13, 16, 13, 7])] },
+  { lv: 5, items: [{ t: 'jelly', at: 0 }, { t: 'bird', at: 1.7 }, { t: 'urchin', at: 3.3 }, { t: 'urchin', at: 3.63 }] },
+  { lv: 5, items: [{ t: 'bird', at: 0 }, { t: 'jelly', at: 1.8 }, { t: 'jelly', at: 2.15 }, { t: 'bird', at: 3.9 }, ...arc(1.6, [9, 15, 9])] }
+];
+// 난이도 물결: 한 바퀴(6구간) 안에서 쉬었다 → 조였다 → 다시 쉬어요
+const WAVE = [-1, 0, 1, 1, 2, -1];
+const patternEnd = (p) => Math.max(...p.items.map((i) => i.at));
+
 export class SurfScene {
   constructor(app) {
     this.app = app;
@@ -98,6 +125,7 @@ export class SurfScene {
             <h2>🏄 돌고래 파도타기</h2>
             <ul class="surf-how">
               <li><b>톡</b> 누르면 작게, <b>꾹</b> 누르면 높이 뛰어요</li>
+              <li>공중에서 한 번 더 누르면 <b>두 번 점프!</b></li>
               <li>🪸 성게 · 🪼 해파리는 <b>뛰어넘어요</b></li>
               <li>🕊️ 갈매기가 오면 <b>뛰지 말고</b> 지나가요!</li>
               <li>🫧 거품 방패는 한 번 막아 줘요</li>
@@ -124,20 +152,27 @@ export class SurfScene {
     this.shells = 0;
     this.shield = false;
     this.items = [];
-    this.spawnIn = 1.6;
-    this.pairIn = 0;
+    this.spawnIn = 1.4;
+    this.queue = []; // 지금 구간에서 아직 안 나온 것들
+    this.patternN = 0;
+    this.lastLv = 0;
+    this.combo = 0;
     this.shieldIn = SHIELD_EVERY[0];
     this.hold = -1; // 누르고 있는 시간 (안 누르면 -1)
     this.waterY = this.el.clientHeight * 0.64;
     this.rider = { y: this.waterY, vy: 0, rot: 0, air: false };
+    this.rider.jumps = 0;
     const down = (e) => {
       if (!this.playing || e.target.closest('.topbar')) return;
-      if (!this.rider.air) {
-        this.rider.vy = JUMP_START * this.u;
-        this.rider.air = true;
-        this.hold = 0;
-        sound.playPop();
-      }
+      const r = this.rider;
+      if (r.jumps >= 2) return;
+      const second = r.jumps === 1;
+      r.vy = JUMP_START * this.u * (second ? JUMP2 : 1);
+      r.air = true;
+      r.jumps += 1;
+      this.hold = 0;
+      sound.playPop();
+      if (second) this.puff();
     };
     const up = () => { this.hold = -1; };
     this.el.addEventListener('pointerdown', down);
@@ -166,19 +201,38 @@ export class SurfScene {
     return this.u * Math.min(SPEED_MAX, SPEED0 + this.score * SPEED_UP);
   }
 
-  nextGap() {
-    const t = Math.min(1, this.score / 30);
-    const near = GAP_NEAR[0] + (GAP_NEAR[1] - GAP_NEAR[0]) * t;
-    const far = GAP_FAR[0] + (GAP_FAR[1] - GAP_FAR[0]) * t;
-    return near + Math.random() * (far - near);
+  // 지금 구간의 난이도: 점수가 오를수록 기본이 올라가고, 그 위에 물결이 얹혀요
+  levelNow() {
+    const base = Math.min(3, 1 + Math.floor(this.score / 12));
+    return Math.max(1, Math.min(5, base + WAVE[this.patternN % WAVE.length]));
   }
 
-  // 다음에 나올 장애물 고르기
-  pickKind() {
-    const r = Math.random();
-    if (this.score >= BIRD_FROM && r < 0.26) return 'bird';
-    if (this.score >= URCHIN_FROM && r < 0.5) return 'urchin';
-    return 'jelly';
+  nextPattern(W) {
+    const lv = this.levelNow();
+    const pool = PATTERNS.filter((p) => p.lv === lv);
+    const p = pool[Math.floor(Math.random() * pool.length)];
+    this.queue = p.items.map((i) => ({ ...i })).sort((a, b) => a.at - b.at);
+    const lead = -Math.min(0, this.queue[0].at);
+    for (const q of this.queue) q.at += lead; // 조개 아치가 앞서 나오는 만큼 당겨요
+    // 다음 구간까지 쉬는 시간: 쉬운 구간일수록 넉넉하게
+    this.spawnIn = patternEnd(p) + lead + (3.2 - lv * 0.32) + Math.random() * 0.5;
+    this.patternN += 1;
+    // 난이도가 눈에 띄게 바뀌면 알려 줘요
+    if (this.score > 4) {
+      if (lv <= 1 && this.lastLv >= 3) this.banner('쉬어 가요 🌊');
+      else if (lv >= 5 && this.lastLv < 5) this.banner('조심! 몰려와요 💨');
+    }
+    this.lastLv = lv;
+  }
+
+  // 두 번째 점프할 때 물방울이 퐁
+  puff() {
+    const W = this.el.clientWidth;
+    for (let i = 0; i < 5; i++) {
+      const d = h(`<i class="surf-drop" style="left:${W * 0.22}px;top:${this.rider.y + this.size * 0.3}px;--dx:${(Math.random() - 0.5) * 70}px"></i>`);
+      this.field.appendChild(d);
+      setTimeout(() => d.remove(), 700);
+    }
   }
 
   step(dt) {
@@ -201,33 +255,24 @@ export class SurfScene {
       r.y = this.waterY;
       r.vy = 0;
       r.air = false;
+      r.jumps = 0;
       this.hold = -1;
     }
     r.rot = r.air ? Math.max(-30, Math.min(32, (r.vy / u) * 0.9)) : Math.sin(performance.now() / 320) * 5;
     this.riderEl.style.transform = `translate(${W * 0.22 - this.size / 2}px, ${r.y - this.size / 2}px) rotate(${r.rot}deg)`;
 
-    // 장애물 만들기
+    // 구간 만들기: 하나씩 때맞춰 내보내요
     const sp = this.speed();
     this.spawnIn -= dt;
-    if (this.spawnIn <= 0) {
-      const kind = this.pickKind();
-      let gap = this.nextGap();
-      if (kind === 'bird') gap = Math.max(gap, BIRD_GAP_MIN);
-      this.spawnIn = gap;
-      this.spawn(W, kind);
-      // 가끔 같은 장애물 두 개가 붙어서 나와요 (갈매기는 빼고)
-      if (kind !== 'bird' && this.score >= PAIR_FROM && Math.random() < 0.2) {
-        this.pairKind = kind;
-        this.pairIn = PAIR_GAP;
-        this.spawnIn += PAIR_GAP;
+    if (this.queue.length) {
+      for (const q of this.queue) q.at -= dt;
+      while (this.queue.length && this.queue[0].at <= 0) {
+        const q = this.queue.shift();
+        if (q.t === 'shell') this.spawnShell(W, q.up);
+        else this.spawn(W, q.t);
       }
-    }
-    if (this.pairIn > 0) {
-      this.pairIn -= dt;
-      if (this.pairIn <= 0) {
-        this.pairIn = 0;
-        this.spawn(W, this.pairKind, true);
-      }
+    } else if (this.spawnIn <= 0) {
+      this.nextPattern(W);
     }
     // 가끔 거품 방패
     this.shieldIn -= dt;
@@ -250,15 +295,6 @@ export class SurfScene {
           it.el.classList.add('got');
           if (it.pick === 'shield') this.getShield();
           else this.getShell(cx, it.y);
-        }
-      }
-      // 머리 위 조개
-      if (it.shellEl && !it.shellGot) {
-        const sy = this.waterY - u * SHELL_UP;
-        if (Math.abs(cx - rx) < rw + u * 2.5 && Math.abs(sy - r.y) < rh + u * 3.5) {
-          it.shellGot = true;
-          it.shellEl.classList.add('got');
-          this.getShell(cx, sy);
         }
       }
       // 부딪힘
@@ -287,18 +323,25 @@ export class SurfScene {
     this.el.classList.toggle('dusk', this.score >= 20 && this.score < 40);
     this.el.classList.toggle('night', this.score >= 40);
     if (this.score % MILESTONE === 0) {
-      this.shells += 3;
+      this.shells += 2;
       this.el.querySelector('.surf-shell').textContent = this.shells;
       sound.playFanfare();
-      this.banner(`${this.score}마리! 🐚 +3 · 더 빨라져요 💨`);
+      this.banner(`${this.score}개! 🐚 +2 · 더 빨라져요 💨`);
     }
   }
 
   getShell(x, y) {
     this.shells += 1;
+    this.combo += 1;
     this.el.querySelector('.surf-shell').textContent = this.shells;
     sound.playStar();
-    floatUp(this.el, x, y, '🐚 +1');
+    if (this.combo % COMBO_STEP === 0) {
+      this.shells += 1;
+      this.el.querySelector('.surf-shell').textContent = this.shells;
+      this.banner(`${this.combo}개 연속! 🐚 +1`);
+    } else {
+      floatUp(this.el, x, y, '🐚 +1');
+    }
   }
 
   getShield() {
@@ -320,19 +363,23 @@ export class SurfScene {
     this.bannerTimer = setTimeout(() => { b.hidden = true; }, 1600);
   }
 
-  spawn(W, kind, pair = false) {
+  spawn(W, kind) {
     const u = this.u;
     const k = KINDS[kind];
     const w = Math.round(u * k.w);
     const oh = Math.round(u * k.h);
-    const withShell = !pair && Math.random() < k.shell;
-    const el = h(`<div class="surf-ob ob-${kind}" style="width:${w}px;height:${oh}px">
-      ${ART[kind]}
-      ${withShell ? `<i class="surf-shellbit" style="bottom:${Math.round(oh * 0.45 + u * (SHELL_UP - 1.5))}px">🐚</i>` : ''}
-    </div>`);
+    const el = h(`<div class="surf-ob ob-${kind}" style="width:${w}px;height:${oh}px">${ART[kind]}</div>`);
     this.field.appendChild(el);
     const y = k.up ? this.waterY - u * k.up - oh / 2 : this.waterY - oh * 0.55;
-    this.items.push({ el, shellEl: el.querySelector('.surf-shellbit'), solid: true, x: W + w, y, w, h: oh });
+    this.items.push({ el, solid: true, x: W + w, y, w, h: oh });
+  }
+
+  spawnShell(W, up) {
+    const u = this.u;
+    const s = Math.round(u * 3.6);
+    const el = h(`<div class="surf-coin" style="width:${s}px;height:${s}px">🐚</div>`);
+    this.field.appendChild(el);
+    this.items.push({ el, pick: 'shell', x: W + s, y: this.waterY - u * up - s / 2, w: s, h: s });
   }
 
   spawnShield(W) {
