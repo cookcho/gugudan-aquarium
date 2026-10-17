@@ -11,15 +11,18 @@ import { sound } from '../audio/soundManager.js';
 import { sea2Art } from '../graphics/sea2.js';
 import confetti from 'canvas-confetti';
 
-// 점프: 톡 누르면 약 9u, 꾹 누르면 약 21u 높이
+// 점프: 톡 누르면 약 9u, 꾹 누르면 약 18u 높이.
+// 빨라질수록 점프가 '짧고 날카롭게' 바뀌어요 — 높이는 그대로인데 체공 시간이 줄어서
+// 타이밍을 더 정확히 맞춰야 해요 (속도만 올리면 점프가 멀리 날아가 오히려 쉬워져요)
+const SHARPEN = 0.6; // 0이면 그대로, 1이면 점프 거리가 늘 일정
 const JUMP_START = -40; // × u
 const HOLD_ACC = -70; // × u/초 (누르고 있는 동안 더 솟아요)
 const HOLD_MAX = 0.28; // 초
 const GRAVITY = 85; // × u
 
-const SPEED0 = 16; // × u (초당). 넘을수록 점점 빨라져요
-const SPEED_MAX = 34;
-const SPEED_UP = 0.5;
+const SPEED0 = 18; // × u (초당). 넘을수록 쭉쭉 빨라져요
+const SPEED_MAX = 44; // 빨라질수록 장애물이 보이고부터 닿을 때까지가 짧아져요 (반응 시간 ↓)
+const SPEED_UP = 1.1;
 
 const JUMP2 = 0.78; // 두 번째 점프 세기 (첫 점프의 몇 배)
 const SHELL_UP = 14.5; // 방패가 뜬 높이 (× u)
@@ -167,7 +170,7 @@ export class SurfScene {
       const r = this.rider;
       if (r.jumps >= 2) return;
       const second = r.jumps === 1;
-      r.vy = JUMP_START * this.u * (second ? JUMP2 : 1);
+      r.vy = JUMP_START * this.u * this.jumpK() * (second ? JUMP2 : 1);
       r.air = true;
       r.jumps += 1;
       this.hold = 0;
@@ -201,9 +204,14 @@ export class SurfScene {
     return this.u * Math.min(SPEED_MAX, SPEED0 + this.score * SPEED_UP);
   }
 
+  // 점프 날카로움: 속도가 오를수록 커져요 (속도 v배 → 체공 1/k배, 높이는 그대로)
+  jumpK() {
+    return Math.pow(this.speed() / (SPEED0 * this.u), SHARPEN);
+  }
+
   // 지금 구간의 난이도: 점수가 오를수록 기본이 올라가고, 그 위에 물결이 얹혀요
   levelNow() {
-    const base = Math.min(3, 1 + Math.floor(this.score / 12));
+    const base = Math.min(3, 1 + Math.floor(this.score / 5));
     return Math.max(1, Math.min(5, base + WAVE[this.patternN % WAVE.length]));
   }
 
@@ -215,7 +223,7 @@ export class SurfScene {
     const lead = -Math.min(0, this.queue[0].at);
     for (const q of this.queue) q.at += lead; // 조개 아치가 앞서 나오는 만큼 당겨요
     // 다음 구간까지 쉬는 시간: 쉬운 구간일수록 넉넉하게
-    this.spawnIn = patternEnd(p) + lead + (3.2 - lv * 0.32) + Math.random() * 0.5;
+    this.spawnIn = patternEnd(p) + lead + (2.2 - lv * 0.32) + Math.random() * 0.35;
     this.patternN += 1;
     // 난이도가 눈에 띄게 바뀌면 알려 줘요
     if (this.score > 4) {
@@ -241,14 +249,15 @@ export class SurfScene {
     const u = this.u;
 
     // 점프: 누르고 있으면 더 솟아요
-    if (this.hold >= 0 && this.hold < HOLD_MAX && r.vy < 0) {
+    const k = this.jumpK();
+    if (this.hold >= 0 && this.hold < HOLD_MAX / k && r.vy < 0) {
       this.hold += dt;
-      r.vy += HOLD_ACC * u * dt;
+      r.vy += HOLD_ACC * u * k * k * dt;
     }
-    r.vy += GRAVITY * u * dt;
+    r.vy += GRAVITY * u * k * k * dt;
     r.y += r.vy * dt;
     if (r.y >= this.waterY) {
-      if (r.air && r.vy > u * 10) {
+      if (r.air && r.vy > u * 10 * k) {
         sound.playSplash();
         this.splash(W * 0.22, this.waterY);
       }
@@ -258,7 +267,7 @@ export class SurfScene {
       r.jumps = 0;
       this.hold = -1;
     }
-    r.rot = r.air ? Math.max(-30, Math.min(32, (r.vy / u) * 0.9)) : Math.sin(performance.now() / 320) * 5;
+    r.rot = r.air ? Math.max(-30, Math.min(32, (r.vy / u / k) * 0.9)) : Math.sin(performance.now() / 320) * 5;
     this.riderEl.style.transform = `translate(${W * 0.22 - this.size / 2}px, ${r.y - this.size / 2}px) rotate(${r.rot}deg)`;
 
     // 구간 만들기: 하나씩 때맞춰 내보내요
