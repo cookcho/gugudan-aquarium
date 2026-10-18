@@ -22,9 +22,9 @@ const HOLD_ACC = -70; // × u/초 (누르고 있는 동안 더 솟아요)
 const HOLD_MAX = 0.28; // 초
 const GRAVITY = 85; // × u
 
-const SPEED0 = 25; // × u (초당). 처음부터 시원하게 달려요
-const SPEED_MAX = 52; // 빨라질수록 장애물이 보이고부터 닿을 때까지가 짧아져요 (반응 시간 ↓)
-const SPEED_UP = 1.4;
+const SPEED0 = 30; // × u (초당). 처음부터 시원하게 달려요
+const SPEED_MAX = 56; // 빨라질수록 장애물이 보이고부터 닿을 때까지가 짧아져요 (반응 시간 ↓)
+const SPEED_UP = 1.6;
 
 const JUMP2 = 0.78; // 두 번째 점프 세기 (첫 점프의 몇 배)
 const SHELL_UP = 14.5; // 방패가 뜬 높이 (× u)
@@ -96,8 +96,8 @@ const PATTERNS = [
   { lv: 5, items: [{ t: 'jelly', at: 0 }, { t: 'bird', at: 1.7 }, { t: 'urchin', at: 3.3 }, { t: 'urchin', at: 3.63 }] },
   { lv: 5, items: [{ t: 'bird', at: 0 }, { t: 'jelly', at: 1.8 }, { t: 'jelly', at: 2.15 }, { t: 'bird', at: 3.9 }, ...arc(1.6, [9, 15, 9])] }
 ];
-// 난이도 물결: 한 바퀴(6구간) 안에서 쉬었다 → 조였다 → 다시 쉬어요
-const WAVE = [-1, 0, 1, 1, 2, -1];
+// 난이도 물결: 한 바퀴(6구간)에 숨 돌리는 구간 하나, 나머지는 몰아쳐요
+const WAVE = [-1, 0, 1, 2, 1, 2];
 const patternEnd = (p) => Math.max(...p.items.map((i) => i.at));
 
 export class SurfScene {
@@ -260,7 +260,7 @@ export class SurfScene {
 
   // 지금 구간의 난이도: 점수가 오를수록 기본이 올라가고, 그 위에 물결이 얹혀요
   levelNow() {
-    const base = Math.min(3, 1 + Math.floor(this.score / 5));
+    const base = Math.min(3, 1 + Math.floor(this.score / 3));
     return Math.max(1, Math.min(5, base + WAVE[this.patternN % WAVE.length]));
   }
 
@@ -272,7 +272,7 @@ export class SurfScene {
     const lead = -Math.min(0, this.queue[0].at);
     for (const q of this.queue) q.at += lead; // 조개 아치가 앞서 나오는 만큼 당겨요
     // 다음 구간까지 쉬는 시간: 쉬운 구간일수록 넉넉하게
-    this.spawnIn = patternEnd(p) + lead + (2.2 - lv * 0.32) + Math.random() * 0.35;
+    this.spawnIn = patternEnd(p) + lead + Math.max(1, 2 - lv * 0.22) + Math.random() * 0.3;
     this.patternN += 1;
     // 난이도가 눈에 띄게 바뀌면 알려 줘요
     if (this.score > 4) {
